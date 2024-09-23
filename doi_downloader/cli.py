@@ -16,9 +16,9 @@ import requests
 load_dotenv()
 
 # Read API keys and other sensitive data from environment variables
-UNPAYWALL_EMAIL = os.getenv('UNPAYWALL_EMAIL')
-UNPAYWALL_API_URL = 'https://api.unpaywall.org/v2/{doi}?email={email}'
-dois_file_path = 'dois.csv'
+UNPAYWALL_EMAIL = os.getenv("UNPAYWALL_EMAIL")
+UNPAYWALL_API_URL = "https://api.unpaywall.org/v2/{doi}?email={email}"
+dois_file_path = "dois.csv"
 
 # Check if necessary variables are loaded
 if not UNPAYWALL_EMAIL:
@@ -31,8 +31,8 @@ def get_open_access_pdf(doi):
 
     if response.status_code == 200:
         data = response.json()
-        if 'best_oa_location' in data and data['best_oa_location']:
-            pdf_url = data['best_oa_location']['url_for_pdf']
+        if "best_oa_location" in data and data["best_oa_location"]:
+            pdf_url = data["best_oa_location"]["url_for_pdf"]
             print(f"Open access PDF for {doi}: {pdf_url}")
             return pdf_url
         else:
@@ -46,20 +46,19 @@ def get_open_access_pdf(doi):
 def download_pdf(pdf_url, filename):
     response = requests.get(pdf_url)
     if response.status_code == 200:
-        with open(filename, 'wb') as f:
+        with open(filename, "wb") as f:
             f.write(response.content)
         print(f"Downloaded PDF: {filename}")
     else:
         print(f"Failed to download PDF from {pdf_url}")
 
+
 def load_dois_from_file(file_path):
-    with open(file_path, 'r') as file:
+    with open(file_path, "r") as file:
         content = file.read().strip()
-        values = content.split(',')
+        values = content.split(",")
         lines = [line.strip() for line in values]
     return lines
-
-
 
 
 # Main function
