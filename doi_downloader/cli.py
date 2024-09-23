@@ -79,10 +79,7 @@ def main():  # pragma: no cover
         * List all available tasks
         * Run an application (Flask, FastAPI, Django, etc.)
     """
-    # List of DOIs to add
-    # dois = [
-    #     '10.1109/ICTC52510.2021.9620851'
-    # ]
+    # Load DOIs from file
     dois = load_dois_from_file(dois_file_path)
     # Attempt to download PDFs for each DOI
     for doi in dois:
