@@ -83,7 +83,6 @@ def main():  # pragma: no cover
     dois = load_dois_from_file(dois_file_path)
     # Attempt to download PDFs for each DOI
     for doi in dois:
-        print(doi)
         pdf_url = get_open_access_pdf(doi)
         if pdf_url:
             download_pdf(pdf_url, f"{doi.replace('/', '_')}.pdf")
