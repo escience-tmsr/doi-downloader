@@ -9,6 +9,10 @@ help:             ## Show the help.
 	@echo "Targets:"
 	@fgrep "##" Makefile | fgrep -v fgrep
 
+.PHONY: run
+run:              ## Run the application.
+	python -m doi_downloader
+
 
 .PHONY: show
 show:             ## Show the current environment.
