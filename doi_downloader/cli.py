@@ -9,6 +9,7 @@ Be creative! do whatever you want!
 """
 
 import os
+import argparse
 from dotenv import load_dotenv
 import requests
 
@@ -18,7 +19,22 @@ load_dotenv()
 # Read API keys and other sensitive data from environment variables
 UNPAYWALL_EMAIL = os.getenv("UNPAYWALL_EMAIL")
 UNPAYWALL_API_URL = "https://api.unpaywall.org/v2/{doi}?email={email}"
-dois_file_path = "dois.csv"
+
+# Set up argument parser
+parser = argparse.ArgumentParser(description="Process a CSV file.")
+parser.add_argument('-f', '--file', type=str, required=True, help="Path to the CSV file")
+args = parser.parse_args()
+
+# Check if file argument is provided
+if not args.file:
+    raise ValueError("The '-f' argument is required. Please specify a CSV file using '-f filename.csv'.")
+
+# Check if file exists
+dois_file_path = args.file
+if not os.path.isfile(dois_file_path):
+    raise FileNotFoundError(f"The file '{dois_file_path}' does not exist. Please provide a valid file path.")
+
+
 
 # Check if necessary variables are loaded
 if not UNPAYWALL_EMAIL:
