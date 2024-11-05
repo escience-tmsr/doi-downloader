@@ -31,16 +31,19 @@ def read_requirements(path):
 
 setup(
     name="doi_downloader",
-    version=read("doi_downloader", "VERSION"),
-    description="Awesome doi_downloader created by escience-cosmas",
-    url="https://github.com/escience-cosmas/doi-downloader/",
-    long_description=read("README.md"),
-    long_description_content_type="text/markdown",
-    author="escience-cosmas",
+    version="0.1.0",
     packages=find_packages(exclude=["tests", ".github"]),
-    install_requires=read_requirements("requirements.txt"),
-    entry_points={
-        "console_scripts": ["doi_downloader = doi_downloader.__main__:main"]
-    },
-    extras_require={"test": read_requirements("requirements-test.txt")},
+    # version=read("doi_downloader", "VERSION"),
+    description="Awesome doi_downloader created by escience-cosmas",
+    # url="https://github.com/escience-cosmas/doi-downloader/",
+    # long_description=read("README.md"),
+    # long_description_content_type="text/markdown",
+    author="escience-tmsr",
+    # packages=find_packages(exclude=["tests", ".github"]),
+    # install_requires=read_requirements("requirements.txt"),
+    install_requires=[],
+    # entry_points={
+    #     "console_scripts": ["doi_downloader = doi_downloader.__main__:main"]
+    # },
+    # extras_require={"test": read_requirements("requirements-test.txt")},
 )
