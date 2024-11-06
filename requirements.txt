@@ -3,7 +3,6 @@ certifi==2024.8.30
 charset-normalizer==3.3.2
 click==8.1.7
 coverage==7.6.1
--e git+ssh://git@github.com/escience-cosmas/doi-downloader.git@e817e64fe5aa49d9fd96a854a5ebb72ef3bcec2f#egg=doi_downloader
 flake8==7.1.1
 ghp-import==2.1.0
 gitchangelog==3.0.4
@@ -32,6 +31,7 @@ python-dotenv==1.0.1
 PyYAML==6.0.2
 pyyaml_env_tag==0.1
 requests==2.32.3
+responses==0.25.3
 ruff==0.6.7
 six==1.16.0
 typing_extensions==4.12.2
