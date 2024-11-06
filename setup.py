@@ -40,8 +40,8 @@ setup(
     # long_description_content_type="text/markdown",
     author="escience-tmsr",
     # packages=find_packages(exclude=["tests", ".github"]),
-    # install_requires=read_requirements("requirements.txt"),
-    install_requires=[],
+    install_requires=read_requirements("requirements.txt"),
+    # install_requires=[],
     # entry_points={
     #     "console_scripts": ["doi_downloader = doi_downloader.__main__:main"]
     # },
