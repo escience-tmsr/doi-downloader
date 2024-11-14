@@ -9,6 +9,10 @@ help:             ## Show the help.
 	@echo "Targets:"
 	@fgrep "##" Makefile | fgrep -v fgrep
 
+.PHONY: run
+run:              ## Run the application.
+	python -m doi_downloader
+
 
 .PHONY: show
 show:             ## Show the current environment.
@@ -26,16 +30,11 @@ install:          ## Install the project in dev mode.
 
 .PHONY: fmt
 fmt:              ## Format code using black & isort.
-	$(ENV_PREFIX)isort doi_downloader/
-	$(ENV_PREFIX)black -l 79 doi_downloader/
-	$(ENV_PREFIX)black -l 79 tests/
+	$(ENV_PREFIX)ruff format doi_downloader/
 
 .PHONY: lint
 lint:             ## Run pep8, black, mypy linters.
-	$(ENV_PREFIX)flake8 doi_downloader/
-	$(ENV_PREFIX)black -l 79 --check doi_downloader/
-	$(ENV_PREFIX)black -l 79 --check tests/
-	$(ENV_PREFIX)mypy --ignore-missing-imports doi_downloader/
+	$(ENV_PREFIX)ruff check doi_downloader/
 
 .PHONY: test
 test: lint        ## Run tests and generate coverage report.
@@ -68,7 +67,7 @@ virtualenv:       ## Create a virtual environment.
 	@if [ "$(USING_POETRY)" ]; then poetry install && exit; fi
 	@echo "creating virtualenv ..."
 	@rm -rf .venv
-	@python3 -m venv .venv
+	@python -m venv .venv
 	@./.venv/bin/pip install -U pip
 	@./.venv/bin/pip install -e .[test]
 	@echo
