@@ -2,6 +2,8 @@
 *.pdf
 # csv files
 *.csv
+# Sqlite3 files
+*.db
 
 
 # Byte-compiled / optimized / DLL files
