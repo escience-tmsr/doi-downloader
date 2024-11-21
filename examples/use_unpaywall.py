@@ -1,7 +1,7 @@
 from doi_downloader import unpaywall as upw
+from doi_downloader import csv
 import os
 import argparse
-import csv
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
@@ -21,18 +21,10 @@ if not args.file:
 
 # Check if file exists
 dois_file_path = args.file
-if not os.path.isfile(dois_file_path):
-    raise FileNotFoundError(f"The file '{dois_file_path}' does not exist. Please provide a valid file path.")
 
 # Check if necessary variables are loaded
 if not UNPAYWALL_EMAIL:
     raise EnvironmentError("Please make sure UNPAYWALL_EMAIL are set in the .env file.")
-
-
-def load_dois_from_file(file_path, column_name="doi"):
-    with open(file_path, 'r') as f:
-        array = [row['doi'] for row in csv.DictReader(f)]
-    return array
 
 
 # Main function
@@ -40,18 +32,27 @@ def main():
     # Set up email
     upw.set_email(UNPAYWALL_EMAIL)
 
-    # dois = load_dois_from_file(dois_file_path, "doi")
-    # print(dois)
-    # urls = upw.get_urls(dois)
-    # print(urls)
-    TEST_DOI="10.1111/j.1468-0335.2008.00689.x"
-    print(upw.get_url(TEST_DOI))
+    dois = csv.load_dois_from_file(dois_file_path, "doi")
+    print(f'Number of DOIs: {len(dois)}')
+    unique_dois = csv.load_dois_from_file(dois_file_path, "doi", unique=True)
+    print(f'Number of unique DOIs: {len(unique_dois)}')
+    # Print difference
+    print(f'Number of duplicates: {len(dois) - len(unique_dois)}')
 
+    # Get URLs for dois
+    urls = upw.get_urls(dois)
+    false_values = sum(1 for value in urls.values() if value is False)
+    print(false_values)
+    no_urls = upw.get_list_with_no_urls()
+    for (doi, _, _) in no_urls:
+        print(doi)
+    print(len(no_urls))
+    # for url in urls:
+    #     print(f'{url["doi"]}: {url["url"]}')
 
+    # Download files
 
-    # # Load DOIs from file
     # dois = load_dois_from_file(dois_file_path)
-    # print(dois)
     # files = upw.download_from_dois(dois)
     # print(files)
 

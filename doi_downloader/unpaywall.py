@@ -1,4 +1,5 @@
 import requests
+import json
 from . import config
 from . import pdf_download as pdf
 from .cache import Cache
@@ -16,6 +17,16 @@ def set_email(email):
 def check_cache(doi):
     return cache.get_cache(doi)
 
+def get_number_of_cached_404():
+    return cache.get_count_of_value({'code': 404})
+
+def get_list_with_no_urls():
+    records = cache.get_all_cache()
+    return [record for record in records if not _extract_url(json.loads(record[1]))]
+
+def get_number_of_cached():
+    return cache.get_count_all()
+
 def _extract_url(data):
     if "best_oa_location" in data and data["best_oa_location"]:
         return data["best_oa_location"]["url_for_pdf"]
@@ -29,7 +40,7 @@ def get_url(doi):
     # Check the cache first
     cached_data = check_cache(doi)
     if cached_data:
-        print(f"Using cached data for {doi}.")
+        # print(f"Using cached data for {doi}.")
         return _extract_url(cached_data)
 
     # Make the request to the Unpaywall API
