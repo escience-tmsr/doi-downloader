@@ -1,8 +1,8 @@
 import requests
-import json
-from . import config
-from . import pdf_download as pdf
-from .cache import Cache
+# import json
+# from . import config
+# from . import pdf_download as pdf
+# from .cache import Cache
 
 # Read API keys and other sensitive data from environment variables
 CROSSREF_API_URL = "https://api.crossref.org/works/{doi}"
