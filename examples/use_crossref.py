@@ -20,9 +20,21 @@ dois_file_path = args.file
 
 # Main function
 def main():
-    # Example usage
-    doi = "10.1038/s41586-019-1666-5"  # Replace with the DOI you want to query
-    metadata = crf.fetch_metadata(doi)
-    print(metadata)
+    dois = csv.load_dois_from_file(dois_file_path, "doi")
+    print(f'Number of DOIs: {len(dois)}')
+    unique_dois = csv.load_dois_from_file(dois_file_path, "doi", unique=True)
+    print(f'Number of unique DOIs: {len(unique_dois)}')
+    # Print difference
+    print(f'Number of duplicates: {len(dois) - len(unique_dois)}')
+
+    # Get URLs for dois
+    urls = crf.get_urls(dois, False)
+    print(urls)
+    false_values = sum(1 for value in urls.values() if value is False)
+    print(false_values)
+    # no_urls = crf.get_list_with_no_urls()
+    # for (doi, _, _) in no_urls:
+    #     print(doi)
+    # print(len(no_urls))
 
 main()

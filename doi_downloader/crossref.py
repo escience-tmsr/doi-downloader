@@ -33,7 +33,7 @@ def fetch_metadata(doi):
                 "published_date": metadata.get("published-print", {}).get("date-parts", [["Unknown"]])[0],
                 "journal": metadata.get("container-title", ["Unknown"])[0],
                 "doi": metadata.get("DOI", "Unknown"),
-                "pdf_link": pdf_link or "No PDF link available"
+                "pdf_link": pdf_link or False
             }
         else:
             return {"error": "No metadata found for the given DOI."}
@@ -41,3 +41,27 @@ def fetch_metadata(doi):
         return {"error": f"An error occurred: {e}"}
 
 
+def get_url(doi, use_cache=True):
+    # if use_cache:
+    #     # Check the cache first
+    #     cached_data = Cache.get_cache(doi)
+    #     if cached_data:
+    #         return cached_data.get("pdf_link")
+
+    # Make the request to the Crossref API
+    metadata = fetch_metadata(doi)
+    if "error" in metadata:
+        print(f"Error: {metadata['error']}")
+        return False
+        # return metadata["error"]
+
+    # if use_cache:
+    #     Cache.set_cache(doi, metadata)
+
+    return metadata.get("pdf_link")
+
+def get_urls(dois, use_cache=True):
+    urls = {}
+    for doi in dois:
+        urls[doi] = get_url(doi, use_cache)
+    return urls
