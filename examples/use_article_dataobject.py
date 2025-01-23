@@ -3,7 +3,6 @@ from doi_downloader import article_dataobject as ado
 
 # Example usage
 data = {
-    "message": {
         "title": ["Sample Article Title"],
         "author": [
             {"given": "John", "family": "Doe"},
@@ -16,7 +15,6 @@ data = {
             {"URL": "https://example.com/article.pdf", "content-type": "application/pdf"}
         ]
     }
-}
 
 # Create a ArticleDataObject instance
 json_data = ado.ArticleDataObject(data)

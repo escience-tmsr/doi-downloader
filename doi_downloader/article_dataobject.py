@@ -7,12 +7,8 @@ schema = {
     "$id": "https://example.com/crossref-schema",
     "title": "Crossref Metadata Schema",
     "type": "object",
-    "required": ["message"],
+    "required": ["title", "DOI" ],
     "properties": {
-        "message": {
-            "type": "object",
-            "required": ["title", "author", "DOI", "issued"],
-            "properties": {
                 "title": {
                     "type": "array",
                     "items": {"type": "string"},
@@ -61,8 +57,6 @@ schema = {
                 }
             }
         }
-    }
-}
 
 class ArticleDataObject:
     """
@@ -76,8 +70,68 @@ class ArticleDataObject:
         :param data: The Article data object (dictionary).
         :param schema: The Article schema for validation (dictionary).
         """
-        self.data = data
+        self.data = data or {
+            "title": [],
+            "author": [],
+            "DOI": "",
+            "publisher": "",
+            "issued": {"date-parts": [[]]},
+            "link": []
+
+        }
         self.schema = schema
+
+    def set_title(self, title):
+        """
+        Set the title of the Article data object.
+
+        :param title: The title of the Article.
+        """
+        self.data["title"] = [title]
+
+    def add_author(self, given_name, family_name):
+        """
+        Add an author to the Article data object.
+
+        :param given_name: The given name of the author.
+        :param family_name: The family name of the author.
+        """
+        self.data["author"].append({"given": given_name, "family": family_name})
+
+    def set_doi(self, doi):
+        """
+        Set the DOI of the Article data object.
+
+        :param doi: The DOI of the Article.
+        """
+        self.data["DOI"] = doi
+
+    def set_publisher(self, publisher):
+        """
+        Set the publisher of the Article data object.
+
+        :param publisher: The publisher of the Article.
+        """
+        self.data["publisher"] = publisher
+
+    def set_issued_date(self, year, month, day):
+        """
+        Set the issued date of the Article data object.
+
+        :param year: The year of publication.
+        :param month: The month of publication.
+        :param day: The day of publication.
+        """
+        self.data["issued"]["date-parts"] = [[year, month, day]]
+
+    def add_link(self, url, content_type = "application/pdf"):
+        """
+        Add a link to the Article data object.
+
+        :param url: The URL of the link.
+        :param content_type: The content type of the link.
+        """
+        self.data["link"].append({"URL": url, "content-type": content_type})
 
     def validate(self):
         """
