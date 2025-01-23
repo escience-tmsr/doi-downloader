@@ -133,6 +133,17 @@ class ArticleDataObject:
         """
         self.data["link"].append({"URL": url, "content-type": content_type})
 
+    def get_pdf_link(self):
+        """
+        Get the PDF link from the Article data object.
+
+        :return: The PDF link if available, otherwise None.
+        """
+        for link in self.data["link"]:
+            if link.get("content-type") == "application/pdf":
+                return link.get("URL")
+        return None
+
     def validate(self):
         """
         Validate the Article data against the provided schema.
@@ -158,6 +169,25 @@ class ArticleDataObject:
         :return: A Article string representation of the data.
         """
         return json.dumps(self.data, indent=4)
+
+    @classmethod
+    def from_crossref_json(cls, crossref_json):
+        """
+        Create a ArticleDataObject instance from a Crossref JSON response.
+
+        :param crossref_json: A Crossref JSON response representing the data.
+        :return: An instance of ArticleDataObject.
+        """
+        crossref_data = crossref_json.get("message", {})
+        data = {
+            "title": crossref_data.get("title", []),
+            "author": crossref_data.get("author", []),
+            "DOI": crossref_data.get("DOI", ""),
+            "publisher": crossref_data.get("publisher", ""),
+            "issued": crossref_data.get("issued", {"date-parts": [[]]}),
+            "link": crossref_data.get("link", [])
+        }
+        return cls(data)
 
     @classmethod
     def from_json(cls, json_string, schema):
