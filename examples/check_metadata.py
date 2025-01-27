@@ -1,10 +1,16 @@
+from doi_downloader import unpaywall as upw
 from doi_downloader import crossref as crf
 from doi_downloader import csv
+from doi_downloader import article_dataobject as ado
+import os
 import argparse
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
 load_dotenv()
+
+# Read API keys and other sensitive data from environment variables
+UNPAYWALL_EMAIL = os.getenv("UNPAYWALL_EMAIL")
 
 # Set up argument parser
 parser = argparse.ArgumentParser(description="Process a CSV file.")
@@ -18,30 +24,32 @@ if not args.file:
 # Check if file exists
 dois_file_path = args.file
 
+# Check if necessary variables are loaded
+if not UNPAYWALL_EMAIL:
+    raise EnvironmentError("Please make sure UNPAYWALL_EMAIL are set in the .env file.")
+
+
 # Main function
 def main():
+    # Set up email
+    upw.set_email(UNPAYWALL_EMAIL)
+
     dois = csv.load_dois_from_file(dois_file_path, "doi")
     print(f'Number of DOIs: {len(dois)}')
     unique_dois = csv.load_dois_from_file(dois_file_path, "doi", unique=True)
     print(f'Number of unique DOIs: {len(unique_dois)}')
     # Print difference
     print(f'Number of duplicates: {len(dois) - len(unique_dois)}')
+    try:
+        for doi in unique_dois:
+            # Try unpaywall first
+            metadata_upw = upw.fetch_metadata(doi)
+            metadata_crf = crf.fetch_metadata(doi)
+            print(metadata_upw.to_json())
+            print(metadata_crf.to_json())
+            print("----------------------------------------------------")
+    except Exception as e:
+        print(e)
 
-
-    for doi in unique_dois:
-        # print(doi)
-        url = crf.get_url(doi)
-        print(f'{doi} {url}')
-        break
-
-    # Get URLs for dois
-    # urls = crf.get_urls(dois, False)
-    # print(urls)
-    # false_values = sum(1 for value in urls.values() if value is False)
-    # print(false_values)
-    # no_urls = crf.get_list_with_no_urls()
-    # for (doi, _, _) in no_urls:
-    #     print(doi)
-    # print(len(no_urls))
 
 main()

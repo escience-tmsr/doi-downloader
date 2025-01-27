@@ -3,6 +3,7 @@ import json
 from . import config
 from . import pdf_download as pdf
 from .cache import Cache
+from . import article_dataobject as ado # import ArticleDataObject
 
 # Read API keys and other sensitive data from environment variables
 UNPAYWALL_EMAIL = None
@@ -32,10 +33,25 @@ def _extract_url(data):
         return data["best_oa_location"]["url_for_pdf"]
     return False
 
-# Function to get the URL of the PDF from the DOI
-def get_url(doi, use_cache=True):
+def fetch_metadata(doi):
     if not UNPAYWALL_EMAIL:
         raise EnvironmentError("Please make sure email is set using set_email().")
+    url = UNPAYWALL_API_URL.format(doi=doi, email=UNPAYWALL_EMAIL)
+    try:
+        response = requests.get(url, timeout=10)
+        response.raise_for_status()  # Raise an HTTPError for bad responses (4xx and 5xx)
+        data = response.json()
+        # print(data)
+        dataObj = ado.ArticleDataObject.from_unpaywall_json(data)
+        return dataObj
+    except requests.exceptions.RequestException as e:
+        print(f"An error occurred: {e}")
+        return None
+
+# Function to get the URL of the PDF from the DOI
+def get_url(doi, use_cache=True):
+    # if not UNPAYWALL_EMAIL:
+    #     raise EnvironmentError("Please make sure email is set using set_email().")
     if use_cache:
         # Check the cache first
         cached_data = check_cache(doi)
@@ -43,31 +59,35 @@ def get_url(doi, use_cache=True):
             # print(f"Using cached data for {doi}.")
             return _extract_url(cached_data)
 
-    # Make the request to the Unpaywall API
-    unpaywall_api_url = UNPAYWALL_API_URL.format(doi=doi, email=UNPAYWALL_EMAIL)
-    print(f"Checking {unpaywall_api_url}...")
-    response = requests.get(unpaywall_api_url, headers=config.headers)
+    metadata = fetch_metadata(doi)
+    return metadata.get_pdf_link()
 
-    if response.status_code == 200:
-        data = response.json()
-        if use_cache:
-            cache.set_cache(doi, data)
-            print(f"Data cached for {doi}.")
 
-        return _extract_url(data)
-    if response.status_code == 404:
-        if use_cache:
-            cache.set_cache(doi, {'code': 404})
-
-        print(f"No data found for {doi}.")
-        return False
-        # if "best_oa_location" in data and data["best_oa_location"]:
-        #     pdf_url = data["best_oa_location"]["url_for_pdf"]
-        #     return pdf_url
-    if response.status_code == 429:
-        raise ValueError("Rate limit.")
-
-    return False
+    # # Make the request to the Unpaywall API
+    # unpaywall_api_url = UNPAYWALL_API_URL.format(doi=doi, email=UNPAYWALL_EMAIL)
+    # print(f"Checking {unpaywall_api_url}...")
+    # response = requests.get(unpaywall_api_url, headers=config.headers)
+    #
+    # if response.status_code == 200:
+    #     data = response.json()
+    #     if use_cache:
+    #         cache.set_cache(doi, data)
+    #         print(f"Data cached for {doi}.")
+    #
+    #     return _extract_url(data)
+    # if response.status_code == 404:
+    #     if use_cache:
+    #         cache.set_cache(doi, {'code': 404})
+    #
+    #     print(f"No data found for {doi}.")
+    #     return False
+    #     # if "best_oa_location" in data and data["best_oa_location"]:
+    #     #     pdf_url = data["best_oa_location"]["url_for_pdf"]
+    #     #     return pdf_url
+    # if response.status_code == 429:
+    #     raise ValueError("Rate limit.")
+    #
+    # return False
 
 def get_urls(dois):
     if not UNPAYWALL_EMAIL:

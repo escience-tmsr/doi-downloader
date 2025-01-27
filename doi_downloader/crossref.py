@@ -16,6 +16,7 @@ def fetch_metadata(doi):
         response.raise_for_status()  # Raise an HTTPError for bad responses (4xx and 5xx)
         data = response.json()
         if "message" not in data:
+            # print(f"No metadata found for DOI: {doi}")
             return None
 
         dataObj = ado.ArticleDataObject.from_crossref_json(data)
@@ -46,7 +47,8 @@ def fetch_metadata(doi):
         # else:
         #     return {"error": "No metadata found for the given DOI."}
     except requests.exceptions.RequestException as e:
-        return {"error": f"An error occurred: {e}"}
+        print(f"An error occurred: {e}")
+        return None
 
 
 def get_url(doi, use_cache=True):

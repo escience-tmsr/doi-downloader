@@ -7,13 +7,14 @@ schema = {
     "$id": "https://example.com/crossref-schema",
     "title": "Crossref Metadata Schema",
     "type": "object",
-    "required": ["title", "DOI" ],
+    "required": ["title", "DOI", "source" ],
     "properties": {
                 "title": {
                     "type": "array",
                     "items": {"type": "string"},
                     "minItems": 1
                 },
+                "source": {"type": "string"},
                 "author": {
                     "type": "array",
                     "items": {
@@ -80,6 +81,14 @@ class ArticleDataObject:
 
         }
         self.schema = schema
+
+    def set_source(self, source):
+        """
+        Set the source of the Article data object.
+
+        :param source: The source of the Article.
+        """
+        self.data["source"] = source
 
     def set_title(self, title):
         """
@@ -171,6 +180,40 @@ class ArticleDataObject:
         return json.dumps(self.data, indent=4)
 
     @classmethod
+    def from_unpaywall_json(cls, unpaywall_data):
+        """
+        Create a ArticleDataObject instance from an Unpaywall JSON response.
+
+        :param unpaywall_data: An Unpaywall JSON response representing the data.
+        :return: An instance of ArticleDataObject.
+        """
+        def extract_authors(data):
+            def filter_author(author):
+                if author.get("given") and author.get("family"):
+                    return {
+                        "given": author.get("given"),
+                        "family": author.get("family")
+                    }
+                return None
+
+            return [
+                author for author in map(filter_author, data.get("z_authors", [])) 
+                if author is not None
+        ]
+
+        authors = extract_authors(unpaywall_data)
+        data = {
+            "title": unpaywall_data.get("title", ""),
+            "source": "unpaywall",
+            "author": list(authors),
+            "DOI": unpaywall_data.get("doi", ""),
+            "publisher": unpaywall_data.get("publisher", ""),
+            "published_date": unpaywall_data.get("published_date", ""),
+            "link": [{"URL": unpaywall_data.get("link", "")}]
+        }
+        return cls(data)
+
+    @classmethod
     def from_crossref_json(cls, crossref_json):
         """
         Create a ArticleDataObject instance from a Crossref JSON response.
@@ -179,12 +222,30 @@ class ArticleDataObject:
         :return: An instance of ArticleDataObject.
         """
         crossref_data = crossref_json.get("message", {})
+        def extract_authors(data):
+            def filter_author(author):
+                if author.get("given") and author.get("family"):
+                    return {
+                        "given": author.get("given"),
+                        "family": author.get("family")
+                    }
+                return None
+
+            return [
+                author for author in map(filter_author, data.get("author", [])) 
+                if author is not None
+        ]
+        def convert_published_date(published_date):
+            if published_date.get("date-parts"):
+                return f'{published_date["date-parts"][0][0]}-{published_date["date-parts"][0][1]}'
+            return ""
         data = {
-            "title": crossref_data.get("title", []),
-            "author": crossref_data.get("author", []),
+            "title": crossref_data.get("title", [])[0],
+            "source": "crossref",
+            "author": extract_authors(crossref_data),
             "DOI": crossref_data.get("DOI", ""),
             "publisher": crossref_data.get("publisher", ""),
-            "issued": crossref_data.get("issued", {"date-parts": [[]]}),
+            "published_date": convert_published_date(crossref_data.get("published", {})),
             "link": crossref_data.get("link", [])
         }
         return cls(data)

@@ -42,17 +42,19 @@ def main():
 
     for doi in unique_dois:
         # Try unpaywall first
-        url = upw.get_url(doi)
+        url = upw.get_url(doi, False)
         if url:
             print(f'unpaywall: {doi}: {url}')
-            continue
-        if not url:
-            # Try crossref
-            url = crf.get_url(doi)
-            if url:
-                print(f'crossref: {doi}: {url}')
-            else:
-                print(f'No URL found for {doi}')
+            break
+            # continue
+        break
+        # if not url:
+        #     # Try crossref
+        #     url = crf.get_url(doi)
+        #     if url:
+        #         print(f'crossref: {doi}: {url}')
+        #     else:
+        #         print(f'No URL found for {doi}')
 
     # Get URLs for dois
     # urls = upw.get_urls(dois)
