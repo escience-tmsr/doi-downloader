@@ -66,7 +66,7 @@ def get_url(doi, use_cache=True):
 
     # if use_cache:
     #     Cache.set_cache(doi, metadata)
-    x = metadata.to_json()
+    # x = metadata.to_json()
     # print(metadata.to_json())
     # return metadata.get("pdf_link")
     return metadata.get_pdf_link()

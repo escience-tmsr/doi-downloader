@@ -1,6 +1,6 @@
 import requests
 import json
-from . import config
+# from . import config
 from . import pdf_download as pdf
 from .cache import Cache
 from . import article_dataobject as ado # import ArticleDataObject
