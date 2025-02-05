@@ -4,7 +4,8 @@ certifi==2024.8.30
 charset-normalizer==3.3.2
 click==8.1.7
 coverage==7.6.1
--e git+ssh://git@github.com/escience-tmsr/doi-downloader.git@5e6c5131c1a6859ad962fe8f03392887ed14db18#egg=doi_downloader
+-e git+ssh://git@github.com/escience-tmsr/doi-downloader.git@a5d67fd889dea4053fda6ec554ad6016bf59c3e0#egg=doi_downloader
+duckdb==1.2.0
 flake8==7.1.1
 ghp-import==2.1.0
 gitchangelog==3.0.4
