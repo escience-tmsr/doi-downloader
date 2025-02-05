@@ -40,16 +40,16 @@ def main():
     print(f'Number of unique DOIs: {len(unique_dois)}')
     # Print difference
     print(f'Number of duplicates: {len(dois) - len(unique_dois)}')
-    try:
-        for doi in unique_dois:
-            # Try unpaywall first
+    for doi in unique_dois:
+        try:
             metadata_upw = upw.fetch_metadata(doi)
             metadata_crf = crf.fetch_metadata(doi)
             print(metadata_upw.to_json())
             print(metadata_crf.to_json())
             print("----------------------------------------------------")
-    except Exception as e:
-        print(e)
+        except Exception as e:
+            print(e)
+            continue
 
 
 main()

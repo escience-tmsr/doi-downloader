@@ -7,7 +7,7 @@ schema = {
     "$id": "https://example.com/crossref-schema",
     "title": "Crossref Metadata Schema",
     "type": "object",
-    "required": ["title", "DOI", "source" ],
+    "required": ["title", "DOI", "source", "pdf_links" ],
     "properties": {
                 "title": {
                     "type": "array",
@@ -15,7 +15,7 @@ schema = {
                     "minItems": 1
                 },
                 "source": {"type": "string"},
-                "author": {
+                "authors": {
                     "type": "array",
                     "items": {
                         "type": "object",
@@ -30,22 +30,8 @@ schema = {
                     "type": "string",
                     "pattern": "^10\\.\\d{4,9}/[-._;()/:a-zA-Z0-9]+$"
                 },
-                "publisher": {"type": "string"},
-                "issued": {
-                    "type": "object",
-                    "properties": {
-                        "date-parts": {
-                            "type": "array",
-                            "items": {
-                                "type": "array",
-                                "items": {"type": "integer"},
-                                "minItems": 1,
-                                "maxItems": 3
-                            }
-                        }
-                    }
-                },
-                "link": {
+                "published_date": {"type": "string"},
+                "pdf_links": {
                     "type": "array",
                     "items": {
                         "type": "object",
@@ -73,11 +59,11 @@ class ArticleDataObject:
         """
         self.data = data or {
             "title": [],
+            "source": "",
             "author": [],
             "DOI": "",
-            "publisher": "",
-            "issued": {"date-parts": [[]]},
-            "link": []
+            "published_date": "",
+            "pdf_links": []
 
         }
         self.schema = schema
@@ -115,15 +101,8 @@ class ArticleDataObject:
         """
         self.data["DOI"] = doi
 
-    def set_publisher(self, publisher):
-        """
-        Set the publisher of the Article data object.
 
-        :param publisher: The publisher of the Article.
-        """
-        self.data["publisher"] = publisher
-
-    def set_issued_date(self, year, month, day):
+    def set_published_date(self, year, month, day):
         """
         Set the issued date of the Article data object.
 
@@ -131,16 +110,16 @@ class ArticleDataObject:
         :param month: The month of publication.
         :param day: The day of publication.
         """
-        self.data["issued"]["date-parts"] = [[year, month, day]]
+        self.data["published_date"] = f"{year}-{month}-{day}"
 
-    def add_link(self, url, content_type = "application/pdf"):
+    def add_link(self, url):
         """
         Add a link to the Article data object.
 
         :param url: The URL of the link.
         :param content_type: The content type of the link.
         """
-        self.data["link"].append({"URL": url, "content-type": content_type})
+        self.data["pdf_links"].append(url)
 
     def get_pdf_link(self):
         """
@@ -148,10 +127,7 @@ class ArticleDataObject:
 
         :return: The PDF link if available, otherwise None.
         """
-        for link in self.data["link"]:
-            if link.get("content-type") == "application/pdf":
-                return link.get("URL")
-        return None
+        return self.data["pdf_links"][0] if self.data["pdf_links"] else None
 
     def validate(self):
         """
@@ -200,16 +176,20 @@ class ArticleDataObject:
                 author for author in map(filter_author, data.get("z_authors", [])) 
                 if author is not None
         ]
+        def extract_pdf_link(data):
+            if "best_oa_location" in data and data["best_oa_location"]:
+                return data["best_oa_location"]["url_for_pdf"]
+            return None
 
         authors = extract_authors(unpaywall_data)
         data = {
             "title": unpaywall_data.get("title", ""),
             "source": "unpaywall",
-            "author": list(authors),
+            "authors": list(authors),
             "DOI": unpaywall_data.get("doi", ""),
             "publisher": unpaywall_data.get("publisher", ""),
             "published_date": unpaywall_data.get("published_date", ""),
-            "link": [{"URL": unpaywall_data.get("link", "")}]
+            "pdf_links": [extract_pdf_link(unpaywall_data)] if extract_pdf_link(unpaywall_data) else []
         }
         return cls(data)
 
@@ -239,15 +219,27 @@ class ArticleDataObject:
             if published_date.get("date-parts"):
                 return f'{published_date["date-parts"][0][0]}-{published_date["date-parts"][0][1]}'
             return ""
+        def extract_pdf_link(data):
+            """
+            Get the PDF link from the Article data object.
+
+            :return: The PDF link if available, otherwise None.
+            """
+            for link in data["link"]:
+                if link.get("content-type") == "application/pdf":
+                    return link.get("URL")
+            return None
+
         data = {
             "title": crossref_data.get("title", [])[0],
             "source": "crossref",
-            "author": extract_authors(crossref_data),
+            "authors": extract_authors(crossref_data),
             "DOI": crossref_data.get("DOI", ""),
             "publisher": crossref_data.get("publisher", ""),
             "published_date": convert_published_date(crossref_data.get("published", {})),
-            "link": crossref_data.get("link", [])
+            "pdf_links": [extract_pdf_link(crossref_data)] if extract_pdf_link(crossref_data) else []
         }
+
         return cls(data)
 
     @classmethod
