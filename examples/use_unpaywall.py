@@ -39,14 +39,19 @@ def main():
     # Print difference
     print(f'Number of duplicates: {len(dois) - len(unique_dois)}')
 
+    for doi in unique_dois:
+        pdf_url = upw.get_pdf_url(doi, use_cache=True)
+        print(f'{doi}: {pdf_url}')
+        
+
     # Get URLs for dois
-    urls = upw.get_urls(dois)
-    false_values = sum(1 for value in urls.values() if value is False)
-    print(false_values)
-    no_urls = upw.get_list_with_no_urls()
-    for (doi, _, _) in no_urls:
-        print(doi)
-    print(len(no_urls))
+    # urls = upw.get_urls(dois)
+    # false_values = sum(1 for value in urls.values() if value is False)
+    # print(false_values)
+    # no_urls = upw.get_list_with_no_urls()
+    # for (doi, _, _) in no_urls:
+    #     print(doi)
+    # print(len(no_urls))
     # for url in urls:
     #     print(f'{url["doi"]}: {url["url"]}')
 

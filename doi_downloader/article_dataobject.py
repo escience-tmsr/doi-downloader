@@ -9,11 +9,7 @@ schema = {
     "type": "object",
     "required": ["title", "DOI", "source", "pdf_links" ],
     "properties": {
-                "title": {
-                    "type": "array",
-                    "items": {"type": "string"},
-                    "minItems": 1
-                },
+                "title": {"type": "string" },
                 "source": {"type": "string"},
                 "authors": {
                     "type": "array",
@@ -34,12 +30,8 @@ schema = {
                 "pdf_links": {
                     "type": "array",
                     "items": {
-                        "type": "object",
-                        "properties": {
-                            "URL": {"type": "string", "format": "uri"},
-                            "content-type": {"type": "string"}
-                        },
-                        "required": ["URL"]
+                        "type": "string",
+                        "format": "uri"
                     }
                 }
             }
@@ -243,7 +235,7 @@ class ArticleDataObject:
         return cls(data)
 
     @classmethod
-    def from_json(cls, json_string, schema):
+    def from_json(cls, json_string, schema = schema):
         """
         Create a ArticleDataObject instance from a Article string.
 
