@@ -1,5 +1,7 @@
 from doi_downloader import unpaywall as upw
+from doi_downloader import crossref as crf
 from doi_downloader import csv
+from doi_downloader import article_dataobject as ado
 import os
 import argparse
 from dotenv import load_dotenv
@@ -38,28 +40,16 @@ def main():
     print(f'Number of unique DOIs: {len(unique_dois)}')
     # Print difference
     print(f'Number of duplicates: {len(dois) - len(unique_dois)}')
-
     for doi in unique_dois:
-        pdf_url = upw.get_pdf_url(doi, use_cache=True)
-        print(f'{doi}: {pdf_url}')
-        
-
-    # Get URLs for dois
-    # urls = upw.get_urls(dois)
-    # false_values = sum(1 for value in urls.values() if value is False)
-    # print(false_values)
-    # no_urls = upw.get_list_with_no_urls()
-    # for (doi, _, _) in no_urls:
-    #     print(doi)
-    # print(len(no_urls))
-    # for url in urls:
-    #     print(f'{url["doi"]}: {url["url"]}')
-
-    # Download files
-
-    # dois = load_dois_from_file(dois_file_path)
-    # files = upw.download_from_dois(dois)
-    # print(files)
+        try:
+            metadata_upw = upw.fetch_metadata(doi)
+            metadata_crf = crf.fetch_metadata(doi)
+            print(metadata_upw.to_json())
+            print(metadata_crf.to_json())
+            print("----------------------------------------------------")
+        except Exception as e:
+            print(e)
+            continue
 
 
 main()

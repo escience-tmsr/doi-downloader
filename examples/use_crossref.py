@@ -27,14 +27,10 @@ def main():
     # Print difference
     print(f'Number of duplicates: {len(dois) - len(unique_dois)}')
 
-    # Get URLs for dois
-    urls = crf.get_urls(dois, False)
-    print(urls)
-    false_values = sum(1 for value in urls.values() if value is False)
-    print(false_values)
-    # no_urls = crf.get_list_with_no_urls()
-    # for (doi, _, _) in no_urls:
-    #     print(doi)
-    # print(len(no_urls))
+
+    for doi in unique_dois:
+        url = crf.get_pdf_url(doi)
+        print(f'{doi} {url}')
+
 
 main()
