@@ -1,8 +1,12 @@
 import requests
 import os
-from . import Plugin
+from doi_downloader.plugins import Plugin
 from doi_downloader.cache_duckdb import Cache
 from doi_downloader import article_dataobject as ado # import ArticleDataObject
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Read API keys and other sensitive data from environment variables
 # UNPAYWALL_EMAIL = None
@@ -16,7 +20,7 @@ class UnpaywallPlugin(Plugin):
         return instance
 
     def test(self):
-        print("Unpaywall plugin is working.")
+        return True
 
 # Function to set the email for the Unpaywall API
 # def set_email(email):

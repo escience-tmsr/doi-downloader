@@ -1,5 +1,5 @@
 import requests
-from . import Plugin
+from doi_downloader.plugins import Plugin
 from doi_downloader.cache_duckdb import Cache
 from doi_downloader import article_dataobject as ado # import ArticleDataObject
 
@@ -14,7 +14,7 @@ class CrossrefPlugin(Plugin):
         return instance
 
     def test(self):
-        print("Crossref plugin is working.")
+        return True
 
     def fetch_metadata(self, doi):
         url = CROSSREF_API_URL.format(doi=doi)
