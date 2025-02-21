@@ -1,14 +1,7 @@
-from doi_downloader import unpaywall as upw
+from doi_downloader import loader as ld
 from doi_downloader import csv
 import os
 import argparse
-from dotenv import load_dotenv
-
-# Load environment variables from .env file
-load_dotenv()
-
-# Read API keys and other sensitive data from environment variables
-UNPAYWALL_EMAIL = os.getenv("UNPAYWALL_EMAIL")
 
 # Set up argument parser
 parser = argparse.ArgumentParser(description="Process a CSV file.")
@@ -22,22 +15,17 @@ if not args.file:
 # Check if file exists
 dois_file_path = args.file
 
-# Check if necessary variables are loaded
-if not UNPAYWALL_EMAIL:
-    raise EnvironmentError("Please make sure UNPAYWALL_EMAIL are set in the .env file.")
-
-
 # Main function
 def main():
-    # Set up email
-    upw.set_email(UNPAYWALL_EMAIL)
-
     dois = csv.load_dois_from_file(dois_file_path, "doi")
     print(f'Number of DOIs: {len(dois)}')
     unique_dois = csv.load_dois_from_file(dois_file_path, "doi", unique=True)
     print(f'Number of unique DOIs: {len(unique_dois)}')
     # Print difference
     print(f'Number of duplicates: {len(dois) - len(unique_dois)}')
+
+    plugins = ld.plugins
+    upw = plugins['UnpaywallPlugin']
 
     for doi in unique_dois:
         pdf_url = upw.get_pdf_url(doi, use_cache=True)
