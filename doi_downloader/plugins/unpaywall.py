@@ -22,14 +22,6 @@ class UnpaywallPlugin(Plugin):
     def test(self):
         return True
 
-# Function to set the email for the Unpaywall API
-# def set_email(email):
-#     global UNPAYWALL_EMAIL
-#     UNPAYWALL_EMAIL = email
-#
-# def get_number_of_cached():
-#     return cache.get_count_all()
-
     def fetch_metadata(self, doi):
         if not UNPAYWALL_EMAIL:
             raise EnvironmentError("Please make sure email is set using set_email().")
