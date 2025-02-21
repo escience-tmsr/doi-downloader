@@ -1,4 +1,4 @@
-from doi_downloader import crossref as crf
+from doi_downloader import loader as ld
 from doi_downloader import csv
 import argparse
 from dotenv import load_dotenv
@@ -26,7 +26,9 @@ def main():
     print(f'Number of unique DOIs: {len(unique_dois)}')
     # Print difference
     print(f'Number of duplicates: {len(dois) - len(unique_dois)}')
-
+    
+    plugins = ld.plugins
+    crf = plugins['CrossrefPlugin']
 
     for doi in unique_dois:
         url = crf.get_pdf_url(doi)
