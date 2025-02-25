@@ -104,7 +104,7 @@ class ArticleDataObject:
         """
         self.data["published_date"] = f"{year}-{month}-{day}"
 
-    def add_link(self, url):
+    def add_pdf_link(self, url):
         """
         Add a link to the Article data object.
 
