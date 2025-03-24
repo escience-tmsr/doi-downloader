@@ -7,9 +7,10 @@ schema = {
     "$id": "https://example.com/crossref-schema",
     "title": "Crossref Metadata Schema",
     "type": "object",
-    "required": ["title", "DOI", "source", "pdf_links" ],
+    "required": ["version", "title", "DOI", "source", "pdf_links" ],
     "properties": {
                 "title": {"type": "string" },
+                "version": {"type": "string"},
                 "source": {"type": "string"},
                 "authors": {
                     "type": "array",
@@ -37,6 +38,8 @@ schema = {
             }
         }
 
+VERSION = "0.1.0"
+
 class ArticleDataObject:
     """
     A class for handling Article data objects and validating them against a Article schema.
@@ -51,6 +54,7 @@ class ArticleDataObject:
         """
         self.data = data or {
             "title": [],
+            "version": VERSION,
             "source": "",
             "author": [],
             "DOI": "",
@@ -176,6 +180,7 @@ class ArticleDataObject:
         authors = extract_authors(unpaywall_data)
         data = {
             "title": unpaywall_data.get("title", ""),
+            "version": VERSION,
             "source": "unpaywall",
             "authors": list(authors),
             "DOI": unpaywall_data.get("doi", ""),
@@ -224,6 +229,7 @@ class ArticleDataObject:
 
         data = {
             "title": crossref_data.get("title", [])[0],
+            "version": VERSION,
             "source": "crossref",
             "authors": extract_authors(crossref_data),
             "DOI": crossref_data.get("DOI", ""),
