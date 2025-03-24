@@ -238,6 +238,7 @@ class ArticleDataObject:
             "pdf_links": [extract_pdf_link(crossref_data)] if extract_pdf_link(crossref_data) else []
         }
 
+
         return cls(data)
 
     @classmethod
