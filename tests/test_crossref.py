@@ -1,8 +1,6 @@
 from doi_downloader.plugins import crossref
 import responses
-#
-#
-# # Read API keys and other sensitive data from environment variables
+
 TEST_DOI="10.1007/s10207-021-00566-3"
 TEST_FILE="10.1007_s10207-021-00566-3.pdf"
 CROSSREF_API_URL = "https://api.crossref.org/works/{doi}"
