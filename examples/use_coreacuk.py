@@ -31,7 +31,7 @@ def main():
     coreacuk = plugins['CoreacukPlugin']
 
     for doi in unique_dois:
-        url = coreacuk.get_pdf_url(doi)
+        url = coreacuk.get_pdf_url(doi, use_cache=False)
         print(f'{doi} {url}')
 
 
