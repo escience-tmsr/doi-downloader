@@ -1,9 +1,11 @@
 from doi_downloader.plugins import unpaywall as unpaywall
 import responses
+import os
 
 TEST_DOI="10.1007/s10207-021-00566-3"
 TEST_FILE="10.1007_s10207-021-00566-3.pdf"
 UNPAYWALL_API_URL = "https://api.unpaywall.org/v2/{doi}?email={email}"
+os.environ["UNPAYWALL_EMAIL"] = "test@example.com"
 
 @responses.activate
 def test_get_url():
