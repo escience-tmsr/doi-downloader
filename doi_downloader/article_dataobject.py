@@ -78,7 +78,7 @@ class ArticleDataObject:
 
         :param title: The title of the Article.
         """
-        self.data["title"] = [title]
+        self.data["title"] = title
 
     def add_author(self, given_name, family_name):
         """
