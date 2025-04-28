@@ -4,6 +4,8 @@
 *.csv
 # Sqlite3 files
 *.db
+# Local plugins
+*extra_plugins*
 
 
 # Byte-compiled / optimized / DLL files

@@ -4,13 +4,14 @@ import inspect
 from doi_downloader.plugins import Plugin
 
 PLUGIN_FOLDER = os.path.join(os.path.dirname(__file__), "plugins")
+EXTRA_PLUGIN_FOLDER = os.path.join(os.path.dirname(__file__), "extra_plugins")
 
 plugins = {}
 
-def _load_plugins():
+def _load_plugins(folder):
     global plugins
 
-    for filename in os.listdir(PLUGIN_FOLDER):
+    for filename in os.listdir(folder):
         if filename.endswith(".py") and filename != "__init__.py":
             module_name = f"plugins.{filename[:-3]}"
             module_spec = importlib.util.spec_from_file_location(module_name, os.path.join(PLUGIN_FOLDER, filename))
@@ -23,4 +24,5 @@ def _load_plugins():
 
     return plugins
 
-_load_plugins()
+_load_plugins(PLUGIN_FOLDER)
+_load_plugins(EXTRA_PLUGIN_FOLDER)
