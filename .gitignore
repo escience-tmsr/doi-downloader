@@ -6,6 +6,7 @@
 *.db
 # Local plugins
 *extra_plugins*
+*downloads*
 
 
 # Byte-compiled / optimized / DLL files
