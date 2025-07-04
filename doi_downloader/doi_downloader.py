@@ -21,6 +21,7 @@ def download(doi, output_dir=".", force_download=False):
             safe_filename = doi.replace("/", "_").replace(".", "_") + ".pdf"
             print(f"Plugin: {name},  doi:{doi},  url: {url}")
             downloaded_file = pdf_dl.download_pdf(url, safe_filename, output_dir)
-            continue
+            if downloaded_file:
+                break
 
     return downloaded_file
