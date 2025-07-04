@@ -11,6 +11,9 @@ plugins = {}
 def _load_plugins(folder):
     global plugins
 
+    if not os.path.isdir(folder):
+        return plugins
+
     for filename in os.listdir(folder):
         if filename.endswith(".py") and filename != "__init__.py":
             module_name = f"plugins.{filename[:-3]}"
