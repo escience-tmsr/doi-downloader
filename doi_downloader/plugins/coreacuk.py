@@ -1,6 +1,6 @@
 import requests
 import os
-import time
+# import time
 from doi_downloader.plugins import Plugin
 from doi_downloader.cache_duckdb import Cache
 from doi_downloader import article_dataobject as ado # import ArticleDataObject
@@ -49,8 +49,8 @@ class CoreacukPlugin(Plugin):
         full_url = f"{base_url}/{doi}"
 
         try:
-            backoff = 0
-            retries = 5
+            # backoff = 0
+            retries = 1
             for i in range(retries):
                 # Make the request to the CORE API
                 response = requests.get(full_url, headers=headers, params=params)
