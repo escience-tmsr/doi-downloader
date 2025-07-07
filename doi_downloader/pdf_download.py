@@ -23,7 +23,6 @@ def download_pdf(pdf_url, filename, directory="."):
         if is_valid_pdf(full_path):
             return full_path
         else:
-            print(f"Downloaded file {filename} is not a valid PDF.")
             os.remove(full_path)
             return False
 
