@@ -17,6 +17,14 @@ make test
 
 ## Use
 
+### Simple example
+
+```python
+from doi_downloader import doi_downloader as ddl
+doi = "10.1038/s41586-020-2649-2"
+ddl.download(doi, output_dir="downloads")
+```
+
 Check [examples](./examples) for examples of how to use.
 
 ## Adding new source adapters

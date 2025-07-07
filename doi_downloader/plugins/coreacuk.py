@@ -1,6 +1,6 @@
 import requests
 import os
-import time
+# import time
 from doi_downloader.plugins import Plugin
 from doi_downloader.cache_duckdb import Cache
 from doi_downloader import article_dataobject as ado # import ArticleDataObject
@@ -49,8 +49,8 @@ class CoreacukPlugin(Plugin):
         full_url = f"{base_url}/{doi}"
 
         try:
-            backoff = 0
-            retries = 5
+            # backoff = 0
+            retries = 1
             for i in range(retries):
                 # Make the request to the CORE API
                 response = requests.get(full_url, headers=headers, params=params)
@@ -70,33 +70,37 @@ class CoreacukPlugin(Plugin):
                         if "pdf" in source:
                             data_object.add_pdf_link(source) 
 
-                    print(f"Title: {title} has download url: {download_link} and full text sources: {full_text_sources}")
+                    print(f"[coreacuk] Title: {title} has download url: {download_link} and full text sources: {full_text_sources}")
                     return data_object
 
                 if response.status_code == 429:
-                    backoff += 5
-                    print(f"Rate limit exceeded. Retrying in {backoff} seconds.")
-                    time.sleep(backoff)
-                    continue
+                    # backoff += 5
+                    # print(f"Rate limit exceeded. Retrying in {backoff} seconds.")
+                    # time.sleep(backoff)
+                    # continue
+                    print(f"[coreacuk] Rate limit exceeded for doi {doi}.")
+                    return None
                 if response.status_code == 404:
-                    print(f"Paper with DOI {doi} not found.")
+                    print(f"[coreacuk] Paper with DOI {doi} not found.")
                     return None
                 if response.status_code == 403:
-                    print("Forbidden access. Check your API key.")
+                    print("[coreacuk] Forbidden access. Check your API key.")
                     return None
                 if response.status_code == 401:
-                    print("Unauthorized access. Check your API key.")
+                    print("[coreacuk] Unauthorized access. Check your API key.")
                     return None
                 if response.status_code >= 500:
-                    print(f"Server error. Retrying in {backoff} seconds.")
-                    backoff += 5
-                    time.sleep(backoff)
-                    continue
+                    # print(f"Server error. Retrying in {backoff} seconds.")
+                    # backoff += 5
+                    # time.sleep(backoff)
+                    # continue
+                    print(f"[coreacuk] Rate limit exceeded for doi {doi}.")
+                    return None
     
             return None
 
         except requests.exceptions.RequestException as e:
-                print(f"An error occurred: {e}")
+                print(f"[coreacuk] An error occurred: {e}")
                 return None
 
     # Function to get the URL of the PDF from the DOI
