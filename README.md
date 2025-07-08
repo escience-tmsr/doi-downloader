@@ -33,3 +33,7 @@ Create a new file in the `plugins` directory, and implement the `Plugin` class. 
 
 - `get_pdf_url`: This method should return the PDF URL for the given DOI.
 - `fetch_metadata`: This method should return the metadata for the given DOI.
+
+## Read the docs
+
+Check the documentaion at [https://escience-tmsr.github.io/doi-downloader/](https://escience-tmsr.github.io/doi-downloader/).
