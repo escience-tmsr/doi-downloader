@@ -1,2 +1,9 @@
 site_name: doi_downloader
 theme: readthedocs
+nav:
+  - Home: index.md
+  - Usage: usage.md
+  - Configuration: configuration.md
+  - Examples: examples.md
+  - Contributing: contributing.md
+  - License: license.md
