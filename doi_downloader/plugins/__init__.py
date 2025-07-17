@@ -1,3 +1,5 @@
+from dotenv import load_dotenv
+load_dotenv()
 class Plugin:
     """Base class for plugins. All plugins must inherit from this class."""
     def test(self):
