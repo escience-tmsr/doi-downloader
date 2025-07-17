@@ -43,9 +43,17 @@
                 <li class="toctree-l1"><a class="reference internal" href="..">Home</a>
                 </li>
               </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../install/">Installation</a>
+                </li>
+              </ul>
               <ul class="current">
                 <li class="toctree-l1 current"><a class="reference internal current" href="#">Usage</a>
     <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#simple-example">Simple example</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#more-examples">More examples</a>
+    </li>
     </ul>
                 </li>
               </ul>
@@ -55,6 +63,10 @@
               </ul>
               <ul>
                 <li class="toctree-l1"><a class="reference internal" href="../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../writing_a_plugin/">Developing new plugins</a>
                 </li>
               </ul>
               <ul>
@@ -89,11 +101,19 @@
             <div class="section" itemprop="articleBody">
               
                 <h1 id="usage">Usage</h1>
+<h2 id="simple-example">Simple example</h2>
+<p>In this simple example we will download a PDF file from a DOI. The download function will iterate through all the plugins and try to find the PDF URL for the given DOI. If it finds a plugin that can handle the DOI, it will download the PDF file and save it to the specified output directory.</p>
+<pre><code class="language-python">from doi_downloader import doi_downloader as ddl
+doi = &quot;10.1038/s41586-020-2649-2&quot;
+ddl.download(doi, output_dir=&quot;downloads&quot;)
+</code></pre>
+<h2 id="more-examples">More examples</h2>
+<p>See <a href="../examples/">Examples</a> for more examples of how to use the <code>doi_downloader</code> package.</p>
               
             </div>
           </div><footer>
     <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
-        <a href=".." class="btn btn-neutral float-left" title="Home"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../install/" class="btn btn-neutral float-left" title="Installation"><span class="icon icon-circle-arrow-left"></span> Previous</a>
         <a href="../configuration/" class="btn btn-neutral float-right" title="Configuration">Next <span class="icon icon-circle-arrow-right"></span></a>
     </div>
 
@@ -117,7 +137,7 @@
   <span class="rst-current-version" data-toggle="rst-current-version">
     
     
-      <span><a href=".." style="color: #fcfcfc">&laquo; Previous</a></span>
+      <span><a href="../install/" style="color: #fcfcfc">&laquo; Previous</a></span>
     
     
       <span><a href="../configuration/" style="color: #fcfcfc">Next &raquo;</a></span>

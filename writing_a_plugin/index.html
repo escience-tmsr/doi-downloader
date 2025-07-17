@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>Developing new plugins - doi_downloader</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Developing new plugins";
+        var mkdocs_page_input_path = "writing_a_plugin.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href=".." class="icon icon-home"> doi_downloader
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../install/">Installation</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../usage/">Usage</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../configuration/">Configuration</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul class="current">
+                <li class="toctree-l1 current"><a class="reference internal current" href="#">Developing new plugins</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#step-1-create-a-new-python-file">Step 1: Create a new Python file</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#step-2-implement-the-plugin-interface">Step 2: Implement the Plugin interface</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#step-3-loading-and-testing-the-plugin">Step 3: Loading and testing the plugin</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#step-4-caching-results">Step 4: Caching results</a>
+    </li>
+    </ul>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../contributing/">Contributing</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../license/">License</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">doi_downloader</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Developing new plugins</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="creating-a-new-plugin">Creating a new plugin</h1>
+<p>To extend the functionality of <code>doi_downloader</code>, you can create a new plugin. A plugin is a Python module that implements the <code>Plugin</code> interface. Below is a step-by-step guide to creating a new plugin.</p>
+<h2 id="step-1-create-a-new-python-file">Step 1: Create a new Python file</h2>
+<p>Create a new Python file in the <code>plugins</code> or <code>extra_plugins</code> directory. <code>extra_plugins</code> folder if plugins that you do not want to commit to GitHub since the folder is ignored. The name of the file should be descriptive of the plugin's functionality, for example, <code>my_plugin.py</code>.</p>
+<h2 id="step-2-implement-the-plugin-interface">Step 2: Implement the Plugin interface</h2>
+<p>In your new Python file, you need to implement the <code>Plugin</code> interface. This involves creating a class that inherits from <code>Plugin</code> and implementing the required methods. Here is an example:</p>
+<pre><code class="language-python">import requests
+from doi_downloader.plugins import Plugin
+from doi_downloader import article_dataobject as ado # import ArticleDataObject
+
+
+# Read API keys and other sensitive data from environment variables
+MY_API_URL = &quot;https://example.com/{doi}&quot;
+
+class MyPlugin(Plugin):
+    def __new__(self):
+        instance = super(Plugin, self).__new__(self)
+        return instance
+
+    def test(self):
+        return True
+
+    def fetch_metadata(self, doi):
+        url = MY_API_URL.format(doi=doi)
+        try:
+          if response.status_code == 200:
+              paper = response.json()
+              title = paper.get(&quot;title&quot;, &quot;N/A&quot;)
+              download_link = paper.get(&quot;downloadUrl&quot;, &quot;N/A&quot;)
+              data_object = ado.ArticleDataObject(None)
+              data_object.set_title(title)
+              data_object.set_doi(doi)
+              if download_link:
+                  data_object.add_pdf_link(download_link)
+              return data_object
+
+        except requests.exceptions.RequestException as e:
+            print(f&quot;An error occurred: {e}&quot;)
+            return None
+
+
+    def get_pdf_url(self, doi, use_cache=True, ttl=0):
+      metadata = self.fetch_metadata(doi)
+      return metadata.get_pdf_url() if metadata else None
+</code></pre>
+<p>The plugin needs to implement two functions: <code>fetch_metadata</code> and <code>get_pdf_url</code>. The <code>fetch_metadata</code> function should return an <code>ArticleDataObject</code> containing the metadata of the article, while the <code>get_pdf_url</code> function should return the URL of the PDF file.
+<code>fetch_metadata</code> should handle the API request and parse the response to extract the necessary information.</p>
+<h2 id="step-3-loading-and-testing-the-plugin">Step 3: Loading and testing the plugin</h2>
+<p>The <code>doi_downloader</code> loader module will automtically load all plugin files in the <code>plugins</code> or <code>extra_plugins</code> directory. You can test your plugin by loading your plugin withthis script:</p>
+<pre><code class="language-python">from doi_downloader import loader as ld
+plugins = ld.plugins
+my_plugin = plugins[&quot;MyPlugin&quot;]
+doi = &quot;10.1000/xyz123&quot;  # Replace with a valid DOI
+metadata = my_plugin.fetch_metadata(doi)
+pdf_url = my_plugin.get_pdf_url(doi)
+</code></pre>
+<h2 id="step-4-caching-results">Step 4: Caching results</h2>
+<p>It is advantageous to cache the results of the plugin to avoid making repeated API calls for the same DOI. This feature needs to be implemented as part of the plugin.
+<code>doi_downloader</code> implements a cache object that can be used to store the results of the plugin. The following example shows how to make use of it:</p>
+<pre><code class="language-python">from doi_downloader.plugins import Plugin
+# Load the cache object
+from doi_downloader.cache_duckdb import Cache
+from doi_downloader import article_dataobject as ado
+
+
+class MyPlugin(Plugin):
+    def __new__(self):
+        instance = super(Plugin, self).__new__(self)
+        # Initialize the cache object with a database file and plugin name
+        # A table with the plugin name will be created in the database so that
+        # all plugins can share the same database file.
+        self.cache = Cache(&quot;database.db&quot;, &quot;myplugin&quot;)
+        return instance
+
+    def test(self):
+        return True
+
+    def fetch_metadata(self, doi):
+        # retrieve metadata from API
+        return None
+
+    # The get_pdf_url method uses the cache to store and retrieve the PDF URL
+    # for a given DOI. If the URL is found in the cache, it is returned.
+    # ttl (time to live) can be set to control how recent the cached object should be.
+    def get_pdf_url(self, doi, use_cache=True, ttl=0):
+        if use_cache:
+            # Check the cache first
+            cached_data = self.cache.get_cache(doi, ttl=ttl)
+            # If cached data is found, return the PDF link from the cached data
+            if cached_data:
+                data_object = ado.ArticleDataObject.from_json(cached_data)
+                data_object.validate()
+                return data_object.get_pdf_link()
+
+        # If not found in cache, fetch metadata from the API
+        metadata = self.fetch_metadata(doi)
+        if metadata:
+            # If retrieved metadata is valid, store it in the cache.
+            if use_cache:
+                self.cache.set_cache(doi, metadata.to_json())
+            return metadata.get_pdf_link()
+        else:
+            return None
+</code></pre>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../examples/" class="btn btn-neutral float-left" title="Examples"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../contributing/" class="btn btn-neutral float-right" title="Contributing">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+      <span><a href="../examples/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../contributing/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>
