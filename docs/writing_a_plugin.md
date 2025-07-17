@@ -66,3 +66,55 @@ doi = "10.1000/xyz123"  # Replace with a valid DOI
 metadata = my_plugin.fetch_metadata(doi)
 pdf_url = my_plugin.get_pdf_url(doi)
 ```
+
+## Step 4: Caching results
+
+It is advantageous to cache the results of the plugin to avoid making repeated API calls for the same DOI. This feature needs to be implemented as part of the plugin.
+`doi_downloader` implements a cache object that can be used to store the results of the plugin. The following example shows how to make use of it:
+
+```python
+from doi_downloader.plugins import Plugin
+# Load the cache object
+from doi_downloader.cache_duckdb import Cache
+from doi_downloader import article_dataobject as ado
+
+
+class MyPlugin(Plugin):
+    def __new__(self):
+        instance = super(Plugin, self).__new__(self)
+        # Initialize the cache object with a database file and plugin name
+        # A table with the plugin name will be created in the database so that
+        # all plugins can share the same database file.
+        self.cache = Cache("database.db", "myplugin")
+        return instance
+
+    def test(self):
+        return True
+
+    def fetch_metadata(self, doi):
+        # retrieve metadata from API
+        return None
+
+    # The get_pdf_url method uses the cache to store and retrieve the PDF URL
+    # for a given DOI. If the URL is found in the cache, it is returned.
+    # ttl (time to live) can be set to control how recent the cached object should be.
+    def get_pdf_url(self, doi, use_cache=True, ttl=0):
+        if use_cache:
+            # Check the cache first
+            cached_data = self.cache.get_cache(doi, ttl=ttl)
+            # If cached data is found, return the PDF link from the cached data
+            if cached_data:
+                data_object = ado.ArticleDataObject.from_json(cached_data)
+                data_object.validate()
+                return data_object.get_pdf_link()
+
+        # If not found in cache, fetch metadata from the API
+        metadata = self.fetch_metadata(doi)
+        if metadata:
+            # If retrieved metadata is valid, store it in the cache.
+            if use_cache:
+                self.cache.set_cache(doi, metadata.to_json())
+            return metadata.get_pdf_link()
+        else:
+            return None
+```
