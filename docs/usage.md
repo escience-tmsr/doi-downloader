@@ -9,3 +9,7 @@ from doi_downloader import doi_downloader as ddl
 doi = "10.1038/s41586-020-2649-2"
 ddl.download(doi, output_dir="downloads")
 ```
+
+## More examples
+
+See [Examples](examples.md) for more examples of how to use the `doi_downloader` package.
