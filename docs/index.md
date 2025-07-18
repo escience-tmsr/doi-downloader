@@ -7,3 +7,4 @@ urrent plugins include:
 - **Crossref**: A widely used service for retrieving metadata and content associated with DOIs.
 - **Unpaywall**: A service that provides access to open access versions of scholarly articles.
 - **CORE**: A service that aggregates open access research outputs from repositories and journals worldwide.
+- **SerpApi**: A service that provides access to search engine results, including scholarly articles.
