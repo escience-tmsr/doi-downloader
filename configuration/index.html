@@ -101,7 +101,11 @@
                 <h1 id="configuration">Configuration</h1>
 <p>Certain plugins might require configuration to work properly. These parameters can be saved in a <code>.env</code> file in the root of your project. <code>test.env</code> shows a test env file.
 This can be compied to a <code>.env</code> file. Example of a parameter that needs to be set is an email address for the Unpaywall plugin. Develpong new plugins with API key access would also require
-an API key to be set in the <code>.env</code> file. The environment variables are loaded automatically from the <code>Plugin</code> class interface.</p>
+an API key to be set in the <code>.env</code> file. The environment variables are loaded automatically from the <code>Plugin</code> class interface. Current plugins needing configuration are:</p>
+<ul>
+<li><strong>Unpaywall</strong>: requires <code>UNPAYWALL_EMAIL</code> variable to be set to an email address.</li>
+<li><strong>Google Scholar</strong>: reuires <code>SERPAPI_KEY</code> to be set to a Google Scholar API key.</li>
+</ul>
 <h2 id="accessing-the-env-variables-from-the-plugin">Accessing the env variables from the plugin</h2>
 <p>To use an env variable simply use os.getenv() in the plugin code. For example, if you have an env variable called <code>UNPAYWALL_EMAIL</code>, you can access it like this:</p>
 <pre><code class="language-python">import os
