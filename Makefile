@@ -90,7 +90,19 @@ release:          ## Create a new tag for release.
 docs:             ## Build the documentation.
 	@echo "building documentation ..."
 	@$(ENV_PREFIX)mkdocs build
-	URL="site/index.html"; xdg-open $$URL || sensible-browser $$URL || x-www-browser $$URL || gnome-open $$URL || open $$URL
+	# URL="site/index.html"; xdg-open $$URL || sensible-browser $$URL || x-www-browser $$URL || gnome-open $$URL || open $$URL
+
+.PHONY: serve-docs
+docs-serve: docs ## Serve the documentation locally.
+	@echo "serving documentation locally ..."
+	@echo "Open http://localhost:8000 in your browser"
+	python -m http.server 8000 --directory site/ 
+
+.PHONY: docs-deploy
+docs-deploy: docs ## Deploy the documentation to gh-pages branch.
+	@echo "Deploying documentation to gh-pages branch ..."
+	@$(ENV_PREFIX)mkdocs gh-deploy
+
 
 .PHONY: switch-to-poetry
 switch-to-poetry: ## Switch to poetry package manager.
