@@ -1,72 +1,63 @@
-# Examples
+## Examples
 
-## Using a single plugin
+### Using a single plugin for retrieving the PDF URL related to a DOI
 
-In this example we will use the Unpaywall plugin to fetch PDF URLs for a list of DOIs.
+This example uses the Crossref plugin to fetch a PDF URLs for a DOI. Note that the plugin call only tries to retrieve an URL. 
+It does not try to fetch a PDF. 
 
 ```python
 from doi_downloader import loader as ld
-plugins = ld.plugins
-upw = plugins['UnpaywallPlugin']
+
 doi = "10.1038/s41586-020-2649-2"
-pdf_url = upw.get_pdf_url(doi)
+pdf_url = ld.plugins['CrossrefPlugin'].get_pdf_url(doi)
+print(f'{doi}: {pdf_url}')
 ```
 
-## Reading dois from a CSV file
+The names of the plugins in the code are: `CoreacukPlugin`, `CrossrefPlugin`, `GoogleScholarSerpAPIPlugin` and
+`UnpaywallPlugin`. Not all plugins are successful in recovering a URL for the example DOI.
 
-In this example we will read DOIs from a CSV file and use the Unpaywall plugin to fetch PDF URLs for each DOI.
+### Reading DOIs from a CSV file and retrieving the PDF URLs
+
+This example reads DOIs from a CSV file and uses the Crossref plugin to fetch a PDF URL for each DOI.
 
 ```python
-    from doi_downloader import loader as ld
-    from doi_downloader import csv
-    unique_dois = csv.load_dois_from_file(dois_file_path, "doi", unique=True)
+from doi_downloader import csv, loader as ld
+import os
 
-    plugins = ld.plugins
-    upw = plugins['UnpaywallPlugin']
-
-    for doi in unique_dois:
-        pdf_url = upw.get_pdf_url(doi, use_cache=True)
-        print(f'{doi}: {pdf_url}')
+doi_list = csv.load_dois_from_file(os.path.abspath("doi_examples.csv"), "doi")
+for doi in doi_list:
+    pdf_url = ld.plugins['CrossrefPlugin'].get_pdf_url(doi, use_cache=True)
+    print(f'{doi}: {pdf_url}')
 ```
 
-## Attempt to download the PDF
+###  Reading DOIs from a CSV file and retrieving the PDFs
 
-In this example we will attempt to download the PDF for a list of DOIs using the Unpaywall plugin.
+This example reads DOIs from a CSV file, uses the Crossref plugin to fetch a PDF URL and tries to download the associated PDF.
 
 ```python
-    from doi_downloader import loader as ld
-    from doi_downloader import csv
-    from doi_downloader import pdf_download as pdf_dl
-    unique_dois = csv.load_dois_from_file(dois_file_path, "doi", unique=True)
+from doi_downloader import csv, loader as ld, pdf_download as pdf_dl
 
-    plugins = ld.plugins
-    upw = plugins['UnpaywallPlugin']
-
-    for doi in unique_dois:
-        pdf_url = upw.get_pdf_url(doi, use_cache=True)
-        if pdf_url:
-            # Sanitize DOI for filename
-            safe_filename = doi.replace("/", "_").replace(".", "_") + ".pdf"
-            downloaded_file = pdf_dl.download_pdf(url, safe_filename, output_dir)
-            if downloaded_file:
-                print(f"Downloaded {doi} to {downloaded_file}")
-            else:
-                print(f"Failed to download {doi}")
-
-
+doi_list = csv.load_dois_from_file(os.path.abspath("doi_examples.csv"), "doi")
+for doi in doi_list:
+    pdf_url = ld.plugins['CrossrefPlugin'].get_pdf_url(doi, use_cache=True)
+    if pdf_url:
+        safe_filename = doi.replace("/", "_").replace(".", "_") + ".pdf"
+        downloaded_file = pdf_dl.download_pdf(pdf_url, safe_filename, "downloads")
+        if downloaded_file:
+            print(f"Downloaded {doi} to {downloaded_file}")
+    if not pdf_url or not downloaded_file:
+        print(f"Failed to download {doi} ({pdf_url})")
 ```
 
-## Using multiple plugins
+### Using multiple plugins for retrieving the PDFs
 
-In this example we will use all plugins through a helper function that will attempt to download the PDFs.
+This example uses all plugins through a helper function that attempts to download the PDFs.
 
 ```python
-from doi_downloader import doi_downloader as ddl
-from doi_downloader import csv
+from doi_downloader import csv, doi_downloader as ddl
+import os
 
-dois_file_path = "dois.csv"
-unique_dois = csv.load_dois_from_file(dois_file_path, "doi", unique=True)
-for doi in unique_dois:
+doi_list = csv.load_dois_from_file(os.path.abspath("doi_examples.csv"), "doi")
+for doi in doi_list:
     ddl.download(doi, output_dir="downloads", force_download=True)
-
 ```
