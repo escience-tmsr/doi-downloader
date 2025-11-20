@@ -5,7 +5,6 @@ nav:
   - Installation: install.md
   - Usage: usage.md
   - Configuration: configuration.md
-  - Examples: examples.md
   - Testing: benchmarking.md
   - Developing new plugins: writing_a_plugin.md
   - Contributing: contributing.md
