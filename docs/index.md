@@ -1,8 +1,9 @@
 ## Welcome to doi_downloader
 
-`doi_downloader` provides an efficient way to download PDFs given a list of DOIs. `doi_downloader` supports multiple 
-sources and can be extended with new plugins. Plugins are adaptors to online API services that can provide PDF URLs 
-given a DOI. `doi_downloader` makes a great choice for researchers and developers who need to download PDFs from DOIs.
+`doi_downloader` provides an efficient way to download PDFs of research papers given a list of DOIs. `doi_downloader` 
+supports multiple paper repositories and can be extended with plugins servicing other sources. Plugins are adaptors 
+to online API services that can provide PDF URLs given a DOI. `doi_downloader` makes a great choice for researchers 
+and developers who are looking for PDFs of research papers related to DOIs.
 
 Current plugins include:
 

@@ -14,7 +14,7 @@ def download(doi, output_dir=".", force_download=False):
 
     downloaded_file = None
 
-    for name, plugin in plugins.items():
+    for name, plugin in sorted(plugins.items(), key=lambda item: item[0]):
         url = plugin.get_pdf_url(doi)
         if url:
             # Sanitize DOI for filename

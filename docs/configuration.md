@@ -14,9 +14,9 @@ Current plugins needing configuration are:
 - **CORE**: required `CORE_API_KEY` to be set in order to be used
   ([more information](https://core.ac.uk/services/api))
 
-### Accessing the env variables from a plugin
+### Accessing the .env variables from a plugin
 
-To use an env variable use `os`'s `environ` in the plugin code. For example, the environment variable 
+To use a .env variable use `os`'s `environ` in the plugin code. For example, the environment variable 
 `UNPAYWALL_EMAIL`, can be accessed like this:
 
 ```python
@@ -25,7 +25,7 @@ import os
 unpaywall_email = os.environ['UNPAYWALL_EMAIL']
 ```
 
-### Accessing the env variables from a Jupyter notebook
+### Accessing the .env variables from a Jupyter notebook
 
 In a Jupyter notebook, you first need to read the `.env` file with `dotenv`'s `load_dotenv()`. After this you can
 extract the variable values with `os`'s `environ`. The environment variable `UNPAYWALL_EMAIL` can be accessed 
