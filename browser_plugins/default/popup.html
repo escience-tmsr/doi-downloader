@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Default plugin</title>
+    <style>
+      body { font-family: sans-serif; margin: 10px; width: 280px; }
+      label { display: block; margin-top: 8px; }
+      input { width: 100%; box-sizing: border-box; }
+      button { margin-top: 10px; width: 100%; }
+      small { color: #555; }
+    </style>
+  </head>
+  <body>
+    <label>
+      DOI:
+      <input type="text" id="doiInput" placeholder="">
+    </label>
+
+    <small>
+      The add-on will retrieve the DOI, wait for it to load,
+      then find the first link or button whose text/label contains "PDF",
+      and open the page behind that link (or click the button).
+    </small>
+
+    <button id="startBtn">Go</button>
+
+    <script src="popup.js"></script>
+  </body>
+</html>

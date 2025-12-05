@@ -1,0 +1,34 @@
+{
+  "manifest_version": 2,
+  "name": "Default plugin",
+  "version": "2.2",
+  "description": "Open a URL, find a link/button containing a phrase, and open the linked page.",
+  "permissions": [
+    "tabs",
+    "storage",
+    "downloads",
+    "webRequest",
+    "webRequestBlocking",
+    "<all_urls>"
+  ],
+  "browser_action": {
+    "default_title": "Default plugin",
+    "default_popup": "popup.html"
+  },
+  "background": {
+    "scripts": ["background.js"],
+    "persistent": false
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content-script.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "applications": {
+    "gecko": {
+      "id": "default-plugin@example.com"
+    }
+  }
+}
