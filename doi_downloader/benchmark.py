@@ -9,7 +9,6 @@ Architecture:
 """
 
 import json
-import time
 from datetime import datetime
 from pathlib import Path
 from collections import defaultdict
@@ -49,7 +48,7 @@ class DownloadAttempt:
 # =============================================================================
 
 class BenchmarkLogger:
-    """Structured logger for capturing download performance metrics"""
+    """Simplified logger for capturing download performance metrics"""
     
     def __init__(self, log_file: str = "benchmark_log.jsonl"):
         self.log_file = Path(log_file)
@@ -60,6 +59,16 @@ class BenchmarkLogger:
         with open(self.log_file, 'a', encoding='utf-8') as f:
             json.dump(attempt.to_dict(), f)
             f.write('\n')
+    
+    def create_attempt(self, doi: str, plugin_name: str, 
+                      journal_domain: Optional[str] = None) -> DownloadAttempt:
+        """Factory method to create a new attempt"""
+        return DownloadAttempt(
+            doi=doi,
+            timestamp=datetime.now().isoformat(),
+            plugin_name=plugin_name,
+            journal_domain=journal_domain
+        )
     
     def read_attempts(self) -> List[DownloadAttempt]:
         """Read all attempts from log file"""
@@ -73,7 +82,6 @@ class BenchmarkLogger:
                     data = json.loads(line)
                     attempts.append(DownloadAttempt(**data))
         return attempts
-
 
 # =============================================================================
 # 3. BENCHMARK ANALYZER
@@ -98,8 +106,7 @@ class BenchmarkAnalyzer:
         return {
             "total_attempts": total,
             "url_resolution_rate": round(url_resolved / total * 100, 2),
-            "pdf_download_rate": round(pdf_downloaded / total * 100, 2),
-            "end_to_end_success_rate": round(pdf_downloaded / total * 100, 2)
+            "pdf_download_rate": round(pdf_downloaded / total * 100, 2)
         }
     
     def per_plugin_performance(self) -> Dict:
@@ -250,66 +257,16 @@ class BenchmarkAnalyzer:
 
 
 # =============================================================================
-# 4. INTEGRATION HELPERS
-# =============================================================================
-
-class BenchmarkContext:
-    """Context manager for tracking a download attempt"""
-    
-    def __init__(self, logger: BenchmarkLogger, doi: str, plugin_name: str,
-                 journal_domain: Optional[str] = None, resolved_url: Optional[str] = None):
-        self.logger = logger
-        self.attempt = DownloadAttempt(
-            doi=doi,
-            timestamp=datetime.now().isoformat(),
-            plugin_name=plugin_name,
-            journal_domain=journal_domain,
-            resolved_url=resolved_url
-        )
-        self.start_time = None
-    
-    def __enter__(self):
-        self.start_time = time.time()
-        return self
-    
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        self.attempt.duration_ms = round((time.time() - self.start_time) * 1000, 2)
-        
-        # If there was an exception, log it
-        if exc_val:
-            self.attempt.error_message = str(exc_val)
-        
-        self.logger.log_attempt(self.attempt)
-        return False  # Don't suppress exceptions
-    
-    def mark_url_resolved(self, url: str, status: Optional[int] = None):
-        """Mark that URL resolution was successful"""
-        self.attempt.url_resolved = True
-        self.attempt.resolved_url = url
-        if status:
-            self.attempt.http_status = status
-    
-    def mark_pdf_downloaded(self, file_path: str):
-        """Mark that PDF download was successful"""
-        self.attempt.pdf_downloaded = True
-        if Path(file_path).exists():
-            self.attempt.file_size_bytes = Path(file_path).stat().st_size
-
-
-# =============================================================================
 # 5. USAGE EXAMPLES
 # =============================================================================
 
 if __name__ == "__main__":
-    # Example: Analyzing existing benchmark data
     logger = BenchmarkLogger("benchmark_log.jsonl")
     analyzer = BenchmarkAnalyzer(logger)
     
-    # Generate reports
     analyzer.generate_report("performance_report.txt")
     analyzer.export_to_csv("performance_data.csv")
     
-    # Print summary to console
     print("\nOVERALL PERFORMANCE:")
     print(json.dumps(analyzer.overall_success_rate(), indent=2))
     

@@ -147,3 +147,4 @@ dmypy.json
 *.jsonl
 
 performance_report.txt
+top_performers.txt

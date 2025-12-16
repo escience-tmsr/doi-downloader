@@ -36,7 +36,7 @@ Create a new file in the `plugins` directory, and implement the `Plugin` class. 
 
 ## Benchmarking plugin performance
 
-This repository has code to measure, benchmark and analyse the coverage or performance of all API plugins used with doi-downloader. What is meant by performance is the ability of the plugins to find and download the PDF articles associated with a given list of DOIs. To run the benchmark you have to:
+This repository has code to measure, benchmark and analyse the coverage or performance of all API plugins used with doi-downloader. Performance means the ability of the plugins to find and download the PDF articles associated with a given list of DOIs (ratio of successfully downloaded PDFs to failed downloads). To run the benchmark you have to:
 
 1. Install the required libraries of this repo by following the instructions under the "Install" section above.
 2. Ensure you have procured the relevant API keys of the plugins you use.
@@ -45,7 +45,13 @@ This repository has code to measure, benchmark and analyse the coverage or perfo
 
 ``` python -m benchmark.batch_download path/to/csv/file.csv ```
 
-After execution, generated data for analysis can be found under ``` benchmark/logs/... ``` and ``` benchmark/reports/... ```.
+After execution, generated data for analysis can be found under ``` benchmark/logs/... ``` and ``` benchmark/reports/... ```
+
+To get a summary of the top performing plugins and journals run (ensure you have run the above command first):
+
+``` python -m benchmark.get_top_performers ```
+
+After execution, the results are written to ``` benchmark/reports/top_performers.txt ```
 
 ## Read the docs
 

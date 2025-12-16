@@ -1,7 +1,8 @@
 from doi_downloader import loader as ld
 from doi_downloader import pdf_download as pdf_dl
-from doi_downloader.benchmark import BenchmarkLogger, BenchmarkContext
+from doi_downloader.benchmark import BenchmarkLogger
 import os
+import time
 
 plugins = ld.plugins
 
@@ -32,27 +33,23 @@ def download(doi, output_dir=".", force_download=False,
     downloaded_file = None
 
     for name, plugin in plugins.items():
-        # Create benchmark context if enabled
+        # Create attempt record if benchmarking is enabled
+        attempt = None
+        start_time = None
+        
         if enable_benchmark:
-            ctx = BenchmarkContext(
-                benchmark_logger, 
-                doi=doi, 
-                plugin_name=name,
-                journal_domain=journal_domain
-            )
-        else:
-            ctx = None
+            attempt = benchmark_logger.create_attempt(doi, name, journal_domain)
+            start_time = time.time()
         
         try:
-            if ctx:
-                ctx.__enter__()
-            
-            url = plugin.get_pdf_url(doi, ctx)
+            # Call plugin with original signature (no ctx parameter)
+            url = plugin.get_pdf_url(doi)
             
             if url:
                 # Mark URL resolution success
-                if ctx:
-                    ctx.mark_url_resolved(url)
+                if attempt:
+                    attempt.url_resolved = True
+                    attempt.resolved_url = url
                 
                 # Sanitize DOI for filename
                 safe_filename = doi.replace("/", "_").replace(".", "_") + ".pdf"
@@ -61,15 +58,22 @@ def download(doi, output_dir=".", force_download=False,
                 
                 if downloaded_file:
                     # Mark download success
-                    if ctx:
-                        ctx.mark_pdf_downloaded(downloaded_file)
+                    if attempt:
+                        attempt.pdf_downloaded = True
+                        from pathlib import Path
+                        if Path(downloaded_file).exists():
+                            attempt.file_size_bytes = Path(downloaded_file).stat().st_size
                     break
         
-        finally:
-            if ctx:
-                ctx.__exit__(None, None, None)
+        except Exception as e:
+            # Log error if benchmarking
+            if attempt:
+                attempt.error_message = str(e)
         
-        # If we got here without downloading, the attempt failed
-        # It should already be logged by context manager
+        finally:
+            # Log the attempt with duration
+            if attempt:
+                attempt.duration_ms = round((time.time() - start_time) * 1000, 2)
+                benchmark_logger.log_attempt(attempt)
 
     return downloaded_file
