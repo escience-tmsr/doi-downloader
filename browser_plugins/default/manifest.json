@@ -1,6 +1,6 @@
 {
   "manifest_version": 2,
-  "name": "Default plugin",
+  "name": "Default extension",
   "version": "2.2",
   "description": "Open a URL, find a link/button containing a phrase, and open the linked page.",
   "permissions": [
@@ -12,7 +12,7 @@
     "<all_urls>"
   ],
   "browser_action": {
-    "default_title": "Default plugin",
+    "default_title": "Default extension",
     "default_popup": "popup.html"
   },
   "background": {
@@ -28,7 +28,7 @@
   ],
   "applications": {
     "gecko": {
-      "id": "default-plugin@example.com"
+      "id": "default-extension@example.com"
     }
   }
 }

@@ -18,4 +18,13 @@ document.getElementById("startBtn").addEventListener("click", () => {
     console.error("[follow-link] error sending start-job:", err);
     alert("Error starting job: " + err);
   });
+
+  browser.runtime.onMessage.addListener((msg) => {
+    if (msg?.type === "status") {
+      const el = document.getElementById("status");
+      if (el) {
+        el.textContent = msg.text;
+      }
+    }
+  });
 });
