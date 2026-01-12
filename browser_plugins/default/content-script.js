@@ -32,7 +32,7 @@ function performAction(job, myTabId) {
   const el = findElementByPhrase(phrase);
 
   if (!el) {
-    sendStatus(`No link or button found containing "${phrase}"`);
+    sendStatus(`❌ No link or button found containing "${phrase}"`);
     return;
   }
 
