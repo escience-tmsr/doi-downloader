@@ -1,14 +1,12 @@
 document.getElementById("startBtn").addEventListener("click", () => {
   const doi = document.getElementById("doiInput").value.trim();
   const phrase = "PDF"
+  const url = "https://doi.org/" + doi;
 
   if (!doi) {
-    alert("Please enter a DOI.");
+    setStatus("Please enter a DOI.", isError = true);
     return;
   }
-
-  // Prepend your fixed base URL here
-  const url = "https://doi.org/" + doi;
 
   browser.runtime.sendMessage({
     type: "start-job",
@@ -16,7 +14,7 @@ document.getElementById("startBtn").addEventListener("click", () => {
     phrase
   }).catch(err => {
     console.error("[follow-link] error sending start-job:", err);
-    alert("Error starting job: " + err);
+    setStatus("Error starting job: " + err, isError = true);
   });
 
   browser.runtime.onMessage.addListener((msg) => {
@@ -28,3 +26,14 @@ document.getElementById("startBtn").addEventListener("click", () => {
     }
   });
 });
+
+function setStatus(text, isError = false) {
+  const element = document.getElementById("status");
+  if (!elelement) return;
+  element.textContent = text;
+  if (!isError) { console.log(text); }
+  else {
+    element.style.color = "red";
+    console.error("popup.js: " + text);
+  }
+}

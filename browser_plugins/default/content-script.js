@@ -27,7 +27,7 @@ function findElementByPhrase(phrase) {
   return null;
 }
 
-function performAction(job, myTabId) {
+async function performAction(job, myTabId) {
   const phrase = job.phrase;
   const el = findElementByPhrase(phrase);
 
@@ -55,6 +55,16 @@ function performAction(job, myTabId) {
     return;
   }
 
+  console.log("PERF: before arming capture");
+  sendStatus("Arming capture…");
+  console.log("PERF: after arming capture");
+
+  await browser.runtime.sendMessage({
+    type: "arm_capture_for_tab",
+    doi: job.doi,
+    tabId: myTabId
+  });
+
   sendStatus(`Clicking "${phrase}" button…`);
   try {
     el.click();
@@ -76,10 +86,16 @@ function maybeRunJob(myTabId) {
       return;
     }
 
-    if (job.used) {
+    here = location.href;
+    if (job.used && job.UsedUrl === here) {
       console.log("[default-extension] job already used, skipping");
+      sendStatus(`Skipping: already processed this page.`);
       return;
     }
+
+    job.used = true;
+    job.usedUrl = here;
+    await browser.storage.local.set({ job });
 
     console.log("[default-extension] tabId matches job, running job");
     job.used = true;

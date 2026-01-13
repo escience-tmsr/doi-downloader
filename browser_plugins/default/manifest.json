@@ -30,5 +30,6 @@
     "gecko": {
       "id": "default-extension@example.com"
     }
-  }
+  },
+  "icons": { "40": "icons/article-48.png" }
 }

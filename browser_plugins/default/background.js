@@ -1,15 +1,12 @@
-// Background script
-// - Starts a "job" by opening the DOI URL in a new tab and storing job metadata.
-// - Content script finds a PDF link/button and asks the background to capture-and-save the PDF.
-// - We cannot click Firefox's PDF viewer download button (browser UI), so we capture the PDF bytes
-//   from the network response stream (Firefox-only: webRequest.filterResponseData) while the PDF loads
-//   in a normal tab context (with cookies/referrer/session), then save to Downloads.
-
 const CAPTURE_TIMEOUT_MS = 15000;
 
-let captureSession = null; // { tabId, doi, startedAt, timeoutId }
+const IGNORE_WEBREQUEST_ERRORS = new Set([
+  "NS_BINDING_ABORTED",
+  "NS_ERROR_TRACKING_URI",
+  "NS_ERROR_DOM_BAD_URI",
+]);
 
-// ----- helpers -----
+let captureSession = null; // { tabId, doi, expectedUrl, sawPdf, timeoutId }
 
 function extractDoiFromUrl(url) {
   if (!url) return null;
@@ -31,12 +28,6 @@ function safeFilenameFromDoi(doi) {
   return sanitizeForFilename((doi || "paper").replace(/^doi:/i, ""));
 }
 
-function headerValue(headers, name) {
-  const n = name.toLowerCase();
-  const h = (headers || []).find(x => (x.name || "").toLowerCase() === n);
-  return h && h.value ? h.value : "";
-}
-
 function setBadge(text) {
   try { browser.browserAction.setBadgeText({ text }); } catch (_) {}
 }
@@ -54,8 +45,6 @@ function sendStatus(text) {
   } catch (_) {}
 }
 
-// ----- job start -----
-
 function startJob(url, phrase, doi) {
   const normalizedDoi = doi || extractDoiFromUrl(url) || null;
 
@@ -65,6 +54,7 @@ function startJob(url, phrase, doi) {
       phrase,
       doi: normalizedDoi,
       used: false,
+      usedUrl: null,
       tabId: tab.id
     };
 
@@ -76,8 +66,6 @@ function startJob(url, phrase, doi) {
     throw err;
   });
 }
-
-// ----- PDF capture & save -----
 
 function armCaptureAndNavigate(pdfUrl, doi, tabId) {
   captureSession = {
@@ -100,19 +88,62 @@ function armCaptureAndNavigate(pdfUrl, doi, tabId) {
 
     // One final, user-friendly message:
     if (sc === 401 || sc === 403) {
-      failCapture(`❌ Access denied (${sc}) — likely paywall/login required.`);
+      failCapture(`Access denied (${sc}) — likely paywall/login required.`);
     } else if (ct.includes("text/html") && looksPaywalledUrl(url)) {
-      failCapture("❌ Redirected to a paywall/purchase/login page (no PDF served).");
+      failCapture("Redirected to a paywall/purchase/login page (no PDF served).");
     } else if (ct.includes("text/html")) {
-      failCapture("❌ Received HTML instead of PDF (likely paywall/login).");
+      failCapture("Received HTML instead of PDF (likely paywall/login).");
     } else {
-      failCapture("❌ No PDF response detected (possible paywall/login or blocked access).");
+      failCapture("No PDF response detected (possible paywall/login or blocked access).");
     }
   }, CAPTURE_TIMEOUT_MS);
 
   sendStatus("Armed capture; navigating to PDF…");
   return browser.tabs.update(tabId, { url: pdfUrl });
 }
+
+function failCapture(reason) {
+  if (!captureSession) return;
+  sendStatus(`❌ PDF download failed: ${reason}`);
+  captureSession = null;
+}
+
+function looksPaywalledUrl(u) {
+  return ["paywall","subscribe","purchase","checkout","cart","basket","login","signin","account"]
+    .some(k => u.includes(k));
+}
+
+function armCaptureOnly(doi, tabId, expectedUrl = null) {
+  captureSession = {
+    tabId,
+    doi,
+    expectedUrl,
+    sawPdf: false,
+    timeoutId: null,
+    lastMainUrl: null,
+    lastMainStatus: null,
+    lastMainContentType: null,
+  };
+
+  captureSession.timeoutId = setTimeout(() => {
+    const sc = captureSession.lastMainStatus;
+    const ct = captureSession.lastMainContentType || "";
+    const url = captureSession.lastMainUrl || "";
+
+    if (sc === 401 || sc === 403) {
+      failCapture(`Access denied (${sc}) — likely paywall/login required.`);
+    } else if (ct.includes("text/html")) {
+      failCapture("Received HTML instead of PDF after clicking (likely paywall/login).");
+    } else {
+      failCapture("No PDF response detected after clicking the PDF button.");
+    }
+  }, CAPTURE_TIMEOUT_MS);
+
+  sendStatus("Armed capture; you can click the PDF button now…");
+  return Promise.resolve(true);
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////
 
 browser.webRequest.onHeadersReceived.addListener(
   (details) => {
@@ -169,37 +200,6 @@ browser.webRequest.onHeadersReceived.addListener(
   ["blocking", "responseHeaders"]
 );
 
-// ----- message routing -----
-
-browser.runtime.onMessage.addListener((msg, sender) => {
-  if (!msg || !msg.type) return;
-
-  if (msg.type === "start-job") {
-    return startJob(msg.url, msg.phrase, msg.doi);
-  }
-
-  if (msg.type === "who-am-i") {
-    const tabId = sender && sender.tab ? sender.tab.id : null;
-    return Promise.resolve({ tabId });
-  }
-
-  if (msg.type === "open-url" && msg.url) {
-    sendStatus("Opening link in new tab…");
-    return browser.tabs.create({ url: msg.url });
-  }
-
-  if (msg.type === "download_pdf_via_tab_capture" && msg.pdfUrl) {
-    const tabId = msg.tabId || (sender && sender.tab ? sender.tab.id : null);
-    const doi = msg.doi || null;
-
-    if (!tabId) {
-      sendStatus("Cannot download: missing tabId.");
-      return;
-    }
-    return armCaptureAndNavigate(msg.pdfUrl, doi, tabId);
-  }
-});
-
 browser.webRequest.onCompleted.addListener(
   (details) => {
     if (!captureSession || details.tabId !== captureSession.tabId) return;
@@ -213,22 +213,16 @@ browser.webRequest.onCompleted.addListener(
 
       const sc = details.statusCode;
       if (sc === 401 || sc === 403) {
-        failCapture(`❌ Access denied (${sc}). You likely don’t have permission or need to sign in via your institution.`);
+        failCapture(`Access denied (${sc}). You likely don’t have permission or need to sign in via your institution.`);
       } else if (sc === 404) {
-        failCapture("❌ PDF not found (404). The link may be broken or moved.");
+        failCapture("PDF not found (404). The link may be broken or moved.");
       } else if (sc >= 400) {
-        failCapture(`❌ Server returned HTTP ${sc} (not a PDF).`);
+        failCapture(`Server returned HTTP ${sc} (not a PDF).`);
       } 
     }
   },
   { urls: ["<all_urls>"] }
 );
-
-const IGNORE_WEBREQUEST_ERRORS = new Set([
-  "NS_BINDING_ABORTED",
-  "NS_ERROR_TRACKING_URI",
-  "NS_ERROR_DOM_BAD_URI",
-]);
 
 browser.webRequest.onErrorOccurred.addListener(
   (details) => {
@@ -257,22 +251,44 @@ browser.webRequest.onErrorOccurred.addListener(
     if (!captureSession.sawPdf && details.type === "main_frame" && urlMatchesExpected) {
       if (!ct.includes("application/pdf")) return;
       if (captureSession.timeoutId) clearTimeout(captureSession.timeoutId);
-      failCapture(`❌ Network error while loading PDF: ${details.error}`);
+      failCapture(`Network error while loading PDF: ${details.error}`);
     }
   },
   { urls: ["<all_urls>"] }
 );
 
-function failCapture(reason) {
-  if (!captureSession) return;
-  sendStatus(`❌ PDF download failed: ${reason}`);
-  captureSession = null;
-}
+browser.runtime.onMessage.addListener((msg, sender) => {
+  if (!msg || !msg.type) return;
 
-function looksPaywalledUrl(u) {
-  return ["paywall","subscribe","purchase","checkout","cart","basket","login","signin","account"]
-    .some(k => u.includes(k));
-}
+  if (msg.type === "start-job") {
+    return startJob(msg.url, msg.phrase, msg.doi);
+  }
+
+  if (msg.type === "who-am-i") {
+    const tabId = sender && sender.tab ? sender.tab.id : null;
+    return Promise.resolve({ tabId });
+  }
+
+  if (msg.type === "open-url" && msg.url) {
+    sendStatus("Opening link in new tab…");
+    return browser.tabs.create({ url: msg.url });
+  }
+
+  if (msg.type === "download_pdf_via_tab_capture" && msg.pdfUrl) {
+    const tabId = msg.tabId || (sender && sender.tab ? sender.tab.id : null);
+    const doi = msg.doi || null;
+
+    if (!tabId) {
+      sendStatus("Cannot download: missing tabId.");
+      return;
+    }
+    return armCaptureAndNavigate(msg.pdfUrl, doi, tabId);
+  }
+
+  if (msg.type === "arm_capture_for_tab") {
+    return armCaptureOnly(msg.doi, msg.tabId, msg.expectedUrl ?? null);
+  }
+});
 
 browser.downloads.onChanged.addListener((delta) => {
   if (!delta.state || delta.state.current !== "complete") return;
@@ -282,4 +298,3 @@ browser.downloads.onChanged.addListener((delta) => {
     sendStatus(`✅ Saved PDF to ${item.filename}`);
   });
 });
-

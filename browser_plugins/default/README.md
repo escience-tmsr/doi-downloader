@@ -21,4 +21,6 @@ The extension will open the main web page associated with DOI, look for a PDF do
 
 When downloading fails, an error message will be displayed. This feature is currently not working well yet.
 
+## Links
 
+* Icon source: [Google icons](https://fonts.google.com/icons)
