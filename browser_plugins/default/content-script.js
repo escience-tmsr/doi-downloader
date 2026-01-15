@@ -30,6 +30,7 @@ function findElementByPhrase(phrase) {
 async function performAction(job, myTabId) {
   const phrase = job.phrase;
   const el = findElementByPhrase(phrase);
+  sendStatus("Entering performAction...")
 
   if (!el) {
     sendStatus(`❌ No link or button found containing "${phrase}"`);
