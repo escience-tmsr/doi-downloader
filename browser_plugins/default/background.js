@@ -21,19 +21,24 @@ function armCaptureAndNavigate(pdfUrl, doi, tabId) {
   };
 
   captureSession.timeoutId = setTimeout(() => {
-    const sc = captureSession.lastMainStatus;
+    if (! captureSession) return;
+
+    const sc = captureSession.lastMainStatus || "";
     const ct = captureSession.lastMainContentType || "";
     const url = captureSession.lastMainUrl || captureSession.expectedUrl || "";
 
-    // One final, user-friendly message:
     if (sc === 401 || sc === 403) {
-      captureSession = self.failCapture(`Access denied (${sc}) — likely paywall/login required.`);
+      self.failCapture(`Access denied (${sc}) — likely paywall/login required.`);
+      captureSession = null;
     } else if (ct.includes("text/html") && self.looksPaywalledUrl(url)) {
-      captureSession = self.failCapture("Redirected to a paywall/purchase/login page (no PDF served).");
+      self.failCapture("Redirected to a paywall/purchase/login page (no PDF served).");
+      captureSession = null;
     } else if (ct.includes("text/html")) {
-      captureSession = self.failCapture("Received HTML instead of PDF (likely paywall/login).");
+      self.failCapture("Received HTML instead of PDF (likely paywall/login).");
+      captureSession = null;
     } else {
-      captureSession = self.failCapture("No PDF response detected (possible paywall/login or blocked access).");
+      self.failCapture("No PDF response detected (possible paywall/login or blocked access).");
+      captureSession = null;
     }
   }, CAPTURE_TIMEOUT_MS);
 
@@ -54,16 +59,19 @@ function armCaptureOnly(doi, tabId, expectedUrl = null) {
   };
 
   captureSession.timeoutId = setTimeout(() => {
-    const sc = captureSession.lastMainStatus;
+    const sc = captureSession.lastMainStatus || "";
     const ct = captureSession.lastMainContentType || "";
     const url = captureSession.lastMainUrl || "";
 
     if (sc === 401 || sc === 403) {
-      captureSession = self.failCapture(`Access denied (${sc}) — likely paywall/login required.`);
+      self.failCapture(`Access denied (${sc}) — likely paywall/login required.`);
+      captureSession = null;
     } else if (ct.includes("text/html")) {
-      captureSession = self.failCapture("Received HTML instead of PDF after clicking (likely paywall/login).");
+      self.failCapture("Received HTML instead of PDF after clicking (likely paywall/login).");
+      captureSession = null;
     } else {
-      captureSession = self.failCapture("No PDF response detected after clicking the PDF button.");
+      self.failCapture("No PDF response detected after clicking the PDF button.");
+      captureSession = null;
     }
   }, CAPTURE_TIMEOUT_MS);
 
@@ -113,12 +121,16 @@ browser.webRequest.onHeadersReceived.addListener(
         const objUrl = URL.createObjectURL(blob);
 
         const filename = `${self.sanitizeDOI(captureSession.doi)}.pdf`;
-        await browser.downloads.download({ url: objUrl, filename, saveAs: false });
-
-        // self.sendStatus(`✅ Saved PDF to Downloads/${filename}`);
-        setTimeout(() => URL.revokeObjectURL(objUrl), 60_000);
+        if (captureSession.siteDownloadId) {
+          sendStatus("PDF already downloaded by the site; skipping duplicate save.");
+        } else{
+          sendStatus(`breakpoint 3 ${captureSession.siteDownloadId}`)
+          await browser.downloads.download({ url: objUrl, filename, saveAs: false });
+          setTimeout(() => URL.revokeObjectURL(objUrl), 30000);
+        }
       } catch (e) {
-        captureSession = self.failCapture(`Save failed: ${e.message}`);
+        self.failCapture(`Save failed: ${e.message}`);
+        captureSession = null;
       } finally {
         captureSession = null;
       }
@@ -135,17 +147,21 @@ browser.webRequest.onCompleted.addListener(
     if (details.type !== "main_frame") return;
 
     // If the main request completed but we never saw a PDF, report based on status.
+    const ct = details.lastMainContentType || ""
     if (!captureSession.sawPdf) {
       if (!ct.includes("application/pdf")) return;
       if (captureSession.timeoutId) clearTimeout(captureSession.timeoutId);
 
       const sc = details.statusCode;
       if (sc === 401 || sc === 403) {
-        captureSession = self.failCapture(`Access denied (${sc}). You likely don’t have permission or need to sign in via your institution.`);
+        self.failCapture(`Access denied (${sc}). You likely don’t have permission or need to sign in via your institution.`);
+        captureSession = null;
       } else if (sc === 404) {
-        captureSession = self.failCapture("PDF not found (404). The link may be broken or moved.");
+        self.failCapture("PDF not found (404). The link may be broken or moved.");
+        captureSession = null;
       } else if (sc >= 400) {
-        captureSession = self.failCapture(`Server returned HTTP ${sc} (not a PDF).`);
+        self.failCapture(`Server returned HTTP ${sc} (not a PDF).`);
+        captureSession = null;
       } 
     }
   },
@@ -179,7 +195,8 @@ browser.webRequest.onErrorOccurred.addListener(
     if (!captureSession.sawPdf && details.type === "main_frame" && urlMatchesExpected) {
       if (!ct.includes("application/pdf")) return;
       if (captureSession.timeoutId) clearTimeout(captureSession.timeoutId);
-      captureSession = self.failCapture(`Network error while loading PDF: ${details.error}`);
+      self.failCapture(`Network error while loading PDF: ${details.error}`);
+      captureSession = null;
     }
   },
   { urls: ["<all_urls>"] }
@@ -216,6 +233,12 @@ browser.runtime.onMessage.addListener((msg, sender) => {
   if (msg.type === "arm_capture_for_tab") {
     return armCaptureOnly(msg.doi, msg.tabId, msg.expectedUrl ?? null);
   }
+});
+
+browser.downloads.onCreated.addListener((item) => {
+  if (!captureSession) return;
+  captureSession.siteDownloadId = item.id;
+  sendStatus("Site initiated a PDF download; will avoid duplicating.");
 });
 
 browser.downloads.onChanged.addListener((delta) => {

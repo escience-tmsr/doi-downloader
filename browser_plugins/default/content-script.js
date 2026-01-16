@@ -28,9 +28,9 @@ function findElementByPhrase(phrase) {
 }
 
 async function performAction(job, myTabId) {
+  sendStatus("Entering performAction...")
   const phrase = job.phrase;
   const el = findElementByPhrase(phrase);
-  sendStatus("Entering performAction...")
 
   if (!el) {
     sendStatus(`❌ No link or button found containing "${phrase}"`);
@@ -49,16 +49,13 @@ async function performAction(job, myTabId) {
       doi: job.doi || null,
       tabId: myTabId
     }).catch(err => {
-      console.error("[default-extension] error sending download_pdf_via_tab_capture:", err);
       sendStatus("Error asking add-on to capture PDF: " + err);
     });
 
     return;
   }
 
-  console.log("PERF: before arming capture");
   sendStatus("Arming capture…");
-  console.log("PERF: after arming capture");
 
   await browser.runtime.sendMessage({
     type: "arm_capture_for_tab",
@@ -74,47 +71,46 @@ async function performAction(job, myTabId) {
   }
 }
 
-function maybeRunJob(myTabId) {
-  browser.storage.local.get("job").then(result => {
-    const job = result.job;
-    if (!job) {
-      console.log("[default-extension] no job in storage, doing nothing");
-      return;
-    }
-
-    if (job.tabId !== myTabId) {
-      console.log("[default-extension] tabId mismatch (mine:", myTabId, "job:", job.tabId, "), skipping");
-      return;
-    }
-
-    here = location.href;
-    if (job.used && job.UsedUrl === here) {
-      console.log("[default-extension] job already used, skipping");
-      sendStatus(`Skipping: already processed this page.`);
-      return;
-    }
-
-    job.used = true;
-    job.usedUrl = here;
-    await browser.storage.local.set({ job });
-
-    console.log("[default-extension] tabId matches job, running job");
-    job.used = true;
-    browser.storage.local.set({ job }).catch(err => {
-      console.error("[default-extension] error marking job used:", err);
-    });
-
-    window.setTimeout(() => {
-      try {
-        performAction(job, myTabId);
-      } catch (e) {
-        console.error("[default-extension] error in performAction:", e);
-        sendStatus("Error while searching link: " + e.message);
-      }
-    }, 1000);
-  }).catch(err => {
+async function maybeRunJob(myTabId) {
+  console.log("Entering maybeRunJob");
+  const result = await browser.storage.local.get("job").catch(err => {
     console.error("[default-extension] error reading job from storage:", err);
   });
+  const job = result.job;
+  if (!job) {
+    console.log("[default-extension] no job in storage, doing nothing");
+    return;
+  }
+
+  if (job.tabId !== myTabId) {
+    console.log("[default-extension] tabId mismatch (mine:", myTabId, "job:", job.tabId, "), skipping");
+    return;
+  }
+
+  const here = location.href;
+  if (job.used && job.usedUrl === here) {
+    sendStatus(`Skipping: already processed this page.`);
+    return;
+  }
+
+  job.used = true;
+  job.usedUrl = here;
+  console.log(`maybeRunJob: ${job.used} # ${job.usedUrl} # ${job.tabId}`)
+  await browser.storage.local.set({ job });
+
+  console.log("[default-extension] tabId matches job, running job");
+  job.used = true;
+  browser.storage.local.set({ job }).catch(err => {
+    console.error("[default-extension] error marking job used:", err);
+  });
+
+  window.setTimeout(() => {
+    try {
+      performAction(job, myTabId);
+    } catch (e) {
+      sendStatus("Error while searching link: " + e.message);
+    }
+  }, 1000);
 }
 
 browser.runtime.sendMessage({ type: "who-am-i" })
