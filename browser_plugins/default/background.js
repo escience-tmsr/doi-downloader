@@ -6,13 +6,14 @@ const IGNORE_WEBREQUEST_ERRORS = new Set([
 
 let captureSession = null; // { tabId, doi, expectedUrl, sawPdf, timeoutId }
 
-function armCaptureAndNavigate(pdfUrl, doi, tabId) {
+async function armCaptureAndNavigate(pdfUrl, doi, tabId) {
   captureSession = {
     tabId,
     doi,
     expectedUrl: pdfUrl,
     sawPdf: false,
     timeoutId: null,
+    pageCounter: 0,
 
     // debug/classification fields
     lastMainUrl: null,
@@ -42,7 +43,12 @@ function armCaptureAndNavigate(pdfUrl, doi, tabId) {
     }
   }, CAPTURE_TIMEOUT_MS);
 
-  self.sendStatus("Armed capture; navigating to PDF…");
+  captureSession.pageCounter++;
+  if (captureSession.pageCounter <= 1 && !pdfUrl.toLowerCase().includes("download") && !pdfUrl.toLowerCase().includes("pdf")) {
+    self.sendStatus("Armed capture; navigating to HTML…");
+  } else {
+    self.sendStatus("Armed capture; navigating to PDF…");
+  }
   return browser.tabs.update(tabId, { url: pdfUrl });
 }
 
@@ -75,8 +81,19 @@ function armCaptureOnly(doi, tabId, expectedUrl = null) {
     }
   }, CAPTURE_TIMEOUT_MS);
 
-  self.sendStatus("Armed capture; you can click the PDF button now…");
+  captureSession.pageCounter++;
+  if (captureSession.pageCounter <= 1 && !pdfUrl.toLowerCase().includes("download") && !pdfUrl.toLowerCase().includes("pdf")) {
+    self.sendStatus("Armed capture; navigating to HTML…");
+  } else {
+    self.sendStatus("Armed capture; navigating to PDF…");
+  }
   return Promise.resolve(true);
+}
+
+function getHeader(headers, name) {
+  name = name.toLowerCase();
+  const h = (headers || []).find(x => x.name && x.name.toLowerCase() === name);
+  return h ? h.value : null;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -114,17 +131,14 @@ browser.webRequest.onHeadersReceived.addListener(
       chunks.push(e.data);
     };
 
+    const session = captureSession;
     filter.onstop = async () => {
       try {
         filter.disconnect();
-        const blob = new Blob(chunks, { type: "application/pdf" });
-        const objUrl = URL.createObjectURL(blob);
-
-        const filename = `${self.sanitizeDOI(captureSession.doi)}.pdf`;
-        if (captureSession.siteDownloadId) {
-          sendStatus("PDF already downloaded by the site; skipping duplicate save.");
-        } else{
-          sendStatus(`breakpoint 3 ${captureSession.siteDownloadId}`)
+        if (! session.expectBrowserDownload) {
+          const blob = new Blob(chunks, { type: "application/pdf" });
+          const objUrl = URL.createObjectURL(blob);
+          const filename = `${self.sanitizeDOI(session.doi)}.pdf`;
           await browser.downloads.download({ url: objUrl, filename, saveAs: false });
           setTimeout(() => URL.revokeObjectURL(objUrl), 30000);
         }
@@ -135,6 +149,11 @@ browser.webRequest.onHeadersReceived.addListener(
         captureSession = null;
       }
     };
+
+    if (ct.includes("application/pdf")) {
+      captureSession.expectBrowserDownload = true;
+      sendStatus(`Server forces PDF download; will use browser download (avoid duplicate).`);
+    }
   },
   { urls: ["<all_urls>"] },
   ["blocking", "responseHeaders"]
@@ -155,7 +174,7 @@ browser.webRequest.onCompleted.addListener(
       const sc = details.statusCode;
       if (sc === 401 || sc === 403) {
         self.failCapture(`Access denied (${sc}). You likely don’t have permission or need to sign in via your institution.`);
-        captureSession = null;
+         captureSession = null;
       } else if (sc === 404) {
         self.failCapture("PDF not found (404). The link may be broken or moved.");
         captureSession = null;
@@ -233,12 +252,6 @@ browser.runtime.onMessage.addListener((msg, sender) => {
   if (msg.type === "arm_capture_for_tab") {
     return armCaptureOnly(msg.doi, msg.tabId, msg.expectedUrl ?? null);
   }
-});
-
-browser.downloads.onCreated.addListener((item) => {
-  if (!captureSession) return;
-  captureSession.siteDownloadId = item.id;
-  sendStatus("Site initiated a PDF download; will avoid duplicating.");
 });
 
 browser.downloads.onChanged.addListener((delta) => {

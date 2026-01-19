@@ -13,7 +13,6 @@ document.getElementById("startBtn").addEventListener("click", () => {
     url,
     phrase
   }).catch(err => {
-    console.error("[follow-link] error sending start-job:", err);
     setStatus("Error starting job: " + err, isError = true);
   });
 
@@ -29,11 +28,11 @@ document.getElementById("startBtn").addEventListener("click", () => {
 
 function setStatus(text, isError = false) {
   const element = document.getElementById("status");
-  if (!elelement) return;
+  if (!element) return;
   element.textContent = text;
   if (!isError) { console.log(text); }
   else {
     element.style.color = "red";
-    console.error("popup.js: " + text);
+    console.error("[default-extension] " + text);
   }
 }

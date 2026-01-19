@@ -12,11 +12,12 @@ function sanitizeDOI(doi) {
 }
 
 function setBadge(text) {
-  try { browser.browserAction.setBadgeText({ text }); } catch (_) {}
+  try { browser.browserAction.setBadgeText({ text }); } catch(_) {}
 }
 
 function sendStatus(text) {
-  try { browser.runtime.sendMessage({ type: "status", text }); } catch (_) {}
+  //try { browser.runtime.sendMessage({ type: "status", text }); } catch (_) {}
+  browser.runtime.sendMessage({ type: "status", text }).catch(() => {});
   console.log("[default-extension]", text);
   setBadge("•");
 }
@@ -31,7 +32,8 @@ function startJob(url, phrase, doi) {
       doi: normalizedDoi,
       used: false,
       usedUrl: null,
-      tabId: tab.id
+      tabId: tab.id,
+      pageCounter: 0
     };
 
     sendStatus(`Opened DOI page in tab ${tab.id}. Looking for "${phrase}" link…`);
