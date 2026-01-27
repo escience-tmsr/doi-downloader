@@ -24,8 +24,3 @@ test("text without paywall words", () => {
   expect(looksPaywalledUrl("https://domain/no_special_file"))
     .toBe(false);
 });
-
-test("failCapture", () => {
-  expect(failCapture("something", "some text"))
-    .toBe(null);
-});

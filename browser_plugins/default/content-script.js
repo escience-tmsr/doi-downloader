@@ -5,25 +5,27 @@ function sendStatus(text) {
   console.log("[default-extension]", text);
 }
 
-function findElementByPhrase(phrase) {
-  const needle = phrase.toLowerCase();
-  console.log("[default-extension] searching for phrase:", needle);
-
-  const elements = Array.from(document.querySelectorAll("a, button"));
-  for (const el of elements) {
-    const text  = (el.innerText || el.textContent || "").trim();
-    const aria  = el.getAttribute("aria-label") || "";
-    const title = el.getAttribute("title") || "";
-
-    const combined = (text + " " + aria + " " + title).toLowerCase();
-
-    if (combined.includes(needle)) {
-      console.log("[default-extension] matched element:", combined, "tag:", el.tagName);
-      return el;
+function findElementByPhrase(phrases) {
+  for (const phrase of phrases) {
+    const needle = phrase.toLowerCase();
+    console.log("[default-extension] searching for phrase:", needle);
+  
+    const elements = Array.from(document.querySelectorAll("a, button"));
+    for (const el of elements) {
+      const text  = (el.innerText || el.textContent || "").trim();
+      const aria  = el.getAttribute("aria-label") || "";
+      const title = el.getAttribute("title") || "";
+  
+      const combined = (text + " " + aria + " " + title).toLowerCase();
+  
+      if (combined.includes(needle)) {
+        console.log("[default-extension] matched element:", combined, "tag:", el.tagName);
+        return el;
+      }
     }
+  
+    console.log("[default-extension] no element found for phrase:", phrase);
   }
-
-  console.log("[default-extension] no element found for phrase:", phrase);
   return null;
 }
 

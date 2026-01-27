@@ -1,6 +1,6 @@
 document.getElementById("startBtn").addEventListener("click", () => {
   const doi = document.getElementById("doiInput").value.trim();
-  const phrase = "PDF"
+  const phrase = [ "PDF", "download" ]
   const url = "https://doi.org/" + doi;
 
   if (!doi) {
@@ -25,6 +25,15 @@ document.getElementById("startBtn").addEventListener("click", () => {
     }
   });
 });
+
+document.getElementById("saveLog").addEventListener("click", () => {
+  browser.runtime.sendMessage({
+    type: "save-log"
+  }).catch(err => { 
+    setStatus("could not save job!"), isError = true
+  });
+});
+
 
 function setStatus(text, isError = false) {
   const element = document.getElementById("status");

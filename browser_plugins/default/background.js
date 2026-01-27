@@ -228,6 +228,10 @@ browser.runtime.onMessage.addListener((msg, sender) => {
     return self.startJob(msg.url, msg.phrase, msg.doi);
   }
 
+  if (msg.type === "save-log") {
+    return self.saveLog();
+  }
+
   if (msg.type === "who-am-i") {
     const tabId = sender && sender.tab ? sender.tab.id : null;
     return Promise.resolve({ tabId });

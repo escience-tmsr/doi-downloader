@@ -32,8 +32,7 @@ function startJob(url, phrase, doi) {
       doi: normalizedDoi,
       used: false,
       usedUrl: null,
-      tabId: tab.id,
-      pageCounter: 0
+      tabId: tab.id
     };
 
     sendStatus(`Opened DOI page in tab ${tab.id}. Looking for "${phrase}" link…`);
@@ -54,12 +53,29 @@ function failCapture(reason, captureSession) {
   return
 }
 
+function saveLog() {
+  const table = [{ name: "test1", property: 1},
+                 { name: "test2", property: 2}]
+
+  const csv = "test1,1\ntest2,2\n";
+  const blob = new Blob([csv], { type: "text/csv" });
+  const url = URL.createObjectURL(blob);
+
+  browser.downloads.download({
+    url,
+    filename: "my_table.csv",
+    conflictAction: "uniquify"
+  });
+  sendStatus("Saved logfile to Downloads directory");
+}
+
 if (typeof self === "undefined") {
-  module.exports = { failCapture, looksPaywalledUrl, sanitizeDOI, sendStatus, startJob };
+  module.exports = { failCapture, looksPaywalledUrl, sanitizeDOI, saveLog, sendStatus, startJob };
 } else {
   self.failCapture = failCapture
   self.looksPaywalledUrl = looksPaywalledUrl;
   self.sanitizeDOI = sanitizeDOI;
+  self.saveLog = saveLog;
   self.sendStatus = sendStatus;
   self.startJob = startJob;
 }

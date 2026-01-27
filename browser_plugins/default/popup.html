@@ -9,6 +9,7 @@
       input { width: 100%; box-sizing: border-box; }
       button { margin-top: 10px; width: 100%; }
       small { color: #555; }
+      .button-row { display: flex; gap: 10px; }
     </style>
   </head>
   <body>
@@ -23,7 +24,10 @@
       contains "PDF", and open the page behind that link or button.
     </small>
 
-    <button id="startBtn">Go</button>
+    <div class="button-row">
+      <button id="saveLog" style="width:100px">Save Log</button>
+      <button id="startBtn">Process DOI</button>
+    </div>
 
     <p id="status" style="margin-top:10px; font-size: 12px;"></p>
 
