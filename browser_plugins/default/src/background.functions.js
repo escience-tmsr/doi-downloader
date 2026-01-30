@@ -1,11 +1,12 @@
 const CAPTURE_TIMEOUT_MS = 15000;
+const phrase = ["PDF", "download"]
 
 function sanitizeDOI(doi) {
   return doi
     .trim()
     .replace(/^doi:\s*/i, "")
     .replace(/^(https?:\/\/)?doi.org\//i, "")
-    .replace(/[^a-z0-9._-]+/gi, "_")
+    .replace(/[^a-z0-9._/-]+/gi, "_")
     .replace(/_+/g, "_")
     .replace(/^_+|_+$/g, "")
     .slice(0, 100);
@@ -22,8 +23,9 @@ function sendStatus(text) {
   setBadge("•");
 }
 
-function startJob(url, phrase, doi) {
-  const normalizedDoi = doi || sanitizeDOI(url) || null;
+function startJob(doi) {
+  const normalizedDoi = sanitizeDOI(doi) || null;
+  const url = "https://doi.org/" + normalizedDoi;
 
   return browser.tabs.create({ url }).then(tab => {
     const job = {
@@ -53,12 +55,8 @@ function failCapture(reason, captureSession) {
   return
 }
 
-function saveLog() {
-  const table = [{ name: "test1", property: 1},
-                 { name: "test2", property: 2}]
-
-  const csv = "test1,1\ntest2,2\n";
-  const blob = new Blob([csv], { type: "text/csv" });
+function saveLog(sessionLogCsv) {
+  const blob = new Blob([sessionLogCsv], { type: "text/csv" });
   const url = URL.createObjectURL(blob);
 
   browser.downloads.download({

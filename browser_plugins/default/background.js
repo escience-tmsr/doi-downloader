@@ -5,6 +5,7 @@ const IGNORE_WEBREQUEST_ERRORS = new Set([
 ]);
 
 let captureSession = null; // { tabId, doi, expectedUrl, sawPdf, timeoutId }
+let sessionLog = "";
 
 async function armCaptureAndNavigate(pdfUrl, doi, tabId) {
   captureSession = {
@@ -37,7 +38,7 @@ async function armCaptureAndNavigate(pdfUrl, doi, tabId) {
     } else if (ct.includes("text/html")) {
       self.failCapture("Received HTML instead of PDF (likely paywall/login).");
       captureSession = null;
-    } else {
+    } else if (! captureSession.sawPdf) {
       self.failCapture("No PDF response detected (possible paywall/login or blocked access).");
       captureSession = null;
     }
@@ -53,6 +54,7 @@ async function armCaptureAndNavigate(pdfUrl, doi, tabId) {
 }
 
 function armCaptureOnly(doi, tabId, expectedUrl = null) {
+  self.sendStatus(`breakpoint 2: ${captureSession}`)
   captureSession = {
     tabId,
     doi,
@@ -63,6 +65,7 @@ function armCaptureOnly(doi, tabId, expectedUrl = null) {
     lastMainStatus: null,
     lastMainContentType: null,
   };
+  self.sendStatus(`breakpoint 3: ${captureSession}`)
 
   captureSession.timeoutId = setTimeout(() => {
     const sc = captureSession.lastMainStatus || "";
@@ -81,6 +84,7 @@ function armCaptureOnly(doi, tabId, expectedUrl = null) {
     }
   }, CAPTURE_TIMEOUT_MS);
 
+  self.sendStatus(`breakpoint 4: ${captureSession}`)
   captureSession.pageCounter++;
   if (captureSession.pageCounter <= 1 && !pdfUrl.toLowerCase().includes("download") && !pdfUrl.toLowerCase().includes("pdf")) {
     self.sendStatus("Armed capture; navigating to HTML…");
@@ -88,12 +92,6 @@ function armCaptureOnly(doi, tabId, expectedUrl = null) {
     self.sendStatus("Armed capture; navigating to PDF…");
   }
   return Promise.resolve(true);
-}
-
-function getHeader(headers, name) {
-  name = name.toLowerCase();
-  const h = (headers || []).find(x => x.name && x.name.toLowerCase() === name);
-  return h ? h.value : null;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -116,6 +114,7 @@ browser.webRequest.onHeadersReceived.addListener(
     if (!ct.includes("application/pdf")) {
       return; // DO NOT clear timeout here
     }
+    sendStatus(`breakpoint 1: ${ct}`)
 
     // Confirmed PDF
     captureSession.sawPdf = true;
@@ -225,11 +224,11 @@ browser.runtime.onMessage.addListener((msg, sender) => {
   if (!msg || !msg.type) return;
 
   if (msg.type === "start-job") {
-    return self.startJob(msg.url, msg.phrase, msg.doi);
+    return self.startJob(msg.doi);
   }
 
   if (msg.type === "save-log") {
-    return self.saveLog();
+    return self.saveLog(sessionLog);
   }
 
   if (msg.type === "who-am-i") {
@@ -264,5 +263,8 @@ browser.downloads.onChanged.addListener((delta) => {
   browser.downloads.search({ id: delta.id }).then(([item]) => {
     if (!item) return;
     self.sendStatus(`✅ Saved PDF to ${item.filename}`);
+    if (captureSession !== null) {
+      sessionLog = sessionLog.concat(captureSession.doi, ",", item.filename, "\n");
+    }
   });
 });

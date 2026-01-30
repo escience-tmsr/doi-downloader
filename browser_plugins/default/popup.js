@@ -1,26 +1,23 @@
-document.getElementById("startBtn").addEventListener("click", () => {
+document.getElementById("startButton").addEventListener("click", () => {
   const doi = document.getElementById("doiInput").value.trim();
-  const phrase = [ "PDF", "download" ]
-  const url = "https://doi.org/" + doi;
 
   if (!doi) {
-    setStatus("Please enter a DOI.", isError = true);
+    sendStatus("Please enter a DOI.", isError = true);
     return;
   }
 
   browser.runtime.sendMessage({
     type: "start-job",
-    url,
-    phrase
+    doi
   }).catch(err => {
-    setStatus("Error starting job: " + err, isError = true);
+    sendStatus("Error starting job: " + err, isError = true);
   });
 
   browser.runtime.onMessage.addListener((msg) => {
     if (msg?.type === "status") {
-      const el = document.getElementById("status");
-      if (el) {
-        el.textContent = msg.text;
+      const element = document.getElementById("status");
+      if (element) {
+        element.textContent = msg.text;
       }
     }
   });
@@ -30,16 +27,17 @@ document.getElementById("saveLog").addEventListener("click", () => {
   browser.runtime.sendMessage({
     type: "save-log"
   }).catch(err => { 
-    setStatus("could not save job!"), isError = true
+    sendStatus("could not save log!"), isError = true
   });
 });
 
 
-function setStatus(text, isError = false) {
+function sendStatus(text, isError = false) {
   const element = document.getElementById("status");
   if (!element) return;
+
   element.textContent = text;
-  if (!isError) { console.log(text); }
+  if (!isError) { console.log("[default-extension] " + text); } 
   else {
     element.style.color = "red";
     console.error("[default-extension] " + text);
