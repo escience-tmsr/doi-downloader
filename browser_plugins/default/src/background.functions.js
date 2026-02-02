@@ -17,13 +17,13 @@ function setBadge(text) {
 }
 
 function sendStatus(text) {
-  //try { browser.runtime.sendMessage({ type: "status", text }); } catch (_) {}
   browser.runtime.sendMessage({ type: "status", text }).catch(() => {});
   console.log("[default-extension]", text);
   setBadge("•");
 }
 
 function startJob(doi) {
+  sendStatus("Entering startJob");
   const normalizedDoi = sanitizeDOI(doi) || null;
   const url = "https://doi.org/" + normalizedDoi;
 

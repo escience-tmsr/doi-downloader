@@ -7,21 +7,18 @@ const IGNORE_WEBREQUEST_ERRORS = new Set([
 let captureSession = null; // { tabId, doi, expectedUrl, sawPdf, timeoutId }
 let sessionLog = "";
 
-async function armCaptureAndNavigate(pdfUrl, doi, tabId) {
+function armCaptureBase(expectedUrl, doi, tabId) {
   captureSession = {
     tabId,
     doi,
-    expectedUrl: pdfUrl,
+    expectedUrl,
     sawPdf: false,
     timeoutId: null,
     pageCounter: 0,
-
-    // debug/classification fields
     lastMainUrl: null,
     lastMainStatus: null,
     lastMainContentType: null,
   };
-
   captureSession.timeoutId = setTimeout(() => {
     if (! captureSession) return;
 
@@ -43,54 +40,24 @@ async function armCaptureAndNavigate(pdfUrl, doi, tabId) {
       captureSession = null;
     }
   }, CAPTURE_TIMEOUT_MS);
-
   captureSession.pageCounter++;
-  if (captureSession.pageCounter <= 1 && !pdfUrl.toLowerCase().includes("download") && !pdfUrl.toLowerCase().includes("pdf")) {
+  if (captureSession.pageCounter <= 1 && !expectedUrl.toLowerCase().includes("download") && !expectedUrl.toLowerCase().includes("pdf")) {
     self.sendStatus("Armed capture; navigating to HTML…");
   } else {
     self.sendStatus("Armed capture; navigating to PDF…");
   }
-  return browser.tabs.update(tabId, { url: pdfUrl });
+}
+
+function armCaptureAndNavigate(expectedUrl, doi, tabId) {
+  sendStatus("Entering armCaptureAndNavigate");
+  armCaptureBase(expectedUrl, doi, tabId);
+  return browser.tabs.update(tabId, { url: expectedUrl });
 }
 
 function armCaptureOnly(doi, tabId, expectedUrl = null) {
-  self.sendStatus(`breakpoint 2: ${captureSession}`)
-  captureSession = {
-    tabId,
-    doi,
-    expectedUrl,
-    sawPdf: false,
-    timeoutId: null,
-    lastMainUrl: null,
-    lastMainStatus: null,
-    lastMainContentType: null,
-  };
-  self.sendStatus(`breakpoint 3: ${captureSession}`)
-
-  captureSession.timeoutId = setTimeout(() => {
-    const sc = captureSession.lastMainStatus || "";
-    const ct = captureSession.lastMainContentType || "";
-    const url = captureSession.lastMainUrl || "";
-
-    if (sc === 401 || sc === 403) {
-      self.failCapture(`Access denied (${sc}) — likely paywall/login required.`);
-      captureSession = null;
-    } else if (ct.includes("text/html")) {
-      self.failCapture("Received HTML instead of PDF after clicking (likely paywall/login).");
-      captureSession = null;
-    } else {
-      self.failCapture("No PDF response detected after clicking the PDF button.");
-      captureSession = null;
-    }
-  }, CAPTURE_TIMEOUT_MS);
-
+  self.sendStatus("Entering armCaptureOnly");
+  armCaptureBase(pdfUrl, doi, tabId);
   self.sendStatus(`breakpoint 4: ${captureSession}`)
-  captureSession.pageCounter++;
-  if (captureSession.pageCounter <= 1 && !pdfUrl.toLowerCase().includes("download") && !pdfUrl.toLowerCase().includes("pdf")) {
-    self.sendStatus("Armed capture; navigating to HTML…");
-  } else {
-    self.sendStatus("Armed capture; navigating to PDF…");
-  }
   return Promise.resolve(true);
 }
 
@@ -221,7 +188,8 @@ browser.webRequest.onErrorOccurred.addListener(
 );
 
 browser.runtime.onMessage.addListener((msg, sender) => {
-  if (!msg || !msg.type) return;
+  if (!msg || !msg.type || msg.type === "status") return;
+  sendStatus(`entering onMessage: ${msg.type}`);
 
   if (msg.type === "start-job") {
     return self.startJob(msg.doi);
@@ -231,8 +199,9 @@ browser.runtime.onMessage.addListener((msg, sender) => {
     return self.saveLog(sessionLog);
   }
 
-  if (msg.type === "who-am-i") {
+  if (msg.type === "what-is-my-tabid") {
     const tabId = sender && sender.tab ? sender.tab.id : null;
+    sendStatus(`answer: tabId=${tabId}`);
     return Promise.resolve({ tabId });
   }
 
@@ -255,6 +224,8 @@ browser.runtime.onMessage.addListener((msg, sender) => {
   if (msg.type === "arm_capture_for_tab") {
     return armCaptureOnly(msg.doi, msg.tabId, msg.expectedUrl ?? null);
   }
+
+  self.sendStatus(`onMessage: cannot process message: ${msg.type}`);
 });
 
 browser.downloads.onChanged.addListener((delta) => {

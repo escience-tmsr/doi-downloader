@@ -74,7 +74,7 @@ async function performAction(job, myTabId) {
 }
 
 async function maybeRunJob(myTabId) {
-  console.log("Entering maybeRunJob");
+  sendStatus("Entering maybeRunJob");
   const result = await browser.storage.local.get("job").catch(err => {
     console.error("[default-extension] error reading job from storage:", err);
   });
@@ -115,7 +115,7 @@ async function maybeRunJob(myTabId) {
   }, 1000);
 }
 
-browser.runtime.sendMessage({ type: "who-am-i" })
+browser.runtime.sendMessage({ type: "what-is-my-tabid" })
   .then(response => {
     const myTabId = response && response.tabId;
     console.log("[default-extension] my tabId is", myTabId);
