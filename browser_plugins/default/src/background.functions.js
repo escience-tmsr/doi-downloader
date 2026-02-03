@@ -1,5 +1,67 @@
 const CAPTURE_TIMEOUT_MS = 15000;
 const phrase = ["PDF", "download"]
+const IGNORE_WEBREQUEST_ERRORS = new Set([
+  "NS_BINDING_ABORTED",
+  "NS_ERROR_TRACKING_URI",
+  "NS_ERROR_DOM_BAD_URI",
+]);
+
+let captureSession = null;
+let sessionLog = "";
+
+function armCaptureBase(doi, tabId, expectedUrl) {
+  captureSession = {
+    tabId,
+    doi,
+    expectedUrl,
+    sawPdf: false,
+    timeoutId: null,
+    pageCounter: 0,
+    lastMainUrl: null,
+    lastMainStatus: null,
+    lastMainContentType: null,
+  };
+  captureSession.timeoutId = setTimeout(() => {
+    if (! captureSession) return;
+
+    const sc = captureSession.lastMainStatus || "";
+    const ct = captureSession.lastMainContentType || "";
+    const url = captureSession.lastMainUrl || captureSession.expectedUrl || "";
+
+    if (sc === 401 || sc === 403) {
+      self.failCapture(`Access denied (${sc}) — likely paywall/login required.`);
+      captureSession = null;
+    } else if (ct.includes("text/html") && self.looksPaywalledUrl(url)) {
+      self.failCapture("Redirected to a paywall/purchase/login page (no PDF served).");
+      captureSession = null;
+    } else if (ct.includes("text/html")) {
+      self.failCapture("Received HTML instead of PDF (likely paywall/login).");
+      captureSession = null;
+    } else if (! captureSession.sawPdf) {
+      self.failCapture("No PDF response detected (possible paywall/login or blocked access).");
+      captureSession = null;
+    }
+  }, CAPTURE_TIMEOUT_MS);
+  captureSession.pageCounter++;
+  if (captureSession.pageCounter <= 1 && !expectedUrl.toLowerCase().includes("download") && !expectedUrl.toLowerCase().includes("pdf")) {
+    self.sendStatus(`Armed capture; navigating to HTML… (${captureSession.pageCounter})`);
+  } else {
+    self.sendStatus(`Armed capture; navigating to PDF… (${captureSession.pageCounter})`);
+  }
+}
+
+function armCaptureAndNavigate(doi, tabId, expectedUrl,) {
+  sendStatus("Entering armCaptureAndNavigate");
+  armCaptureBase(doi, tabId, expectedUrl);
+  return browser.tabs.update(tabId, { url: expectedUrl });
+}
+
+function armCaptureOnly(doi, tabId, expectedUrl = null) {
+  self.sendStatus("Entering armCaptureOnly");
+  armCaptureBase(doi, tabId, expectedUrl);
+  self.sendStatus(`breakpoint 4: ${captureSession}`)
+  return Promise.resolve(true);
+}
 
 function sanitizeDOI(doi) {
   return doi
@@ -10,6 +72,10 @@ function sanitizeDOI(doi) {
     .replace(/_+/g, "_")
     .replace(/^_+|_+$/g, "")
     .slice(0, 100);
+}
+
+function removeSlashes(doi) {
+  return doi.replace(/\/+/g, "_");
 }
 
 function setBadge(text) {
@@ -68,10 +134,14 @@ function saveLog(sessionLogCsv) {
 }
 
 if (typeof self === "undefined") {
-  module.exports = { failCapture, looksPaywalledUrl, sanitizeDOI, saveLog, sendStatus, startJob };
+  module.exports = { armCaptureAndNavigate, armCaptureOnly, failCapture, 
+                     looksPaywalledUrl, removeSlashes, sanitizeDOI, saveLog, sendStatus, startJob };
 } else {
-  self.failCapture = failCapture
+  self.armCaptureAndNavigate = armCaptureAndNavigate;
+  self.armCaptureOnly = armCaptureOnly;
+  self.failCapture = failCapture;
   self.looksPaywalledUrl = looksPaywalledUrl;
+  self.removeSlashes = removeSlashes;
   self.sanitizeDOI = sanitizeDOI;
   self.saveLog = saveLog;
   self.sendStatus = sendStatus;

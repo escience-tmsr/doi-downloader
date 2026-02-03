@@ -1,12 +1,17 @@
-const { failCapture, looksPaywalledUrl, sanitizeDOI, sendStatus, startJob }  = require("../src/background.functions");
+const { failCapture, looksPaywalledUrl, removeSlashes, sanitizeDOI, sendStatus, startJob }  = require("../src/background.functions");
 
-test("sanitizes DOI into filesystem-safe name", () => {
-  expect(sanitizeDOI("10.1613/jair.1.20161"))
-    .toBe("10.1613_jair.1.20161");
+test("removes non-essential characters from DOI", () => {
+  expect(sanitizeDOI("doi: https://doi.org/10.1613/jair.1.20161"))
+    .toBe("10.1613/jair.1.20161");
 });
 
 test("strips doi.org prefix", () => {
   expect(sanitizeDOI("https://doi.org/10.1613/jair.1.20161"))
+    .toBe("10.1613/jair.1.20161");
+});
+
+test("removes slashes from DOI", () => {
+  expect(removeSlashes("10.1613/jair.1.20161"))
     .toBe("10.1613_jair.1.20161");
 });
 
