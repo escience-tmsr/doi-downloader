@@ -19,6 +19,20 @@ After these four steps, the extension can be used for accessing paper PDFs via t
 
 The extension will open the main web page associated with DOI, look for a PDF download button on the page and try to download the PDF linked from the page. If successful, the PDF will be stored in the `Downloads` directory of the browser user with the DOI as name (slashes replaced by underscores). The extension displays it progress at the bottom of its popup window. When downloading fails, an error message will be displayed. 
 
+## Code sequence diagram
+
+| Source                       |     | Target                            | Task              |
+|------------------------------|-----|-----------------------------------|-------------------|
+| popup                        | ->> | background:  startJob             | Download doi page |
+| doi page                     | ->> | content-script: maybeRunJob       |                   |
+| maybeRunJob                  | ->> | content-script: performAction     | Find PDF button   |
+| performAction                | ->> | send download_pdf_via_tab_capture |                   |
+| download_pdf_via_tab_capture | ->> | background: armCaptureAndNavigate | Load web page     |
+| web page                     | ->> | background: onHeadersReceived     | Checks for PDF    |
+| web page                     | ->> | background: onCompleted           | Checks for errors |
+| web page                     | ->> | background: onErrorOccurred       | Checks for errors |
+| web page                     | ->> | content-script: maybeRunJob       |                   |
+
 ## Links
 
 * Icon source: [Google icons](https://fonts.google.com/icons)
