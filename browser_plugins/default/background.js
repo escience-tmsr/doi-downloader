@@ -25,6 +25,11 @@ browser.webRequest.onHeadersReceived.addListener(
 
     self.sendStatus("PDF response detected; capturing…");
 
+    if (cd.includes("attachment")) {
+      captureSession.expectBrowserDownload = true;
+      sendStatus(`Server forces PDF download; will use browser download to avoid duplicate (${captureSession.pageCounter})`);
+    };
+
     const filter = browser.webRequest.filterResponseData(details.requestId);
     const chunks = [];
 
@@ -51,11 +56,6 @@ browser.webRequest.onHeadersReceived.addListener(
         captureSession = null;
       }
     };
-
-    if (cd.includes("attachment")) {
-      captureSession.expectBrowserDownload = true;
-      sendStatus(`Server forces PDF download; will use browser download to avoid duplicate (${captureSession.pageCounter})`);
-    }
   },
   { urls: ["<all_urls>"] },
   ["blocking", "responseHeaders"]
@@ -151,7 +151,7 @@ browser.runtime.onMessage.addListener((msg, sender) => {
     const doi = msg.doi || null;
 
     if (!tabId) {
-      self.sendStatus("Cannot download: missing tabId.");
+      self.sendStatus("Cannot download: missing tabId.", isError = false);
       return;
     }
     return armCaptureAndNavigate(doi, tabId, msg.pdfUrl);
@@ -161,7 +161,7 @@ browser.runtime.onMessage.addListener((msg, sender) => {
     return armCaptureOnly(msg.doi, msg.tabId, msg.expectedUrl ?? null);
   }
 
-  self.sendStatus(`onMessage: cannot process message: ${msg.type}`);
+  self.sendStatus(`onMessage: cannot process message: ${msg.type}`, isError = false);
 });
 
 browser.downloads.onChanged.addListener((delta) => {

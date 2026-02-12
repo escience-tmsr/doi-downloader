@@ -16,7 +16,8 @@
     "default_popup": "popup.html"
   },
   "background": {
-    "scripts": ["src/background.functions.js",
+    "scripts": ["src/status.js",
+                "src/background.functions.js",
                 "background.js"],
     "persistent": false
   },

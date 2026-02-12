@@ -51,7 +51,7 @@ function armCaptureBase(doi, tabId, expectedUrl) {
 }
 
 function armCaptureAndNavigate(doi, tabId, expectedUrl,) {
-  sendStatus("Entering armCaptureAndNavigate");
+  self.sendStatus("Entering armCaptureAndNavigate");
   armCaptureBase(doi, tabId, expectedUrl);
   return browser.tabs.update(tabId, { url: expectedUrl });
 }
@@ -78,18 +78,8 @@ function removeSlashes(doi) {
   return doi.replace(/\/+/g, "_");
 }
 
-function setBadge(text) {
-  try { browser.browserAction.setBadgeText({ text }); } catch(_) {}
-}
-
-function sendStatus(text) {
-  browser.runtime.sendMessage({ type: "status", text }).catch(() => {});
-  console.log("[default-extension]", text);
-  setBadge("•");
-}
-
 function startJob(doi) {
-  sendStatus("Entering startJob");
+  self.sendStatus("Entering startJob");
   const normalizedDoi = sanitizeDOI(doi) || null;
   const url = "https://doi.org/" + normalizedDoi;
 
@@ -103,10 +93,10 @@ function startJob(doi) {
       tabId: tab.id
     };
 
-    sendStatus(`Opened DOI page in tab ${tab.id}. Looking for "${phrase}" link…`);
+    self.sendStatus(`Opened DOI page in tab ${tab.id}. Looking for "${phrase}" link…`);
     return browser.storage.local.set({ job });
   }).catch(err => {
-    sendStatus(`Could not start job: ${err && err.message ? err.message : err}`);
+    self.sendStatus(`Could not start job: ${err && err.message ? err.message : err}`, isError = true);
     throw err;
   });
 }
@@ -117,7 +107,7 @@ function looksPaywalledUrl(u) {
 }
 
 function failCapture(reason, captureSession) {
-  sendStatus(`❌ PDF download failed: ${reason}`);
+  self.sendStatus(`❌ PDF download failed: ${reason}`, isError = true);
   return
 }
 
@@ -130,12 +120,12 @@ function saveLog(sessionLogCsv) {
     filename: "my_table.csv",
     conflictAction: "uniquify"
   });
-  sendStatus("Saved logfile to Downloads directory");
+  self.sendStatus("Saved logfile to Downloads directory");
 }
 
 if (typeof self === "undefined") {
   module.exports = { armCaptureAndNavigate, armCaptureOnly, failCapture, 
-                     looksPaywalledUrl, removeSlashes, sanitizeDOI, saveLog, sendStatus, startJob };
+                     looksPaywalledUrl, removeSlashes, sanitizeDOI, saveLog, startJob };
 } else {
   self.armCaptureAndNavigate = armCaptureAndNavigate;
   self.armCaptureOnly = armCaptureOnly;
@@ -144,6 +134,5 @@ if (typeof self === "undefined") {
   self.removeSlashes = removeSlashes;
   self.sanitizeDOI = sanitizeDOI;
   self.saveLog = saveLog;
-  self.sendStatus = sendStatus;
   self.startJob = startJob;
 }
