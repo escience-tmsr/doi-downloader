@@ -7,7 +7,60 @@ const IGNORE_WEBREQUEST_ERRORS = new Set([
 ]);
 
 let captureSession = null;
-let sessionLog = "";
+let downloadLog = "";
+
+function inRetrievePdfSession(tabId) {
+  return captureSession && tabId == captureSession.tabId;
+}
+
+function retrievingPdfFile(details) {
+  const headers = details.responseHeaders || [];
+  const contentType = (headers.find(h => h.name.toLowerCase() === "content-type")?.value || "").toLowerCase();
+  return contentType.includes("application/pdf");
+}
+
+function storeDetailsInSessionData(details) {
+  if (details.type === "main_frame") {
+    captureSession.lastMainUrl = details.url;
+    captureSession.lastMainStatus = details.statusCode;
+    const headers = details.responseHeaders || [];
+    const contentType = (headers.find(h => h.name.toLowerCase() === "content-type")?.value || "").toLowerCase();
+    captureSession.lastMainContentType = contentType;
+  }
+}
+
+function retrievingAttachment(details) {
+  const headers = details.responseHeaders || [];
+  const contentDisposition = (headers.find(h => h.name.toLowerCase() === "content-disposition")?.value || "").toLowerCase();
+  return contentDisposition.includes("attachment");
+}
+
+function processIncomingPdfData(details) {
+  const dataFlow = browser.webRequest.filterResponseData(details.requestId);
+  const chunks = [];
+
+  dataFlow.ondata = (e) => {
+    dataFlow.write(e.data);
+    chunks.push(e.data);
+  };
+
+  const session = captureSession;
+  dataFlow.onstop = async () => {
+    try {
+      dataFlow.disconnect();
+      if (! session.expectBrowserDownload) {
+        const blob = new Blob(chunks, { type: "application/pdf" });
+        const objUrl = URL.createObjectURL(blob);
+        const filename = `${self.removeSlashes(self.sanitizeDOI(session.doi))}.pdf`;
+        await browser.downloads.download({ url: objUrl, filename, saveAs: false });
+        setTimeout(() => URL.revokeObjectURL(objUrl), 30000);
+      }
+    } catch (e) {
+      self.failCapture(`Saving PDF failed: ${e.message}`);
+    }
+  };
+}
+
 
 function armCaptureBase(doi, tabId, expectedUrl) {
   captureSession = {
@@ -111,8 +164,8 @@ function failCapture(reason, captureSession) {
   return
 }
 
-function saveLog(sessionLogCsv) {
-  const blob = new Blob([sessionLogCsv], { type: "text/csv" });
+function saveLog(downloadLogCsv) {
+  const blob = new Blob([downloadLogCsv], { type: "text/csv" });
   const url = URL.createObjectURL(blob);
 
   browser.downloads.download({
@@ -130,8 +183,11 @@ if (typeof self === "undefined") {
   self.armCaptureAndNavigate = armCaptureAndNavigate;
   self.armCaptureOnly = armCaptureOnly;
   self.failCapture = failCapture;
+  self.inRetrievePdfSession = inRetrievePdfSession;
   self.looksPaywalledUrl = looksPaywalledUrl;
+  self.processIncomingPdfData = processIncomingPdfData;
   self.removeSlashes = removeSlashes;
+  self.retrievingPdfFile = retrievingPdfFile;
   self.sanitizeDOI = sanitizeDOI;
   self.saveLog = saveLog;
   self.startJob = startJob;

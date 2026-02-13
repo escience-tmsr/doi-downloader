@@ -1,61 +1,20 @@
 browser.webRequest.onHeadersReceived.addListener(
   (details) => {
-    if (!captureSession || details.tabId !== captureSession.tabId) return;
+    if (!self.inRetrievePdfSession(details.tabId)) return;
+    self.storeDetailsInSessionData(details);
 
-    const headers = details.responseHeaders || [];
-    const ct = (headers.find(h => h.name.toLowerCase() === "content-type")?.value || "").toLowerCase();
-    const cd = (headers.find(h => h.name.toLowerCase() === "content-disposition")?.value || "").toLowerCase();
+    if (!self.retrievingPdfFile(details)) return;
 
-    // Always record main navigation info for paywall classification
-    if (details.type === "main_frame") {
-      captureSession.lastMainUrl = details.url;
-      captureSession.lastMainStatus = details.statusCode;
-      captureSession.lastMainContentType = ct;
-    }
-
-    // ✅ Only confirm PDF by content-type
-    if (!ct.includes("application/pdf")) {
-      return; // DO NOT clear timeout here
-    }
-    sendStatus(`breakpoint 1: ${ct}`)
-
-    // Confirmed PDF
     captureSession.sawPdf = true;
-    if (captureSession.timeoutId) clearTimeout(captureSession.timeoutId);
-
+    clearTimeout(captureSession.timeoutId);
     self.sendStatus("PDF response detected; capturing…");
 
-    if (cd.includes("attachment")) {
+    if (retrievingAttachment(details)) {
       captureSession.expectBrowserDownload = true;
       sendStatus(`Server forces PDF download; will use browser download to avoid duplicate (${captureSession.pageCounter})`);
     };
 
-    const filter = browser.webRequest.filterResponseData(details.requestId);
-    const chunks = [];
-
-    filter.ondata = (e) => {
-      filter.write(e.data);
-      chunks.push(e.data);
-    };
-
-    const session = captureSession;
-    filter.onstop = async () => {
-      try {
-        filter.disconnect();
-        if (! session.expectBrowserDownload) {
-          const blob = new Blob(chunks, { type: "application/pdf" });
-          const objUrl = URL.createObjectURL(blob);
-          const filename = `${self.removeSlashes(self.sanitizeDOI(session.doi))}.pdf`;
-          await browser.downloads.download({ url: objUrl, filename, saveAs: false });
-          setTimeout(() => URL.revokeObjectURL(objUrl), 30000);
-        }
-      } catch (e) {
-        self.failCapture(`Save failed: ${e.message}`);
-        captureSession = null;
-      } finally {
-        captureSession = null;
-      }
-    };
+    self.processIncomingPdfData(details);
   },
   { urls: ["<all_urls>"] },
   ["blocking", "responseHeaders"]
@@ -63,26 +22,25 @@ browser.webRequest.onHeadersReceived.addListener(
 
 browser.webRequest.onCompleted.addListener(
   (details) => {
-    if (!captureSession || details.tabId !== captureSession.tabId) return;
-
-    if (details.type !== "main_frame") return;
-
-    // If the main request completed but we never saw a PDF, report based on status.
-    const ct = details.lastMainContentType || ""
-    if (!captureSession.sawPdf) {
-      if (!ct.includes("application/pdf")) return;
-      if (captureSession.timeoutId) clearTimeout(captureSession.timeoutId);
-
-      const sc = details.statusCode;
-      if (sc === 401 || sc === 403) {
-        self.failCapture(`Access denied (${sc}). You likely don’t have permission or need to sign in via your institution.`);
-         captureSession = null;
-      } else if (sc === 404) {
-        self.failCapture("PDF not found (404). The link may be broken or moved.");
-        captureSession = null;
-      } else if (sc >= 400) {
-        self.failCapture(`Server returned HTTP ${sc} (not a PDF).`);
-        captureSession = null;
+    if (self.inRetrievePdfSession(details.tabId) &&
+        self.retrievingPdfFile(details) &&
+        !captureSession.sawPdf) {
+      clearTimeout(captureSession.timeoutId);
+      switch (details.statusCode) {
+        case 401:
+        case 403: 
+          self.failCapture(`Access denied (${sc}). You likely don’t have permission or need to sign in via your institution.`);
+          captureSession = null;
+          break;
+        case 404:
+          self.failCapture("PDF not found (404). The link may be broken or moved.");
+          captureSession = null;
+          break
+        default:
+          if (details.statusCode >= 400) {
+            self.failCapture(`Server returned HTTP ${details.statusCode} (not a PDF).`);
+            captureSession = null;
+          }
       } 
     }
   },
@@ -91,7 +49,7 @@ browser.webRequest.onCompleted.addListener(
 
 browser.webRequest.onErrorOccurred.addListener(
   (details) => {
-    if (!captureSession || details.tabId !== captureSession.tabId) return;
+    if (!self.inRetrievePdfSession(details.tabId)) return;
 
     // Ignore common non-fatal / policy / handoff errors
     if (IGNORE_WEBREQUEST_ERRORS.has(details.error)) {
@@ -125,21 +83,19 @@ browser.webRequest.onErrorOccurred.addListener(
 
 browser.runtime.onMessage.addListener((msg, sender) => {
   if (!msg || !msg.type || msg.type === "status") return;
-  sendStatus(`entering onMessage: ${msg.type}`);
 
-  if (msg.type === "start-job") {
-    return self.startJob(msg.doi);
-  }
-
-  if (msg.type === "save-log") {
-    return self.saveLog(sessionLog);
-  }
-
-  if (msg.type === "what-is-my-tabid") {
+  if (msg.type !== "what-is-my-tabid") {
+    sendStatus(`entering onMessage: ${msg.type}`);
+  } else {
     const tabId = sender && sender.tab ? sender.tab.id : null;
-    sendStatus(`answer: tabId=${tabId}`);
     return Promise.resolve({ tabId });
   }
+
+  if (msg.type === "start-job") return self.startJob(msg.doi);
+
+  if (msg.type === "save-log") return self.saveLog(downloadLog);
+
+  if (msg.type === "arm_capture_for_tab") return armCaptureOnly(msg.doi, msg.tabId, msg.expectedUrl ?? null);
 
   if (msg.type === "open-url" && msg.url) {
     self.sendStatus("Opening link in new tab…");
@@ -157,10 +113,6 @@ browser.runtime.onMessage.addListener((msg, sender) => {
     return armCaptureAndNavigate(doi, tabId, msg.pdfUrl);
   }
 
-  if (msg.type === "arm_capture_for_tab") {
-    return armCaptureOnly(msg.doi, msg.tabId, msg.expectedUrl ?? null);
-  }
-
   self.sendStatus(`onMessage: cannot process message: ${msg.type}`, isError = false);
 });
 
@@ -169,9 +121,9 @@ browser.downloads.onChanged.addListener((delta) => {
 
   browser.downloads.search({ id: delta.id }).then(([item]) => {
     if (!item) return;
-    self.sendStatus(`✅ Saved PDF to ${item.filename}`);
     if (captureSession !== null) {
-      sessionLog = sessionLog.concat(captureSession.doi, ",", item.filename, "\n");
+      self.sendStatus(`✅ Saved PDF to ${item.filename}`);
+      downloadLog = downloadLog.concat(captureSession.doi, ",", item.filename, "\n");
     }
   });
 });
