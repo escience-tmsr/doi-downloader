@@ -6,7 +6,7 @@ function sendStatus(text) {
 function findElementByPhrase(phrases) {
   for (const phrase of phrases) {
     const needle = phrase.toLowerCase();
-    console.log("[default-extension] searching for phrase:", needle);
+    sendStatus(`[default-extension] searching for phrase: ${needle}`);
   
     const elements = Array.from(document.querySelectorAll("a, button"));
     for (const el of elements) {
@@ -17,12 +17,12 @@ function findElementByPhrase(phrases) {
       const combined = (text + " " + aria + " " + title).toLowerCase();
   
       if (combined.includes(needle)) {
-        console.log("[default-extension] matched element:", combined, "tag:", el.tagName);
+        sendStatus(`[default-extension] matched element: ${combined} tag: ${el.tagName}`);
         return el;
       }
     }
   
-    console.log("[default-extension] no element found for phrase:", phrase);
+    sendStatus(`[default-extension] no element found for phrase: ${phrase}`);
   }
   return null;
 }
@@ -49,7 +49,7 @@ async function performAction(job, myTabId) {
       doi: job.doi || null,
       tabId: myTabId
     }).catch(err => {
-      sendStatus("Error asking add-on to capture PDF: " + err);
+      sendStatus(`Error asking add-on to capture PDF: ${err}`);
     });
 
     return;
@@ -72,20 +72,17 @@ async function performAction(job, myTabId) {
 }
 
 async function maybeRunJob(myTabId) {
-  sendStatus("Entering maybeRunJob");
   const result = await browser.storage.local.get("job").catch(err => {
-    console.error("[default-extension] error reading job from storage:", err);
+    sendStatus(`[default-extension] error reading job from storage: ${err}`);
   });
   const job = result.job;
   if (!job) {
-    console.log("[default-extension] no job in storage, doing nothing");
+    sendStatus("[default-extension] no job in storage, doing nothing");
     return;
   }
 
-  if (job.tabId !== myTabId) {
-    console.log("[default-extension] tabId mismatch (mine:", myTabId, "job:", job.tabId, "), skipping");
-    return;
-  }
+  if (job.tabId !== myTabId) return;
+  sendStatus(`Entered maybeRunJob, tabId is ${myTabId}`);
 
   const here = location.href;
   if (job.used && job.usedUrl === here) {
@@ -95,20 +92,20 @@ async function maybeRunJob(myTabId) {
 
   job.used = true;
   job.usedUrl = here;
-  console.log(`maybeRunJob: ${job.used} # ${job.usedUrl} # ${job.tabId}`)
+  sendStatus(`maybeRunJob: ${job.used} # ${job.usedUrl} # ${job.tabId}`)
   await browser.storage.local.set({ job });
 
-  console.log("[default-extension] tabId matches job, running job");
+  sendStatus("[default-extension] tabId matches job, running job");
   job.used = true;
   browser.storage.local.set({ job }).catch(err => {
-    console.error("[default-extension] error marking job used:", err);
+    sendStatus(`[default-extension] error marking job used: ${err}`);
   });
 
   window.setTimeout(() => {
     try {
       performAction(job, myTabId);
     } catch (e) {
-      sendStatus("Error while searching link: " + e.message);
+      sendStatus(`Error while searching link: ${e.message}`);
     }
   }, 1000);
 }

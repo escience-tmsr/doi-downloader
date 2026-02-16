@@ -20,73 +20,31 @@ browser.webRequest.onHeadersReceived.addListener(
   ["blocking", "responseHeaders"]
 );
 
-browser.webRequest.onCompleted.addListener(
-  (details) => {
-    if (self.inRetrievePdfSession(details.tabId) &&
-        self.retrievingPdfFile(details) &&
-        !captureSession.sawPdf) {
-      clearTimeout(captureSession.timeoutId);
-      switch (details.statusCode) {
-        case 401:
-        case 403: 
-          self.failCapture(`Access denied (${sc}). You likely don’t have permission or need to sign in via your institution.`);
-          captureSession = null;
-          break;
-        case 404:
-          self.failCapture("PDF not found (404). The link may be broken or moved.");
-          captureSession = null;
-          break
-        default:
-          if (details.statusCode >= 400) {
-            self.failCapture(`Server returned HTTP ${details.statusCode} (not a PDF).`);
-            captureSession = null;
-          }
-      } 
-    }
-  },
-  { urls: ["<all_urls>"] }
-);
+browser.downloads.onChanged.addListener((delta) => {
+  if (!delta.state || delta.state.current !== "complete") return;
 
-browser.webRequest.onErrorOccurred.addListener(
-  (details) => {
-    if (!self.inRetrievePdfSession(details.tabId)) return;
-
-    // Ignore common non-fatal / policy / handoff errors
-    if (IGNORE_WEBREQUEST_ERRORS.has(details.error)) {
-      console.log("[capture] ignoring", details.error, "for", details.type, details.url);
-      return;
-    }
-
-    // Most errors here are subresources; don't kill the session.
-    // Record for better timeout messages, but let the watchdog decide.
-    captureSession.lastError = details.error;
-    captureSession.lastErrorUrl = details.url;
-
-    console.log("[capture] webRequest error (non-fatal):", details.error, details.type, details.url);
-
-    // OPTIONAL: Only fail fast if it's clearly the main navigation to the expected PDF URL
-    // and we haven't seen a PDF.
-    const urlMatchesExpected =
-      captureSession.expectedUrl &&
-      (details.url === captureSession.expectedUrl ||
-       details.url.startsWith(captureSession.expectedUrl));
-
-    if (!captureSession.sawPdf && details.type === "main_frame" && urlMatchesExpected) {
-      if (!ct.includes("application/pdf")) return;
-      if (captureSession.timeoutId) clearTimeout(captureSession.timeoutId);
-      self.failCapture(`Network error while loading PDF: ${details.error}`);
+  browser.downloads.search({ id: delta.id }).then(([item]) => {
+    if (!item) return;
+    if (captureSession !== null && item.mime.includes("application/pdf")) {
+      self.sendStatus(`✅ Saved PDF to ${item.filename}`);
+      downloadLog = downloadLog.concat(captureSession.doi, ",", item.filename, "\n");
       captureSession = null;
     }
-  },
-  { urls: ["<all_urls>"] }
-);
+  });
+});
 
 browser.runtime.onMessage.addListener((msg, sender) => {
-  if (!msg || !msg.type || msg.type === "status") return;
+  if (!msg || !msg.type) return;
+
+  if (msg.type === "status") {
+    sendStatus(`status: ${msg.text}`);
+    return;
+  }
 
   if (msg.type !== "what-is-my-tabid") {
-    sendStatus(`entering onMessage: ${msg.type}`);
+    sendStatus(`message: ${msg.type}`);
   } else {
+    // message sent for every tab: do not report
     const tabId = sender && sender.tab ? sender.tab.id : null;
     return Promise.resolve({ tabId });
   }
@@ -110,20 +68,12 @@ browser.runtime.onMessage.addListener((msg, sender) => {
       self.sendStatus("Cannot download: missing tabId.", isError = false);
       return;
     }
+    if (captureSession !== null && msg.pdfUrl === captureSession.lastMainUrl) {
+      self.sendStatus(`skipping already processed url: ${msg.pdfUrl}`);
+      return;
+    }
     return armCaptureAndNavigate(doi, tabId, msg.pdfUrl);
   }
 
   self.sendStatus(`onMessage: cannot process message: ${msg.type}`, isError = false);
-});
-
-browser.downloads.onChanged.addListener((delta) => {
-  if (!delta.state || delta.state.current !== "complete") return;
-
-  browser.downloads.search({ id: delta.id }).then(([item]) => {
-    if (!item) return;
-    if (captureSession !== null) {
-      self.sendStatus(`✅ Saved PDF to ${item.filename}`);
-      downloadLog = downloadLog.concat(captureSession.doi, ",", item.filename, "\n");
-    }
-  });
 });

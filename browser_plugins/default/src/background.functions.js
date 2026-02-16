@@ -96,21 +96,21 @@ function armCaptureBase(doi, tabId, expectedUrl) {
     }
   }, CAPTURE_TIMEOUT_MS);
   captureSession.pageCounter++;
-  if (captureSession.pageCounter <= 1 && !expectedUrl.toLowerCase().includes("download") && !expectedUrl.toLowerCase().includes("pdf")) {
+  if (captureSession.pageCounter <= 1 && expectedUrl !== null && !expectedUrl.toLowerCase().includes("download") && !expectedUrl.toLowerCase().includes("pdf")) {
     self.sendStatus(`Armed capture; navigating to HTML… (${captureSession.pageCounter})`);
   } else {
     self.sendStatus(`Armed capture; navigating to PDF… (${captureSession.pageCounter})`);
   }
 }
 
-function armCaptureAndNavigate(doi, tabId, expectedUrl,) {
-  self.sendStatus("Entering armCaptureAndNavigate");
+function armCaptureAndNavigate(doi, tabId, expectedUrl) {
+  self.sendStatus(`Entering armCaptureAndNavigate for ${expectedUrl}`);
   armCaptureBase(doi, tabId, expectedUrl);
   return browser.tabs.update(tabId, { url: expectedUrl });
 }
 
 function armCaptureOnly(doi, tabId, expectedUrl = null) {
-  self.sendStatus("Entering armCaptureOnly");
+  self.sendStatus(`Entering armCaptureOnly for ${expectedUrl}`);
   armCaptureBase(doi, tabId, expectedUrl);
   self.sendStatus(`breakpoint 4: ${captureSession}`)
   return Promise.resolve(true);
