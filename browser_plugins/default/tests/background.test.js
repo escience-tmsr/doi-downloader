@@ -1,4 +1,4 @@
-const { failCapture, looksPaywalledUrl, removeSlashes, sanitizeDOI, sendStatus, startJob }  = require("../src/background.functions");
+const { failCapture, inRetrievePdfSession, looksPaywalledUrl, removeSlashes, sanitizeDOI, sendStatus, startJob }  = require("../src/background.functions");
 
 test("removes non-essential characters from DOI", () => {
   expect(sanitizeDOI("doi: https://doi.org/10.1613/jair.1.20161"))
@@ -28,4 +28,16 @@ test("text with paywall words 2/2", () => {
 test("text without paywall words", () => {
   expect(looksPaywalledUrl("https://domain/no_special_file"))
     .toBe(false);
+});
+
+test("not in retrieve PDF session", () => {
+  captureSession = null;
+  expect(inRetrievePdfSession(1))
+    .toBe(false);
+});
+
+test("in retrieve PDF session", () => {
+  captureSession = { tabId: 1 };
+  expect(inRetrievePdfSession(1))
+    .toBe(true);
 });

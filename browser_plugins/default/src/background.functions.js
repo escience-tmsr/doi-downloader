@@ -10,7 +10,7 @@ let captureSession = null;
 let downloadLog = "";
 
 function inRetrievePdfSession(tabId) {
-  return captureSession && tabId == captureSession.tabId;
+  return Boolean(captureSession && tabId === captureSession.tabId);
 }
 
 function retrievingPdfFile(details) {
@@ -142,7 +142,7 @@ function startJob(doi) {
       phrase,
       doi: normalizedDoi,
       used: false,
-      usedUrl: null,
+      usedUrl: [],
       tabId: tab.id
     };
 
@@ -177,8 +177,9 @@ function saveLog(downloadLogCsv) {
 }
 
 if (typeof self === "undefined") {
-  module.exports = { armCaptureAndNavigate, armCaptureOnly, failCapture, 
-                     looksPaywalledUrl, removeSlashes, sanitizeDOI, saveLog, startJob };
+  module.exports = { armCaptureAndNavigate, armCaptureOnly, failCapture, inRetrievePdfSession,
+                     looksPaywalledUrl, processIncomingPdfData, removeSlashes, retrievingPdfFile, 
+                     sanitizeDOI, saveLog, startJob };
 } else {
   self.armCaptureAndNavigate = armCaptureAndNavigate;
   self.armCaptureOnly = armCaptureOnly;

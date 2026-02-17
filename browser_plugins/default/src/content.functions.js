@@ -17,7 +17,7 @@ function findElementByPhrase(phrases) {
       const combined = (text + " " + aria + " " + title).toLowerCase();
   
       if (combined.includes(needle)) {
-        sendStatus(`[default-extension] matched element: ${combined} tag: ${el.tagName}`);
+        sendStatus(`[default-extension] found key "${needle}", tag: ${el.tagName}, target: ${el.href}`);
         return el;
       }
     }
@@ -76,27 +76,20 @@ async function maybeRunJob(myTabId) {
     sendStatus(`[default-extension] error reading job from storage: ${err}`);
   });
   const job = result.job;
-  if (!job) {
-    sendStatus("[default-extension] no job in storage, doing nothing");
-    return;
-  }
-
-  if (job.tabId !== myTabId) return;
-  sendStatus(`Entered maybeRunJob, tabId is ${myTabId}`);
+  if (!job || job.tabId !== myTabId) return;
+  sendStatus(`Entered maybeRunJob, tabId is ${myTabId}, url is ${job.url}`);
 
   const here = location.href;
-  if (job.used && job.usedUrl === here) {
+  if (job.used && job.usedUrl.includes(here)) {
     sendStatus(`Skipping: already processed this page.`);
     return;
   }
 
   job.used = true;
-  job.usedUrl = here;
-  sendStatus(`maybeRunJob: ${job.used} # ${job.usedUrl} # ${job.tabId}`)
+  job.usedUrl.push(here);
   await browser.storage.local.set({ job });
 
   sendStatus("[default-extension] tabId matches job, running job");
-  job.used = true;
   browser.storage.local.set({ job }).catch(err => {
     sendStatus(`[default-extension] error marking job used: ${err}`);
   });

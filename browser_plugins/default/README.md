@@ -15,9 +15,31 @@ After these four steps, the extension can be used for accessing paper PDFs via t
 
 1. Access the extension by clicking on the jigsaw puzzle piece logo in the top right of the browser window: ![](../images/puzzle_piece.png "")
 2. A popup window appears, open the extension by clicking on its name: `Default extension`
-3. Fill in a DOI under `DOI` and click on the `Go` button. Here is an example DOI from the open access journal [JAIR](https://jair.org): 10.1613/jair.1.18675
+3. Fill in a DOI under `DOI` and click the `Process DOI` button. Here is an example DOI from the open access journal [JAIR](https://jair.org): 10.1613/jair.49
+4. There is an option to save a list of successful downloads of a session by clicking the `Save log` button in the extension, left of the `Process DOI` button. The list will be saved in the file `my_table.csv` in the user's Downloads directory.
 
-The extension will open the main web page associated with DOI, look for a PDF download button on the page and try to download the PDF linked from the page. If successful, the PDF will be stored in the `Downloads` directory of the browser user with the DOI as name (slashes replaced by underscores). The extension displays it progress at the bottom of its popup window. When downloading fails, an error message will be displayed. 
+The extension will open the main web page associated with DOI, look for a button labeled PDF or Download on the page and try to download the PDF linked from the page. If successful, the PDF will be stored in the `Downloads` directory of the browser user with the DOI as name (slashes replaced by underscores). The extension displays it progress at the bottom of its popup window. However, if the browser has already downloaded the PDF, this version will be used with whatever name it has. When downloading fails, an error message will be displayed. 
+
+## Evaluation
+
+The extension was compared to Zotero with respect to retrieving a PDF provided a DOI for fourteen DOIs representing papers from different publishers. Zotero found two PDFs (14%) while the extension was able to retrieve seven PDFs (50%). The test did not involve logging in to websites so PDFs behind paywalls were inaccessible to both approaches.
+
+| Doi                               | Publisher/Journal       | Zotero | This extension |
+|-----------------------------------|-------------------------|:------:|:--------------:|
+| 10.1613/jair.49                   | jair.org                |   +    |       +        |
+| 10.1016/j.jss.2026.112792         | sciencedirectassets.com |   -    |       +        |
+| 10.1038/s41586-025-10047-5        | nature.com              |   -    |       +        |
+| 10.3390/electronics15040795       | mdpi.com                |   -    |       +        |
+| 10.3389/fpsyt.2025.1739639        | frontiersin.com         |   -    |       +        |
+| 10.4236/jhrss.2026.141006         | scirp.com               |   -    |       +        |           
+| 10.3897/aiep.51.63489             | pensoft.com             |   +    |       +        |  
+| 10.1177/0022002714560349          | sagepub.com             |   -    |       -        |
+| 10.1007/s10198-013-0496-x         | springer.com            |   -    |       -        |
+| 10.1111/j.1465-7295.2010.00309.x  | wiley.com               |   -    |       -        |
+| 10.1016/j.econlet.2009.08.024     | sciencedirect.com       |   -    |       -        |
+| 10.1093/ei/cb1001                 | wiley.com               |   -    |       -        |
+| 10.2174/2213476X07666200423081738 | bethamscience.com       |   -    |       -        |
+| 10.1504/EJIM.2025.150039          | inderscience.com        |   -    |       -        |
 
 ## Code sequence diagram
 
@@ -29,8 +51,6 @@ The extension will open the main web page associated with DOI, look for a PDF do
 | performAction                | ->> | send download_pdf_via_tab_capture |                   |
 | download_pdf_via_tab_capture | ->> | background: armCaptureAndNavigate | Load web page     |
 | web page                     | ->> | background: onHeadersReceived     | Checks for PDF    |
-| web page                     | ->> | background: onCompleted           | Checks for errors |
-| web page                     | ->> | background: onErrorOccurred       | Checks for errors |
 | web page                     | ->> | content-script: maybeRunJob       |                   |
 
 ## Links

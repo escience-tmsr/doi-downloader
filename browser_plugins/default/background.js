@@ -25,7 +25,7 @@ browser.downloads.onChanged.addListener((delta) => {
 
   browser.downloads.search({ id: delta.id }).then(([item]) => {
     if (!item) return;
-    if (captureSession !== null && item.mime.includes("application/pdf")) {
+    if (captureSession !== null && (item.mime.includes("application/pdf") || item.filename.endsWith(".pdf"))) {
       self.sendStatus(`✅ Saved PDF to ${item.filename}`);
       downloadLog = downloadLog.concat(captureSession.doi, ",", item.filename, "\n");
       captureSession = null;
@@ -42,7 +42,7 @@ browser.runtime.onMessage.addListener((msg, sender) => {
   }
 
   if (msg.type !== "what-is-my-tabid") {
-    sendStatus(`message: ${msg.type}`);
+    sendStatus(`received message: ${msg.type}`);
   } else {
     // message sent for every tab: do not report
     const tabId = sender && sender.tab ? sender.tab.id : null;
