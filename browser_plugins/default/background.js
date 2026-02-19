@@ -1,3 +1,6 @@
+let captureSession = null;
+let downloadLog = "";
+
 browser.webRequest.onHeadersReceived.addListener(
   (details) => {
     if (!self.inRetrievePdfSession(details.tabId)) return;
