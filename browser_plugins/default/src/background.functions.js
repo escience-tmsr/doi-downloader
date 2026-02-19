@@ -6,9 +6,6 @@ const IGNORE_WEBREQUEST_ERRORS = new Set([
   "NS_ERROR_DOM_BAD_URI",
 ]);
 
-let captureSession = null;
-let downloadLog = "";
-
 function inRetrievePdfSession(tabId) {
   return Boolean(captureSession && tabId === captureSession.tabId);
 }
@@ -178,8 +175,8 @@ function saveLog(downloadLogCsv) {
 
 if (typeof self === "undefined") {
   module.exports = { armCaptureAndNavigate, armCaptureOnly, failCapture, inRetrievePdfSession,
-                     looksPaywalledUrl, processIncomingPdfData, removeSlashes, retrievingPdfFile, 
-                     sanitizeDOI, saveLog, startJob };
+                     looksPaywalledUrl, processIncomingPdfData, removeSlashes, retrievingAttachment, retrievingPdfFile, 
+                     sanitizeDOI, saveLog, startJob, storeDetailsInSessionData };
 } else {
   self.armCaptureAndNavigate = armCaptureAndNavigate;
   self.armCaptureOnly = armCaptureOnly;
@@ -188,8 +185,10 @@ if (typeof self === "undefined") {
   self.looksPaywalledUrl = looksPaywalledUrl;
   self.processIncomingPdfData = processIncomingPdfData;
   self.removeSlashes = removeSlashes;
+  self.retrievingAttachment = retrievingAttachment;
   self.retrievingPdfFile = retrievingPdfFile;
   self.sanitizeDOI = sanitizeDOI;
   self.saveLog = saveLog;
   self.startJob = startJob;
+  self.storeDetailsInSessionData = storeDetailsInSessionData;
 }
