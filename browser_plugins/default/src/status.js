@@ -19,6 +19,9 @@ function setBadge(text, isError) {
   } catch(_) {}
 }
 
-if (typeof self === "undefined") { module.exports = { sendStatus }; } 
-else { self.sendStatus = sendStatus; }
+if (typeof self === "undefined") { module.exports = { sendStatus, setBadge }; } 
+else { 
+  self.sendStatus = sendStatus;
+  self.setBadge = setBadge;
+}
 

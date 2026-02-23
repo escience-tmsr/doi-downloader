@@ -1,5 +1,7 @@
 const { failCapture, inRetrievePdfSession, looksPaywalledUrl, removeSlashes, retrievingAttachment, retrievingPdfFile, sanitizeDOI, sendStatus, startJob, storeDetailsInSessionData }  = require("../src/background.functions");
 
+// not tested (yet): processIncomingPdfData armCapture* (3) startJob failCapture saveLog
+
 test("removes non-essential characters from DOI", () => {
   expect(sanitizeDOI("doi: https://doi.org/10.1613/jair.1.20161"))
     .toBe("10.1613/jair.1.20161");
