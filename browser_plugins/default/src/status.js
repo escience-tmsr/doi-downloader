@@ -1,5 +1,6 @@
 function sendStatus(text, isError = false) {
-  setBadge("•", isError);
+  const dot = "•"; 
+  setBadge(dot, isError);
 
   if (!isError) { console.log("[default-extension] " + text); } 
   else { console.error("[default-extension] " + text); }
@@ -20,8 +21,8 @@ function setBadge(text, isError) {
 }
 
 if (typeof self === "undefined") { module.exports = { sendStatus, setBadge }; } 
-else { 
+else {
+  module.exports = { sendStatus, setBadge };  
   self.sendStatus = sendStatus;
   self.setBadge = setBadge;
 }
-

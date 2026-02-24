@@ -173,11 +173,10 @@ function saveLog(downloadLogCsv) {
   self.sendStatus("Saved logfile to Downloads directory");
 }
 
-if (typeof self === "undefined") {
-  module.exports = { armCaptureAndNavigate, armCaptureOnly, failCapture, inRetrievePdfSession,
-                     looksPaywalledUrl, processIncomingPdfData, removeSlashes, retrievingAttachment, retrievingPdfFile, 
-                     sanitizeDOI, saveLog, startJob, storeDetailsInSessionData };
-} else {
+module.exports = { armCaptureAndNavigate, armCaptureOnly, failCapture, inRetrievePdfSession,
+                   looksPaywalledUrl, processIncomingPdfData, removeSlashes, retrievingAttachment, retrievingPdfFile, 
+                   sanitizeDOI, saveLog, startJob, storeDetailsInSessionData };
+if (typeof self !== "undefined") {
   self.armCaptureAndNavigate = armCaptureAndNavigate;
   self.armCaptureOnly = armCaptureOnly;
   self.failCapture = failCapture;
