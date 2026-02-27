@@ -1,6 +1,6 @@
-const { failCapture, inRetrievePdfSession, looksPaywalledUrl, processIncomingPdfData, removeSlashes, retrievingAttachment, retrievingPdfFile, sanitizeDOI, sendStatus, startJob, storeDetailsInSessionData }  = require("../src/background.functions");
+const { armCaptureBase, failCapture, inRetrievePdfSession, looksPaywalledUrl, processIncomingPdfData, removeSlashes, retrievingAttachment, retrievingPdfFile, sanitizeDOI, startJob, storeDetailsInSessionData }  = require("../src/background.functions");
 
-// not tested (yet): armCapture* (3) startJob failCapture saveLog
+// not tested (yet): armCaptureBase failCapture saveLog
 
 test("removes non-essential characters from DOI", () => {
   expect(sanitizeDOI("doi: https://doi.org/10.1613/jair.1.20161"))
@@ -186,3 +186,39 @@ test("start job",  async() => {
   expect(returnValue.job.url).toBe(url);
   expect(browser.tabs.create).toHaveBeenCalledWith({ url });
 });
+
+test("armCaptureOnly", async() => {
+  global.self = { 
+    armCaptureBase: jest.fn(),
+    sendStatus: jest.fn(), 
+  }
+  const doi = "doi";
+  const tabId = 123;
+  const expectedUrl = "https://domain/dir";
+  const result = await armCaptureOnly(doi, tabId, expectedUrl);
+  expect(result).toBe(true);
+  expect(self.sendStatus).toHaveBeenCalledTimes(1);
+  expect(self.armCaptureBase).toHaveBeenCalledWith(doi, tabId, expectedUrl);
+});
+
+test("armCaptureAndNavigate", async() => {
+  global.self = {
+    armCaptureBase: jest.fn(),
+    sendStatus: jest.fn(), 
+  };
+  global.browser = {tabs: {update: jest.fn(), }};
+  const doi = "doi";
+  const tabId = 123;
+  const expectedUrl = "https://domain/dir";
+  const result = armCaptureAndNavigate(doi, tabId, expectedUrl);
+  expect(self.sendStatus).toHaveBeenCalledTimes(1);
+  expect(self.armCaptureBase).toHaveBeenCalledWith(doi, tabId, expectedUrl);
+  expect(browser.tabs.update).toHaveBeenCalledWith(tabId, {"url": expectedUrl});
+});
+
+
+// function armCaptureAndNavigate(doi, tabId, expectedUrl) {
+//   self.sendStatus(`Entering armCaptureAndNavigate for ${expectedUrl}`);
+//   self.armCaptureBase(doi, tabId, expectedUrl);
+//   return browser.tabs.update(tabId, { url: expectedUrl });
+// }

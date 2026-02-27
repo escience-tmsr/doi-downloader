@@ -102,14 +102,13 @@ function armCaptureBase(doi, tabId, expectedUrl) {
 
 function armCaptureAndNavigate(doi, tabId, expectedUrl) {
   self.sendStatus(`Entering armCaptureAndNavigate for ${expectedUrl}`);
-  armCaptureBase(doi, tabId, expectedUrl);
+  self.armCaptureBase(doi, tabId, expectedUrl);
   return browser.tabs.update(tabId, { url: expectedUrl });
 }
 
 function armCaptureOnly(doi, tabId, expectedUrl = null) {
   self.sendStatus(`Entering armCaptureOnly for ${expectedUrl}`);
-  armCaptureBase(doi, tabId, expectedUrl);
-  self.sendStatus(`breakpoint 4: ${captureSession}`)
+  self.armCaptureBase(doi, tabId, expectedUrl);
   return Promise.resolve(true);
 }
 
@@ -173,11 +172,12 @@ function saveLog(downloadLogCsv) {
   self.sendStatus("Saved logfile to Downloads directory");
 }
 
-module.exports = { armCaptureAndNavigate, armCaptureOnly, failCapture, inRetrievePdfSession,
+module.exports = { armCaptureAndNavigate, armCaptureBase, armCaptureOnly, failCapture, inRetrievePdfSession,
                    looksPaywalledUrl, processIncomingPdfData, removeSlashes, retrievingAttachment, retrievingPdfFile, 
                    sanitizeDOI, saveLog, startJob, storeDetailsInSessionData };
 if (typeof self !== "undefined") {
   self.armCaptureAndNavigate = armCaptureAndNavigate;
+  self.armCaptureBase = armCaptureBase;
   self.armCaptureOnly = armCaptureOnly;
   self.failCapture = failCapture;
   self.inRetrievePdfSession = inRetrievePdfSession;
