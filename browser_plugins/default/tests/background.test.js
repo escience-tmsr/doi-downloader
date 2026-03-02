@@ -1,55 +1,53 @@
 const { armCaptureBase, failCapture, inRetrievePdfSession, looksPaywalledUrl, processIncomingPdfData, removeSlashes, retrievingAttachment, retrievingPdfFile, sanitizeDOI, startJob, storeDetailsInSessionData }  = require("../src/background.functions");
 
-// not tested (yet): armCaptureBase failCapture saveLog
-
-test("removes non-essential characters from DOI", () => {
+test("sanitizeDOI: removes non-essential characters from DOI", () => {
   expect(sanitizeDOI("doi: https://doi.org/10.1613/jair.1.20161"))
     .toBe("10.1613/jair.1.20161");
 });
 
-test("strips doi.org prefix", () => {
+test("sanitizeDOI: strips doi.org prefix", () => {
   expect(sanitizeDOI("https://doi.org/10.1613/jair.1.20161"))
     .toBe("10.1613/jair.1.20161");
 });
 
-test("removes slashes from DOI", () => {
+test("removeSlashes: removes slashes from DOI", () => {
   expect(removeSlashes("10.1613/jair.1.20161"))
     .toBe("10.1613_jair.1.20161");
 });
 
-test("text with paywall words 1/2", () => {
+test("looksPaywalledUrl: text with paywall words 1/2", () => {
   expect(looksPaywalledUrl("https://domain/some_paywall_file"))
     .toBe(true);
 });
 
-test("text with paywall words 2/2", () => {
+test("looksPaywalledUrl: text with paywall words 2/2", () => {
   expect(looksPaywalledUrl("https://domain/some_account_file"))
     .toBe(true);
 });
 
-test("text without paywall words", () => {
+test("looksPaywalledUrl: text without paywall words", () => {
   expect(looksPaywalledUrl("https://domain/no_special_file"))
     .toBe(false);
 });
 
-test("not in retrieve PDF session", () => {
+test("inRetrievePdfSession: not in retrieve PDF session", () => {
   captureSession = null;
   expect(inRetrievePdfSession(1))
     .toBe(false);
 });
 
-test("in retrieve PDF session", () => {
+test("inRetrievePdfSession: in retrieve PDF session", () => {
   captureSession = { tabId: 1 };
   expect(inRetrievePdfSession(1))
     .toBe(true);
 });
 
-test("not retrieving PDF file", () => {
+test("retrievingPdfFile: not retrieving PDF file", () => {
   expect(retrievingPdfFile({ responseHeaders: null }))
     .toBe(false);
 });
 
-test("retrieving PDF file", () => {
+test("retrievingPdfFile: retrieving PDF file", () => {
   expect(retrievingPdfFile({
          responseHeaders: [ { name: "Content-type", 
                               value: "application/pdf" } ]
@@ -57,7 +55,7 @@ test("retrieving PDF file", () => {
     .toBe(true);
 });
 
-test("store details in session data", () => {
+test("storeDetailsInSessionData", () => {
   details = { type: "main_frame", 
               url: "url",
               statusCode: "statusCode",
@@ -70,12 +68,12 @@ test("store details in session data", () => {
          captureSession.lastMainContentType === "content-type")).toBe(true);
 });
 
-test("not retrieving attachment", () => {
+test("retrievingAttachment: not retrieving attachment", () => {
   expect(retrievingAttachment({ responseHeaders: null }))
     .toBe(false);
 });
 
-test("retrieving attachment", () => {
+test("retrievingAttachment: retrieving attachment", () => {
   expect(retrievingAttachment({
          responseHeaders: [ { name: "Content-disposition", 
                               value: "attachment" } ]
@@ -83,7 +81,7 @@ test("retrieving attachment", () => {
     .toBe(true);
 });
 
-test("streams PDF data and triggers a download when expectBrowserDownload is false", async () => {
+test("processIncomingPdfData: streams PDF data and triggers a download when expectBrowserDownload is false", async () => {
   fakeFilter = {
     disconnect: jest.fn(),
     onstop: jest.fn(),
@@ -139,7 +137,7 @@ test("streams PDF data and triggers a download when expectBrowserDownload is fal
   expect(self.failCapture).not.toHaveBeenCalled();
 });
 
-test("setting expectBrowserDownload prevents browser download", async () => {
+test("processIncomingPdfData: setting expectBrowserDownload prevents browser download", async () => {
   fakeFilter = { 
     disconnect: jest.fn(), 
     onstop: jest.fn(), 
@@ -168,7 +166,7 @@ test("setting expectBrowserDownload prevents browser download", async () => {
   expect(browser.downloads.download).toHaveBeenCalled();
 });
 
-test("start job",  async() => {
+test("startJob",  async() => {
   const doi = "10.1234/foo.bar";
   const url = "https://doi.org/" + doi;
   global.self = {
@@ -201,7 +199,7 @@ test("armCaptureOnly", async() => {
   expect(self.armCaptureBase).toHaveBeenCalledWith(doi, tabId, expectedUrl);
 });
 
-test("armCaptureAndNavigate", async() => {
+test("armCaptureAndNavigate", () => {
   global.self = {
     armCaptureBase: jest.fn(),
     sendStatus: jest.fn(), 
@@ -216,9 +214,39 @@ test("armCaptureAndNavigate", async() => {
   expect(browser.tabs.update).toHaveBeenCalledWith(tabId, {"url": expectedUrl});
 });
 
+test("armCaptureBase", () => {
+  global.self = {
+    failCapture: jest.fn(),
+    sendStatus: jest.fn(),
+  };
+  global.captureSession = {}
+  const doi = "doi";
+  const tabId = 123;
+  let expectedUrl = "https://domain/dir";
+  let returnedFileType = armCaptureBase(doi, tabId, expectedUrl);
+  expect(captureSession.doi).toBe(doi);
+  expect(captureSession.tabId).toBe(tabId);
+  expect(captureSession.expectedUrl).toBe(expectedUrl);
+  expect(returnedFileType).toBe("HTML");
+  expect(self.sendStatus).toHaveBeenCalledTimes(1);
+  expect(self.failCapture).toHaveBeenCalledTimes(0);
+  expectedUrl = "download?file=abc.pdf";
+  returnedFileType = armCaptureBase(doi, tabId, expectedUrl);
+  expect(returnedFileType).toBe("PDF");
+});
 
-// function armCaptureAndNavigate(doi, tabId, expectedUrl) {
-//   self.sendStatus(`Entering armCaptureAndNavigate for ${expectedUrl}`);
-//   self.armCaptureBase(doi, tabId, expectedUrl);
-//   return browser.tabs.update(tabId, { url: expectedUrl });
-// }
+test("failCapture", () => {
+  global.self = { sendStatus: jest.fn(), };
+  const text = "text";
+  failCapture(text);
+  expect(self.sendStatus).toHaveBeenCalledTimes(1);
+});
+
+test("saveLog", () => {
+  global.self = { sendStatus: jest.fn(), };
+  global.browser = { "downloads": { "download": jest.fn(), }}
+  const csvTextData = "col1,col2\n1,2";
+  saveLog(csvTextData);
+  expect(browser.downloads.download).toHaveBeenCalledTimes(1);
+  expect(self.sendStatus).toHaveBeenCalledTimes(1);
+});

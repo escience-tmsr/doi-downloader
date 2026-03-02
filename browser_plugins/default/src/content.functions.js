@@ -102,3 +102,11 @@ async function maybeRunJob(myTabId) {
     }
   }, 1000);
 }
+
+module.exports = { findElementByPhrase, maybeRunJob, performAction, sendStatus, };
+if (typeof self !== "undefined") {
+  self.findElementByPhrase = findElementByPhrase;
+  self.maybeRunJob = maybeRunJob;
+  self.performAction = performAction;
+  self.sendStatus = sendStatus;
+}

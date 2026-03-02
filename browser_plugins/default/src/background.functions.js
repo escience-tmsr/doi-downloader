@@ -93,11 +93,17 @@ function armCaptureBase(doi, tabId, expectedUrl) {
     }
   }, CAPTURE_TIMEOUT_MS);
   captureSession.pageCounter++;
-  if (captureSession.pageCounter <= 1 && expectedUrl !== null && !expectedUrl.toLowerCase().includes("download") && !expectedUrl.toLowerCase().includes("pdf")) {
-    self.sendStatus(`Armed capture; navigating to HTML… (${captureSession.pageCounter})`);
+  if (captureSession.pageCounter > 1 || expectedUrl === null) {
+    targetType = "unknown";
   } else {
-    self.sendStatus(`Armed capture; navigating to PDF… (${captureSession.pageCounter})`);
+    if (expectedUrl.toLowerCase().includes("download") || expectedUrl.toLowerCase().includes("pdf")) {
+      targetType = "PDF";
+    } else {
+      targetType = "HTML";
+    }
   }
+  self.sendStatus(`Armed capture; navigating to ${targetType}… (${captureSession.pageCounter})`);
+  return targetType;
 }
 
 function armCaptureAndNavigate(doi, tabId, expectedUrl) {
@@ -155,7 +161,7 @@ function looksPaywalledUrl(u) {
     .some(k => u.includes(k));
 }
 
-function failCapture(reason, captureSession) {
+function failCapture(reason) {
   self.sendStatus(`❌ PDF download failed: ${reason}`, isError = true);
   return
 }
