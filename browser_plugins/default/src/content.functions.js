@@ -1,0 +1,116 @@
+function sendStatus(text) {
+  try { browser.runtime.sendMessage({ type: "status", text }); } catch (_) {}
+  console.log("[default-extension]", text);
+}
+
+self.sendStatus = sendStatus;
+let abc = "";
+let def = "";
+function findElementByPhrase(phrases) {
+  for (const phrase of phrases) {
+    const needle = phrase.toLowerCase();
+    self.sendStatus(`[default-extension] searching for phrase: ${needle}`);
+  
+    const elements = Array.from(document.querySelectorAll("a, button"));
+    def = elements;
+    for (const el of elements) {
+      const text  = (el.innerText || el.textContent || "").trim();
+      const aria  = el.getAttribute("aria-label") || "";
+      const title = el.getAttribute("title") || "";
+  
+      const combined = (text + " " + aria + " " + title).toLowerCase();
+      abc = combined;
+      if (combined.includes(needle)) {
+        self.sendStatus(`[default-extension] found key "${needle}", tag: ${el.tagName}, target: ${el.href}`);
+        return el;
+      }
+    }
+  
+    self.sendStatus(`[default-extension] no element found for phrase: ${phrase}`);
+  }
+  return [abc, def];
+}
+
+async function performAction(job, myTabId) {
+  self.sendStatus("Entering performAction...")
+  const phrase = job.phrase;
+  const el = findElementByPhrase(phrase);
+
+  if (!el) {
+    self.sendStatus(`❌ No link or button found containing "${phrase}"`);
+    return;
+  }
+
+  const tag = el.tagName.toLowerCase();
+
+  if (tag === "a" && el.href) {
+    const pdfUrl = el.href;
+    self.sendStatus(`Found candidate link for "${phrase}", processing…`);
+
+    browser.runtime.sendMessage({
+      type: "download_pdf_via_tab_capture",
+      pdfUrl,
+      doi: job.doi || null,
+      tabId: myTabId
+    }).catch(err => {
+      self.sendStatus(`Error asking add-on to capture PDF: ${err}`);
+    });
+
+    return;
+  }
+
+  self.sendStatus("Arming capture…");
+
+  await browser.runtime.sendMessage({
+    type: "arm_capture_for_tab",
+    doi: job.doi,
+    tabId: myTabId
+  });
+
+  self.sendStatus(`Clicking "${phrase}" button…`);
+  try {
+    el.click();
+  } catch (e) {
+    self.sendStatus(`Failed clicking element: ${e.message}`);
+  }
+}
+
+async function maybeRunJob(myTabId) {
+  const result = await browser.storage.local.get("job").catch(err => {
+    self.sendStatus(`[default-extension] error reading job from storage: ${err}`);
+  });
+  const job = result.job;
+  if (!job || job.tabId !== myTabId) return;
+  self.sendStatus(`Entered maybeRunJob, tabId is ${myTabId}, url is ${job.url}`);
+
+  const here = location.href;
+  if (job.used && job.usedUrl.includes(here)) {
+    self.sendStatus(`Skipping: already processed this page.`);
+    return;
+  }
+
+  job.used = true;
+  job.usedUrl.push(here);
+  await browser.storage.local.set({ job });
+
+  self.sendStatus("[default-extension] tabId matches job, running job");
+  browser.storage.local.set({ job }).catch(err => {
+    self.sendStatus(`[default-extension] error marking job used: ${err}`);
+  });
+
+  window.setTimeout(() => {
+    try {
+      performAction(job, myTabId);
+    } catch (e) {
+      self.sendStatus(`Error while searching link: ${e.message}`);
+    }
+  }, 1000);
+}
+
+module.exports = { findElementByPhrase, maybeRunJob, performAction, sendStatus, };
+if (typeof self !== "undefined") {
+  self.findElementByPhrase = findElementByPhrase;
+  self.maybeRunJob = maybeRunJob;
+  self.performAction = performAction;
+  self.sendStatus = sendStatus;
+}
