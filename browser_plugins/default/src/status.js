@@ -1,15 +1,16 @@
 function sendStatus(text, isError = false) {
   const dot = "•"; 
-  setBadge(dot, isError);
+  self.setBadge(dot, isError);
 
   if (!isError) { console.log("[default-extension] " + text); } 
   else { console.error("[default-extension] " + text); }
 
   browser.runtime.sendMessage({ type: "status", text }).catch(() => {});
   const element = document.getElementById("status");
-  if (!element) { return; }
+  if (!element) { return false; }
   element.textContent = text;
   if (!isError) { element.style.color = "red"; }
+  return true;
 }
 
 function setBadge(text, isError) {
@@ -17,6 +18,7 @@ function setBadge(text, isError) {
     browser.browserAction.setBadgeText({ text });
     if (isError) { browser.browserAction.setBadgeBackgroundColor({ color: "#FF0000" }); }
     else { browser.browserAction.setBadgeBackgroundColor({ color: "#008000" }); }
+    return isError;
   } catch(_) {}
 }
 

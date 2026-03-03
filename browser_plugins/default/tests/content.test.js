@@ -9,12 +9,23 @@ test("sendStatus", () => {
   expect(self.console.log).toHaveBeenCalledTimes(1);
 });
 
+test("findElementByPhrase", () => {
+  const data = document.createElement({"innerText": "innerText", "aria-label" : "aria", "title": "title",});
+  document.querySelectorAll = jest.fn().mockReturnValue([data]);
+  let phrases = ["abc", "def"];
+  self.sendStatus = jest.fn();
+  let result = findElementByPhrase(phrases);
+  expect(result).toBe(null);
+  expect(document.querySelectorAll).toHaveBeenCalledTimes(phrases.length);
+  expect(self.sendStatus).toHaveBeenCalledTimes(phrases.length * 2);
 
-// function sendStatus(text) {
-//   try { browser.runtime.sendMessage({ type: "status", text }); } catch (_) {}
-//   console.log("[default-extension]", text);
-// }
-// 
+  self.sendStatus.mockClear();
+  phrases = ["innerText", "outerText"];
+  result = findElementByPhrase(phrases);
+  expect(self.sendStatus).toHaveBeenCalledTimes(2);
+  expect(result).not.toBe(null);
+});
+
 // function findElementByPhrase(phrases) {
 //   for (const phrase of phrases) {
 //     const needle = phrase.toLowerCase();

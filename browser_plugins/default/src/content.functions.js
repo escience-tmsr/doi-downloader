@@ -3,37 +3,41 @@ function sendStatus(text) {
   console.log("[default-extension]", text);
 }
 
+self.sendStatus = sendStatus;
+let abc = "";
+let def = "";
 function findElementByPhrase(phrases) {
   for (const phrase of phrases) {
     const needle = phrase.toLowerCase();
-    sendStatus(`[default-extension] searching for phrase: ${needle}`);
+    self.sendStatus(`[default-extension] searching for phrase: ${needle}`);
   
     const elements = Array.from(document.querySelectorAll("a, button"));
+    def = elements;
     for (const el of elements) {
       const text  = (el.innerText || el.textContent || "").trim();
       const aria  = el.getAttribute("aria-label") || "";
       const title = el.getAttribute("title") || "";
   
       const combined = (text + " " + aria + " " + title).toLowerCase();
-  
+      abc = combined;
       if (combined.includes(needle)) {
-        sendStatus(`[default-extension] found key "${needle}", tag: ${el.tagName}, target: ${el.href}`);
+        self.sendStatus(`[default-extension] found key "${needle}", tag: ${el.tagName}, target: ${el.href}`);
         return el;
       }
     }
   
-    sendStatus(`[default-extension] no element found for phrase: ${phrase}`);
+    self.sendStatus(`[default-extension] no element found for phrase: ${phrase}`);
   }
-  return null;
+  return [abc, def];
 }
 
 async function performAction(job, myTabId) {
-  sendStatus("Entering performAction...")
+  self.sendStatus("Entering performAction...")
   const phrase = job.phrase;
   const el = findElementByPhrase(phrase);
 
   if (!el) {
-    sendStatus(`❌ No link or button found containing "${phrase}"`);
+    self.sendStatus(`❌ No link or button found containing "${phrase}"`);
     return;
   }
 
@@ -41,7 +45,7 @@ async function performAction(job, myTabId) {
 
   if (tag === "a" && el.href) {
     const pdfUrl = el.href;
-    sendStatus(`Found candidate link for "${phrase}", processing…`);
+    self.sendStatus(`Found candidate link for "${phrase}", processing…`);
 
     browser.runtime.sendMessage({
       type: "download_pdf_via_tab_capture",
@@ -49,13 +53,13 @@ async function performAction(job, myTabId) {
       doi: job.doi || null,
       tabId: myTabId
     }).catch(err => {
-      sendStatus(`Error asking add-on to capture PDF: ${err}`);
+      self.sendStatus(`Error asking add-on to capture PDF: ${err}`);
     });
 
     return;
   }
 
-  sendStatus("Arming capture…");
+  self.sendStatus("Arming capture…");
 
   await browser.runtime.sendMessage({
     type: "arm_capture_for_tab",
@@ -63,25 +67,25 @@ async function performAction(job, myTabId) {
     tabId: myTabId
   });
 
-  sendStatus(`Clicking "${phrase}" button…`);
+  self.sendStatus(`Clicking "${phrase}" button…`);
   try {
     el.click();
   } catch (e) {
-    sendStatus(`Failed clicking element: ${e.message}`);
+    self.sendStatus(`Failed clicking element: ${e.message}`);
   }
 }
 
 async function maybeRunJob(myTabId) {
   const result = await browser.storage.local.get("job").catch(err => {
-    sendStatus(`[default-extension] error reading job from storage: ${err}`);
+    self.sendStatus(`[default-extension] error reading job from storage: ${err}`);
   });
   const job = result.job;
   if (!job || job.tabId !== myTabId) return;
-  sendStatus(`Entered maybeRunJob, tabId is ${myTabId}, url is ${job.url}`);
+  self.sendStatus(`Entered maybeRunJob, tabId is ${myTabId}, url is ${job.url}`);
 
   const here = location.href;
   if (job.used && job.usedUrl.includes(here)) {
-    sendStatus(`Skipping: already processed this page.`);
+    self.sendStatus(`Skipping: already processed this page.`);
     return;
   }
 
@@ -89,16 +93,16 @@ async function maybeRunJob(myTabId) {
   job.usedUrl.push(here);
   await browser.storage.local.set({ job });
 
-  sendStatus("[default-extension] tabId matches job, running job");
+  self.sendStatus("[default-extension] tabId matches job, running job");
   browser.storage.local.set({ job }).catch(err => {
-    sendStatus(`[default-extension] error marking job used: ${err}`);
+    self.sendStatus(`[default-extension] error marking job used: ${err}`);
   });
 
   window.setTimeout(() => {
     try {
       performAction(job, myTabId);
     } catch (e) {
-      sendStatus(`Error while searching link: ${e.message}`);
+      self.sendStatus(`Error while searching link: ${e.message}`);
     }
   }, 1000);
 }
