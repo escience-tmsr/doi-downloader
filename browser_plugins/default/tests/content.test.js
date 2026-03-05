@@ -10,7 +10,8 @@ test("sendStatus", () => {
 });
 
 test("findElementByPhrase", () => {
-  const data = document.createElement({"innerText": "innerText", "aria-label" : "aria", "title": "title",});
+  let data = document.createElement("a");
+  data.title = "innerText.outerText";
   document.querySelectorAll = jest.fn().mockReturnValue([data]);
   let phrases = ["abc", "def"];
   self.sendStatus = jest.fn();
@@ -26,30 +27,25 @@ test("findElementByPhrase", () => {
   expect(result).not.toBe(null);
 });
 
-// function findElementByPhrase(phrases) {
-//   for (const phrase of phrases) {
-//     const needle = phrase.toLowerCase();
-//     sendStatus(`[default-extension] searching for phrase: ${needle}`);
-//   
-//     const elements = Array.from(document.querySelectorAll("a, button"));
-//     for (const el of elements) {
-//       const text  = (el.innerText || el.textContent || "").trim();
-//       const aria  = el.getAttribute("aria-label") || "";
-//       const title = el.getAttribute("title") || "";
-//   
-//       const combined = (text + " " + aria + " " + title).toLowerCase();
-//   
-//       if (combined.includes(needle)) {
-//         sendStatus(`[default-extension] found key "${needle}", tag: ${el.tagName}, target: ${el.href}`);
-//         return el;
-//       }
-//     }
-//   
-//     sendStatus(`[default-extension] no element found for phrase: ${phrase}`);
-//   }
-//   return null;
-// }
-// 
+test("performAction", async() => {
+  const job = {"phrase": "abc"}
+  const myTabId = 0;
+  self.findElementByPhrase = jest.fn().mockReturnValue([]);
+  self.sendStatus.mockClear();
+  let result = await performAction(job, myTabId);
+  expect(result).toBe("not found");
+  expect(self.sendStatus).toHaveBeenCalledTimes(8);
+
+  let data = document.createElement("a");
+  data.title = "innerText.outerText";
+  data.tagName = {"toLowerCase": jest.fn(),};
+  data.href = "href";
+  self.findElementByPhrase = jest.fn().mockReturnValue([data]);
+  result = await performAction(job, myTabId);
+  expect(result).toBe("not found");
+  expect(self.sendStatus).toHaveBeenCalledTimes(2);
+});
+
 // async function performAction(job, myTabId) {
 //   sendStatus("Entering performAction...")
 //   const phrase = job.phrase;

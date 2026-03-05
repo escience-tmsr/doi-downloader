@@ -4,22 +4,18 @@ function sendStatus(text) {
 }
 
 self.sendStatus = sendStatus;
-let abc = "";
-let def = "";
 function findElementByPhrase(phrases) {
   for (const phrase of phrases) {
     const needle = phrase.toLowerCase();
     self.sendStatus(`[default-extension] searching for phrase: ${needle}`);
   
-    const elements = Array.from(document.querySelectorAll("a, button"));
-    def = elements;
+    let elements = Array.from(document.querySelectorAll("a, button"));
     for (const el of elements) {
       const text  = (el.innerText || el.textContent || "").trim();
       const aria  = el.getAttribute("aria-label") || "";
       const title = el.getAttribute("title") || "";
   
       const combined = (text + " " + aria + " " + title).toLowerCase();
-      abc = combined;
       if (combined.includes(needle)) {
         self.sendStatus(`[default-extension] found key "${needle}", tag: ${el.tagName}, target: ${el.href}`);
         return el;
@@ -28,19 +24,20 @@ function findElementByPhrase(phrases) {
   
     self.sendStatus(`[default-extension] no element found for phrase: ${phrase}`);
   }
-  return [abc, def];
+  return null;
 }
 
+self.findElementByPhrase = findElementByPhrase;
 async function performAction(job, myTabId) {
   self.sendStatus("Entering performAction...")
   const phrase = job.phrase;
-  const el = findElementByPhrase(phrase);
+  const el = self.findElementByPhrase(phrase);
 
   if (!el) {
     self.sendStatus(`❌ No link or button found containing "${phrase}"`);
-    return;
+    return "not found";
   }
-
+  return el;
   const tag = el.tagName.toLowerCase();
 
   if (tag === "a" && el.href) {
@@ -56,7 +53,7 @@ async function performAction(job, myTabId) {
       self.sendStatus(`Error asking add-on to capture PDF: ${err}`);
     });
 
-    return;
+    return 2;
   }
 
   self.sendStatus("Arming capture…");
@@ -73,6 +70,7 @@ async function performAction(job, myTabId) {
   } catch (e) {
     self.sendStatus(`Failed clicking element: ${e.message}`);
   }
+  return 3;
 }
 
 async function maybeRunJob(myTabId) {
