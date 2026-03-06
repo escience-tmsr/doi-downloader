@@ -59,6 +59,7 @@ associated PDF.
 
 ```python
 from doi_downloader import csv, loader as ld, pdf_download as pdf_dl
+import os
 
 doi_list = csv.load_dois_from_file(os.path.abspath("doi_examples.csv"), "doi")
 for doi in doi_list:

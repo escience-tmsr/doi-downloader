@@ -35,6 +35,6 @@ like this:
 from dotenv import load_dotenv
 import os
 
-load.dotenv()
+load_dotenv()
 unpaywall_email = os.environ['UNPAYWALL_EMAIL']
 ```
