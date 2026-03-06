@@ -32,7 +32,7 @@ def download(doi, output_dir=".", force_download=False,
 
     downloaded_file = None
 
-    for name, plugin in plugins.items():
+    for name, plugin in sorted(plugins.items(), key=lambda item: item[0]):
         # Create attempt record if benchmarking is enabled
         attempt = None
         start_time = None

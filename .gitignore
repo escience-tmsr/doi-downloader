@@ -8,6 +8,7 @@
 *.db
 # Local plugins
 *extra_plugins*
+!/doi_downloader/extra_plugins/.gitkeep
 *downloads*
 
 
