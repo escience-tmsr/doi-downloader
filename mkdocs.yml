@@ -1,5 +1,7 @@
 site_name: doi_downloader
 theme: readthedocs
+exclude_docs: |
+  README.md
 nav:
   - Home: index.md
   - Installation: install.md
