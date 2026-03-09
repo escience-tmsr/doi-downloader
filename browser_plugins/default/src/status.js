@@ -7,10 +7,11 @@ function sendStatus(text, isError = false) {
 
   browser.runtime.sendMessage({ type: "status", text }).catch(() => {});
   const element = document.getElementById("status");
-  if (!element) { return false; }
-  element.textContent = text;
-  if (!isError) { element.style.color = "red"; }
-  return true;
+  if (element) { 
+    element.textContent = text;
+    if (!isError) { element.style.color = "red"; }
+  }
+  return element;
 }
 
 function setBadge(text, isError) {

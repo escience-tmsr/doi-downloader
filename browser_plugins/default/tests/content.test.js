@@ -30,66 +30,44 @@ test("findElementByPhrase", () => {
 test("performAction", async() => {
   const job = {"phrase": "abc"}
   const myTabId = 0;
-  self.findElementByPhrase = jest.fn().mockReturnValue([]);
-  self.sendStatus.mockClear();
-  let result = await performAction(job, myTabId);
-  expect(result).toBe("not found");
-  expect(self.sendStatus).toHaveBeenCalledTimes(8);
-
   let data = document.createElement("a");
-  data.title = "innerText.outerText";
-  data.tagName = {"toLowerCase": jest.fn(),};
+  data.innerText = "outerText";
   data.href = "href";
-  self.findElementByPhrase = jest.fn().mockReturnValue([data]);
+  self.findElementByPhrase = jest.fn().mockReturnValue(data);
+  global.browser = {"runtime": {"sendMessage": jest.fn().mockResolvedValue()}};
+  self.sendStatus = jest.fn();
+  let result = await performAction(job, myTabId);
+  expect(self.sendStatus).toHaveBeenCalledTimes(2);
+  expect(result).toBe("link found");
+
+  data = document.createElement("button");
+  self.findElementByPhrase = jest.fn().mockReturnValue(data);
+  result = await performAction(job, myTabId);
+  expect(result).toBe("button found");
+
+  self.findElementByPhrase = jest.fn().mockReturnValue();
   result = await performAction(job, myTabId);
   expect(result).toBe("not found");
-  expect(self.sendStatus).toHaveBeenCalledTimes(2);
 });
 
-// async function performAction(job, myTabId) {
-//   sendStatus("Entering performAction...")
-//   const phrase = job.phrase;
-//   const el = findElementByPhrase(phrase);
-// 
-//   if (!el) {
-//     sendStatus(`❌ No link or button found containing "${phrase}"`);
-//     return;
-//   }
-// 
-//   const tag = el.tagName.toLowerCase();
-// 
-//   if (tag === "a" && el.href) {
-//     const pdfUrl = el.href;
-//     sendStatus(`Found candidate link for "${phrase}", processing…`);
-// 
-//     browser.runtime.sendMessage({
-//       type: "download_pdf_via_tab_capture",
-//       pdfUrl,
-//       doi: job.doi || null,
-//       tabId: myTabId
-//     }).catch(err => {
-//       sendStatus(`Error asking add-on to capture PDF: ${err}`);
-//     });
-// 
-//     return;
-//   }
-// 
-//   sendStatus("Arming capture…");
-// 
-//   await browser.runtime.sendMessage({
-//     type: "arm_capture_for_tab",
-//     doi: job.doi,
-//     tabId: myTabId
-//   });
-// 
-//   sendStatus(`Clicking "${phrase}" button…`);
-//   try {
-//     el.click();
-//   } catch (e) {
-//     sendStatus(`Failed clicking element: ${e.message}`);
-//   }
-// }
-// 
+test("maybeRunJob", async() => {
+  const myTabId = 67;
+  let job = {
+    "tabId": myTabId, 
+    "used": true,
+    "usedUrl": [],
+  }          
+  global.browser = {"storage": {"local": {
+    "get": jest.fn().mockResolvedValue({"job": job}),
+    "set": jest.fn().mockResolvedValue(),
+  }}};
+  global.locations = {"href": "here"};
+  self.sendStatus = jest.fn();
+  await maybeRunJob(myTabId);
+  expect(self.sendStatus).toHaveBeenCalledTimes(2);
+  expect(global.browser.storage.local.set).toHaveBeenCalledTimes(1);
+});
+
 // async function maybeRunJob(myTabId) {
 //   const result = await browser.storage.local.get("job").catch(err => {
 //     sendStatus(`[default-extension] error reading job from storage: ${err}`);

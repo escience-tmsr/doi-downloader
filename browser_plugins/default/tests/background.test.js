@@ -183,6 +183,8 @@ test("startJob",  async() => {
   const [ returnValue ] = global.browser.storage.local.set.mock.calls[0];
   expect(returnValue.job.url).toBe(url);
   expect(browser.tabs.create).toHaveBeenCalledWith({ url });
+  // browser.storage.local.set = error("error");
+  // await startJob(doi);
 });
 
 test("armCaptureOnly", async() => {
@@ -224,15 +226,20 @@ test("armCaptureBase", () => {
   const tabId = 123;
   let expectedUrl = "https://domain/dir";
   let returnedFileType = armCaptureBase(doi, tabId, expectedUrl);
-  expect(captureSession.doi).toBe(doi);
-  expect(captureSession.tabId).toBe(tabId);
-  expect(captureSession.expectedUrl).toBe(expectedUrl);
+  expect(global.captureSession).not.toBe(null);
+  expect(global.captureSession.doi).toBe(doi);
+  expect(global.captureSession.tabId).toBe(tabId);
+  expect(global.captureSession.expectedUrl).toBe(expectedUrl);
+  expect(global.captureSession.pageCounter).toBe(1);
+  expect(returnedFileType).not.toBe("cannot happen");
   expect(returnedFileType).toBe("HTML");
   expect(self.sendStatus).toHaveBeenCalledTimes(1);
   expect(self.failCapture).toHaveBeenCalledTimes(0);
   expectedUrl = "download?file=abc.pdf";
   returnedFileType = armCaptureBase(doi, tabId, expectedUrl);
   expect(returnedFileType).toBe("PDF");
+  returnedFileType = armCaptureBase(doi, tabId, null);
+  expect(returnedFileType).toBe("unknown");
 });
 
 test("failCapture", () => {

@@ -72,7 +72,7 @@ function armCaptureBase(doi, tabId, expectedUrl) {
     lastMainContentType: null,
   };
   captureSession.timeoutId = setTimeout(() => {
-    if (! captureSession) return;
+    if (! captureSession) return "cannot happen";
 
     const sc = captureSession.lastMainStatus || "";
     const ct = captureSession.lastMainContentType || "";

@@ -35,12 +35,16 @@ test("sendStatus", () => {
   expect(self.setBadge).toHaveBeenCalledTimes(1);
   expect(console.log).toHaveBeenCalledTimes(1);
   expect(browser.runtime.sendMessage).toHaveBeenCalledWith({ type: "status", text: text });
-  expect(result).toBe(false);
+  expect(result).toBe(null);
 
   let element = {"textContent": "", "style": {"color": ""},}
   document.getElementById = jest.fn().mockReturnValue(element);
   result = sendStatus(text, true);
   expect(console.error).toHaveBeenCalledTimes(1);
-  expect(result).toBe(true);
+  expect(result).not.toBe(null);
   expect(element.textContent).toBe(text);
+
+  document.getElementById = jest.fn().mockReturnValue(null);
+  result = sendStatus(text, false);
+  expect(result).toBe(null);
 });

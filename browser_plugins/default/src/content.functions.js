@@ -35,7 +35,7 @@ async function performAction(job, myTabId) {
 
   if (!el) {
     self.sendStatus(`❌ No link or button found containing "${phrase}"`);
-    return;
+    return "not found";
   }
   const tag = el.tagName.toLowerCase();
 
@@ -52,7 +52,7 @@ async function performAction(job, myTabId) {
       self.sendStatus(`Error asking add-on to capture PDF: ${err}`);
     });
 
-    return;
+    return "link found";
   }
 
   self.sendStatus("Arming capture…");
@@ -69,6 +69,7 @@ async function performAction(job, myTabId) {
   } catch (e) {
     self.sendStatus(`Failed clicking element: ${e.message}`);
   }
+  return "button found";
 }
 
 async function maybeRunJob(myTabId) {
@@ -90,9 +91,9 @@ async function maybeRunJob(myTabId) {
   await browser.storage.local.set({ job });
 
   self.sendStatus("[default-extension] tabId matches job, running job");
-  browser.storage.local.set({ job }).catch(err => {
-    self.sendStatus(`[default-extension] error marking job used: ${err}`);
-  });
+//  browser.storage.local.set({ job }).catch(err => {
+//    self.sendStatus(`[default-extension] error marking job used: ${err}`);
+//  });
 
   window.setTimeout(() => {
     try {
