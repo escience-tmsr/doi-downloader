@@ -9,7 +9,7 @@ function findElementByPhrase(phrases) {
     const needle = phrase.toLowerCase();
     self.sendStatus(`[default-extension] searching for phrase: ${needle}`);
   
-    let elements = Array.from(document.querySelectorAll("a, button"));
+    const elements = Array.from(document.querySelectorAll("a, button"));
     for (const el of elements) {
       const text  = (el.innerText || el.textContent || "").trim();
       const aria  = el.getAttribute("aria-label") || "";
@@ -35,9 +35,8 @@ async function performAction(job, myTabId) {
 
   if (!el) {
     self.sendStatus(`❌ No link or button found containing "${phrase}"`);
-    return "not found";
+    return;
   }
-  return el;
   const tag = el.tagName.toLowerCase();
 
   if (tag === "a" && el.href) {
@@ -53,7 +52,7 @@ async function performAction(job, myTabId) {
       self.sendStatus(`Error asking add-on to capture PDF: ${err}`);
     });
 
-    return 2;
+    return;
   }
 
   self.sendStatus("Arming capture…");
@@ -70,7 +69,6 @@ async function performAction(job, myTabId) {
   } catch (e) {
     self.sendStatus(`Failed clicking element: ${e.message}`);
   }
-  return 3;
 }
 
 async function maybeRunJob(myTabId) {
