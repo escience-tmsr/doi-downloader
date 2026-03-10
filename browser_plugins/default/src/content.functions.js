@@ -72,18 +72,19 @@ async function performAction(job, myTabId) {
   return "button found";
 }
 
+self.performAction = performAction;
 async function maybeRunJob(myTabId) {
   const result = await browser.storage.local.get("job").catch(err => {
     self.sendStatus(`[default-extension] error reading job from storage: ${err}`);
   });
   const job = result.job;
-  if (!job || job.tabId !== myTabId) return;
+  if (!job || job.tabId !== myTabId) return "invalid job";
   self.sendStatus(`Entered maybeRunJob, tabId is ${myTabId}, url is ${job.url}`);
 
   const here = location.href;
   if (job.used && job.usedUrl.includes(here)) {
     self.sendStatus(`Skipping: already processed this page.`);
-    return;
+    return "processed job";
   }
 
   job.used = true;
@@ -91,17 +92,15 @@ async function maybeRunJob(myTabId) {
   await browser.storage.local.set({ job });
 
   self.sendStatus("[default-extension] tabId matches job, running job");
-//  browser.storage.local.set({ job }).catch(err => {
-//    self.sendStatus(`[default-extension] error marking job used: ${err}`);
-//  });
 
   window.setTimeout(() => {
     try {
-      performAction(job, myTabId);
+      self.performAction(job, myTabId);
     } catch (e) {
       self.sendStatus(`Error while searching link: ${e.message}`);
     }
   }, 1000);
+  return "finished job"
 }
 
 module.exports = { findElementByPhrase, maybeRunJob, performAction, sendStatus, };

@@ -54,48 +54,36 @@ test("maybeRunJob", async() => {
   const myTabId = 67;
   let job = {
     "tabId": myTabId, 
-    "used": true,
+    "used": false,
     "usedUrl": [],
   }          
   global.browser = {"storage": {"local": {
     "get": jest.fn().mockResolvedValue({"job": job}),
     "set": jest.fn().mockResolvedValue(),
   }}};
-  global.locations = {"href": "here"};
+  global.locations = {"href": "here-1"};
   self.sendStatus = jest.fn();
-  await maybeRunJob(myTabId);
+  let result = await maybeRunJob(myTabId);
+  expect(result).toBe("finished job");
   expect(self.sendStatus).toHaveBeenCalledTimes(2);
   expect(global.browser.storage.local.set).toHaveBeenCalledTimes(1);
-});
 
-// async function maybeRunJob(myTabId) {
-//   const result = await browser.storage.local.get("job").catch(err => {
-//     sendStatus(`[default-extension] error reading job from storage: ${err}`);
-//   });
-//   const job = result.job;
-//   if (!job || job.tabId !== myTabId) return;
-//   sendStatus(`Entered maybeRunJob, tabId is ${myTabId}, url is ${job.url}`);
-// 
-//   const here = location.href;
-//   if (job.used && job.usedUrl.includes(here)) {
-//     sendStatus(`Skipping: already processed this page.`);
-//     return;
-//   }
-// 
-//   job.used = true;
-//   job.usedUrl.push(here);
-//   await browser.storage.local.set({ job });
-// 
-//   sendStatus("[default-extension] tabId matches job, running job");
-//   browser.storage.local.set({ job }).catch(err => {
-//     sendStatus(`[default-extension] error marking job used: ${err}`);
-//   });
-// 
-//   window.setTimeout(() => {
-//     try {
-//       performAction(job, myTabId);
-//     } catch (e) {
-//       sendStatus(`Error while searching link: ${e.message}`);
-//     }
-//   }, 1000);
-// }
+  result = await maybeRunJob(myTabId);
+  expect(result).toBe("processed job");
+
+  jest.useFakeTimers();
+  job = {
+    "tabId": myTabId,
+    "used": false,
+    "usedUrl": [],
+  }
+  global.browser.storage.local. get = jest.fn().mockResolvedValue({"job": job});
+  global.locations = {"href": "here-2"};
+  self.performAction = jest.fn();
+  self.sendStatus.mockClear();
+  result = await maybeRunJob(myTabId);
+  jest.runAllTimers();
+  expect(result).toBe("finished job");
+  expect(self.sendStatus).toHaveBeenCalledTimes(2);
+  jest.useRealTimers();
+});

@@ -152,7 +152,6 @@ function startJob(doi) {
     return browser.storage.local.set({ job });
   }).catch(err => {
     self.sendStatus(`Could not start job: ${err && err.message ? err.message : err}`, isError = true);
-    throw err;
   });
 }
 

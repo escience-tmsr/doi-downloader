@@ -122,18 +122,12 @@ test("processIncomingPdfData: streams PDF data and triggers a download when expe
   expect(fakeFilter.write).toHaveBeenNthCalledWith(1, chunk1);
   expect(fakeFilter.write).toHaveBeenNthCalledWith(2, chunk2);
   expect(fakeFilter.disconnect).toHaveBeenCalled();
-
-  // test object creation
   expect(URL.createObjectURL).toHaveBeenCalledTimes(1);
-
-  // test download
   expect(browser.downloads.download).toHaveBeenCalledWith({
     url: "blob:fake",
     filename: "10.1234_foo.bar.pdf", // DOI with '/' replaced by '_' + ".pdf"
     saveAs: false,
   });
-
-  // test failCapture
   expect(self.failCapture).not.toHaveBeenCalled();
 });
 
@@ -151,7 +145,6 @@ test("processIncomingPdfData: setting expectBrowserDownload prevents browser dow
     removeSlashes: (s) => s.replace(/\//g, "_"),
     failCapture: jest.fn(),
   };
-
   global.captureSession = {
     "doi": "10.1234/doi",
     "expectBrowserDownload": true
@@ -164,6 +157,14 @@ test("processIncomingPdfData: setting expectBrowserDownload prevents browser dow
   processIncomingPdfData({ requestId: "req-3" });
   await fakeFilter.onstop();
   expect(browser.downloads.download).toHaveBeenCalled();
+
+  global.browser.downloads.download = jest.fn().mockImplementation(() => {
+    throw new Error("something went wrong!");
+  });
+  self.failCapture.mockClear();
+  processIncomingPdfData({ requestId: "req-4" });
+  await fakeFilter.onstop();
+  expect(self.failCapture).toHaveBeenCalledTimes(1);
 });
 
 test("startJob",  async() => {
@@ -171,7 +172,7 @@ test("startJob",  async() => {
   const url = "https://doi.org/" + doi;
   global.self = {
     sanitizeDOI: (doi) => doi,
-    sendStatus: (text) => null,
+    sendStatus: jest.fn(),
   }
   global.browser = {
     tabs: { create: jest.fn() },
@@ -183,8 +184,12 @@ test("startJob",  async() => {
   const [ returnValue ] = global.browser.storage.local.set.mock.calls[0];
   expect(returnValue.job.url).toBe(url);
   expect(browser.tabs.create).toHaveBeenCalledWith({ url });
-  // browser.storage.local.set = error("error");
-  // await startJob(doi);
+  global.browser.storage.local.set = jest.fn().mockImplementation(() => {
+    throw new Error("something went wrong!");
+  });
+  self.sendStatus.mockClear();
+  await startJob(doi);
+  expect(self.sendStatus).toHaveBeenCalledTimes(3);
 });
 
 test("armCaptureOnly", async() => {
@@ -240,6 +245,14 @@ test("armCaptureBase", () => {
   expect(returnedFileType).toBe("PDF");
   returnedFileType = armCaptureBase(doi, tabId, null);
   expect(returnedFileType).toBe("unknown");
+
+  jest.useFakeTimers();
+  self.failCapture.mockClear();
+  returnedFileType = armCaptureBase(doi, tabId, expectedUrl);
+  expect(self.failCapture).toHaveBeenCalledTimes(0);
+  expect(global.captureSession).not.toBe(null);
+  jest.runAllTimers();
+  jest.useRealTimers();
 });
 
 test("failCapture", () => {
