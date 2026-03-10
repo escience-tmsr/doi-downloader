@@ -6,10 +6,11 @@ This browser extension reads a DOI and tries to download the PDF of the paper as
 
 The browser extension was developed for and tested in the [Firefox](https://www.firefox.com) browser. Before being able to process a DOI, the extension needs to be installed in the browser:
 
-1. Open [about:debugging](about:debugging) in the address bar of Firefox
+1. Download or clone this repository: `git clone https://github.com/escience-tmsr/doi-downloader.git`
+2. Open [about:debugging](about:debugging) in the address bar of Firefox
 2. Click on `This Firefox` in the left menu
 3. Click on the button `Load Temporary Add-on`
-4. Open the file `manifest.json`, it should be available from your computer disk together with the other files from this directory
+4. Open the extension's file `manifest.json`, it should be available from your computer disk together with the other files from this directory
 
 After these four steps, the extension can be used for accessing paper PDFs via their DOIs:
 
@@ -18,21 +19,21 @@ After these four steps, the extension can be used for accessing paper PDFs via t
 3. Fill in a DOI under `DOI` and click the `Process DOI` button. Here is an example DOI from the open access journal [JAIR](https://jair.org): 10.1613/jair.49
 4. There is an option to save a list of successful downloads of a session by clicking the `Save log` button in the extension, left of the `Process DOI` button. The list will be saved in the file `my_table.csv` in the user's Downloads directory.
 
-The extension will open the main web page associated with DOI, look for a button labeled PDF or Download on the page and try to download the PDF linked from the page. If successful, the PDF will be stored in the `Downloads` directory of the browser user with the DOI as name (slashes replaced by underscores). The extension displays it progress at the bottom of its popup window. However, if the browser has already downloaded the PDF, this version will be used with whatever name it has. When downloading fails, an error message will be displayed. 
+The extension will open the main web page associated with DOI, look for a button labeled PDF or Download on the page and try to download the PDF linked from the page. If successful, the PDF will be stored in the `Downloads` directory of the browser user with the DOI as name (slashes replaced by underscores). The extension displays its progress at the bottom of its popup window. However, if the browser has already downloaded the PDF, this version will be used with whatever name it has. When downloading fails, an error message will be displayed. 
 
 ## Evaluation
 
-The extension was compared to Zotero with respect to retrieving a PDF provided a DOI for fourteen DOIs representing papers from different publishers. Zotero found two PDFs (14%) while the extension was able to retrieve seven PDFs (50%). The test did not involve logging in to websites so PDFs behind paywalls were inaccessible to both approaches.
+The extension was compared to Zotero (version 8.0.4) with respect to retrieving a PDF provided a DOI for fourteen DOIs representing papers from different publishers (test date 20260310). Zotero found five PDFs (36%) via the "Find Full Text" menu option while the extension was able to retrieve six PDFs (43%). The only difference between the two methods involved Zotero being identified as a robot by the target website. The test did not involve logging in to websites so PDFs behind paywalls were inaccessible to both approaches.
 
-| Doi                               | Publisher/Journal       | Zotero | This extension |
+| DOI                               | Publisher/Journal       | Zotero | This extension |
 |-----------------------------------|-------------------------|:------:|:--------------:|
 | 10.1613/jair.49                   | jair.org                |   +    |       +        |
+| 10.1038/s41586-025-10047-5        | nature.com              |   +    |       +        |
+| 10.3390/electronics15040795       | mdpi.com                |   +    |       +        |
+| 10.3389/fpsyt.2025.1739639        | frontiersin.com         |   +    |       +        |
+| 10.4236/jhrss.2026.141006         | scirp.com               |   +    |       +        |
 | 10.1016/j.jss.2026.112792         | sciencedirectassets.com |   -    |       +        |
-| 10.1038/s41586-025-10047-5        | nature.com              |   -    |       +        |
-| 10.3390/electronics15040795       | mdpi.com                |   -    |       +        |
-| 10.3389/fpsyt.2025.1739639        | frontiersin.com         |   -    |       +        |
-| 10.4236/jhrss.2026.141006         | scirp.com               |   -    |       +        |           
-| 10.3897/aiep.51.63489             | pensoft.com             |   +    |       +        |  
+| 10.3897/aiep.51.63489             | pensoft.com             |   -    |       -        |  
 | 10.1177/0022002714560349          | sagepub.com             |   -    |       -        |
 | 10.1007/s10198-013-0496-x         | springer.com            |   -    |       -        |
 | 10.1111/j.1465-7295.2010.00309.x  | wiley.com               |   -    |       -        |
