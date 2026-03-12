@@ -221,7 +221,7 @@ test("armCaptureAndNavigate", () => {
   expect(browser.tabs.update).toHaveBeenCalledWith(tabId, {"url": expectedUrl});
 });
 
-test("armCaptureBase", () => {
+test("armCaptureBase", async () => {
   global.self = {
     failCapture: jest.fn(),
     sendStatus: jest.fn(),
@@ -252,6 +252,17 @@ test("armCaptureBase", () => {
   expect(self.failCapture).toHaveBeenCalledTimes(0);
   expect(global.captureSession).not.toBe(null);
   jest.runAllTimers();
+  jest.useRealTimers();
+
+  jest.useFakeTimers();
+  self.sendStatus.mockClear();
+  returnedFileType = armCaptureBase(doi, tabId, expectedUrl);
+  global.captureSession.lastMainStatus = "401";
+  jest.runAllTimers();
+  await returnedFileType;
+  expect(self.sendStatus).toHaveBeenCalledTimes(1);
+  expect(self.sendStatus).toHaveBeenCalledWith(new RegExp(`^Access denied`));
+  expect(global.captureSession).toBe(null);
   jest.useRealTimers();
 });
 
