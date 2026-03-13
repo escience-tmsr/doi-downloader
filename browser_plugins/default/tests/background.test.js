@@ -1,5 +1,7 @@
 const { armCaptureBase, failCapture, inRetrievePdfSession, looksPaywalledUrl, processIncomingPdfData, removeSlashes, retrievingAttachment, retrievingPdfFile, sanitizeDOI, startJob, storeDetailsInSessionData }  = require("../src/background.functions");
 
+const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
 test("sanitizeDOI: removes non-essential characters from DOI", () => {
   expect(sanitizeDOI("doi: https://doi.org/10.1613/jair.1.20161"))
     .toBe("10.1613/jair.1.20161");
@@ -256,12 +258,15 @@ test("armCaptureBase", async () => {
 
   jest.useFakeTimers();
   self.sendStatus.mockClear();
+  self.looksPaywalledUrl = jest.fn().mockReturnValue(false);
+  global.captureSession = {}
   returnedFileType = armCaptureBase(doi, tabId, expectedUrl);
-  global.captureSession.lastMainStatus = "401";
+  while (Object.keys(global.captureSession).length === 0) { await sleep(1000); }
+  global.captureSession.lastMainContentType = "text/html";
   jest.runAllTimers();
   await returnedFileType;
   expect(self.sendStatus).toHaveBeenCalledTimes(1);
-  expect(self.sendStatus).toHaveBeenCalledWith(new RegExp(`^Access denied`));
+  expect(self.sendStatus).toHaveBeenCalledWith(new RegExp(`^Received HTML`));
   expect(global.captureSession).toBe(null);
   jest.useRealTimers();
 });
