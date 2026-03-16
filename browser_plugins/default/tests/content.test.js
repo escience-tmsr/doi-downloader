@@ -40,6 +40,14 @@ test("performAction", async() => {
   expect(self.sendStatus).toHaveBeenCalledTimes(2);
   expect(result).toBe("link found");
 
+  browser.runtime.sendMessage = jest.fn().mockRejectedValue(new Error("error"));
+  self.sendStatus.mockClear();
+  result = await performAction(job, myTabId);
+  expect(result).toBe("error");
+  expect(self.sendStatus).toHaveBeenCalledWith(expect.stringMatching("^Error"));
+  expect(self.sendStatus).toHaveBeenCalledTimes(3);
+
+  browser.runtime.sendMessage = jest.fn().mockResolvedValue();
   data = document.createElement("button");
   self.findElementByPhrase = jest.fn().mockReturnValue(data);
   result = await performAction(job, myTabId);

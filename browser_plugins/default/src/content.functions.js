@@ -43,16 +43,19 @@ async function performAction(job, myTabId) {
     const pdfUrl = el.href;
     self.sendStatus(`Found candidate link for "${phrase}", processing…`);
 
-    browser.runtime.sendMessage({
-      type: "download_pdf_via_tab_capture",
-      pdfUrl,
-      doi: job.doi || null,
-      tabId: myTabId
-    }).catch(err => {
+    try {
+      await browser.runtime.sendMessage({
+        type: "download_pdf_via_tab_capture",
+        pdfUrl,
+        doi: job.doi || null,
+        tabId: myTabId
+      });
+      return "link found";
+    } catch(err) {
       self.sendStatus(`Error asking add-on to capture PDF: ${err}`);
-    });
+      return "error";
+    };
 
-    return "link found";
   }
 
   self.sendStatus("Arming capture…");

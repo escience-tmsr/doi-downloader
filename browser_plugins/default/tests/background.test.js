@@ -1,7 +1,5 @@
 const { armCaptureBase, failCapture, inRetrievePdfSession, looksPaywalledUrl, processIncomingPdfData, removeSlashes, retrievingAttachment, retrievingPdfFile, sanitizeDOI, startJob, storeDetailsInSessionData }  = require("../src/background.functions");
 
-const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
-
 test("sanitizeDOI: removes non-essential characters from DOI", () => {
   expect(sanitizeDOI("doi: https://doi.org/10.1613/jair.1.20161"))
     .toBe("10.1613/jair.1.20161");
@@ -232,19 +230,24 @@ test("armCaptureBase", async () => {
   const doi = "doi";
   const tabId = 123;
   let expectedUrl = "https://domain/dir";
+
   let returnedFileType = armCaptureBase(doi, tabId, expectedUrl);
   expect(global.captureSession).not.toBe(null);
-  expect(global.captureSession.doi).toBe(doi);
   expect(global.captureSession.tabId).toBe(tabId);
+  expect(global.captureSession.doi).toBe(doi);
   expect(global.captureSession.expectedUrl).toBe(expectedUrl);
+  expect(global.captureSession.sawPdf).toBe(false);
+  //expect(global.captureSession.timeoutId).toBe(null);
   expect(global.captureSession.pageCounter).toBe(1);
-  expect(returnedFileType).not.toBe("cannot happen");
   expect(returnedFileType).toBe("HTML");
-  expect(self.sendStatus).toHaveBeenCalledTimes(1);
   expect(self.failCapture).toHaveBeenCalledTimes(0);
+  expect(self.sendStatus).toHaveBeenCalledTimes(1);
+  expect(self.sendStatus).toHaveBeenCalledWith(expect.stringMatching("^Armed capture"));
+
   expectedUrl = "download?file=abc.pdf";
   returnedFileType = armCaptureBase(doi, tabId, expectedUrl);
   expect(returnedFileType).toBe("PDF");
+
   returnedFileType = armCaptureBase(doi, tabId, null);
   expect(returnedFileType).toBe("unknown");
 
@@ -252,23 +255,51 @@ test("armCaptureBase", async () => {
   self.failCapture.mockClear();
   returnedFileType = armCaptureBase(doi, tabId, expectedUrl);
   expect(self.failCapture).toHaveBeenCalledTimes(0);
-  expect(global.captureSession).not.toBe(null);
   jest.runAllTimers();
+  expect(self.failCapture).toHaveBeenCalledTimes(1);
+  expect(self.failCapture).toHaveBeenCalledWith(expect.stringMatching(`No PDF response`));
+  expect(global.captureSession).toBe(null);
   jest.useRealTimers();
 
   jest.useFakeTimers();
-  self.sendStatus.mockClear();
-  self.looksPaywalledUrl = jest.fn().mockReturnValue(false);
   global.captureSession = {}
-  returnedFileType = armCaptureBase(doi, tabId, expectedUrl);
-  while (Object.keys(global.captureSession).length === 0) { await sleep(1000); }
-  global.captureSession.lastMainContentType = "text/html";
-  jest.runAllTimers();
-  await returnedFileType;
+  self.sendStatus.mockClear();
+  returnedFileType = await armCaptureBase(doi, tabId, expectedUrl);
   expect(self.sendStatus).toHaveBeenCalledTimes(1);
-  expect(self.sendStatus).toHaveBeenCalledWith(new RegExp(`^Received HTML`));
+  global.captureSession.lastMainContentType = "text/html";
+  self.looksPaywalledUrl = jest.fn().mockReturnValue(false);
+  self.failCapture.mockClear();
+  jest.runAllTimers();
+  expect(self.failCapture).toHaveBeenCalledTimes(1);
+  expect(self.failCapture).toHaveBeenCalledWith(expect.stringMatching(`^Received HTML`));
   expect(global.captureSession).toBe(null);
   jest.useRealTimers();
+
+  jest.useFakeTimers();
+  global.captureSession = {}
+  self.sendStatus.mockClear();
+  returnedFileType = await armCaptureBase(doi, tabId, expectedUrl);
+  global.captureSession.lastMainContentType = "text/html";
+  self.looksPaywalledUrl = jest.fn().mockReturnValue(true);
+  self.failCapture.mockClear();
+  jest.runAllTimers();
+  expect(self.failCapture).toHaveBeenCalledTimes(1);
+  expect(self.failCapture).toHaveBeenCalledWith(expect.stringMatching(`^Redirected`));
+  expect(global.captureSession).toBe(null);
+  jest.useRealTimers();
+
+  jest.useFakeTimers();
+  global.captureSession = {}
+  self.sendStatus.mockClear();
+  returnedFileType = await armCaptureBase(doi, tabId, expectedUrl);
+  global.captureSession.lastMainStatus = 401;
+  self.failCapture.mockClear();
+  jest.runAllTimers();
+  expect(self.failCapture).toHaveBeenCalledTimes(1);
+  expect(self.failCapture).toHaveBeenCalledWith(expect.stringMatching(`^Access denied`));
+  expect(global.captureSession).toBe(null);
+  jest.useRealTimers();
+
 });
 
 test("failCapture", () => {
