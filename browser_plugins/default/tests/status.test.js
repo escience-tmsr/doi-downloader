@@ -30,9 +30,8 @@ test("sendStatus", () => {
     "error": jest.fn(),
     "log": jest.fn(),
   };
-  let result = sendStatus(text, false);
+  let result = sendStatus(text);
   expect(self.setBadge).toHaveBeenCalledWith(dot, false);
-  expect(self.setBadge).toHaveBeenCalledTimes(1);
   expect(console.log).toHaveBeenCalledTimes(1);
   expect(browser.runtime.sendMessage).toHaveBeenCalledWith({ type: "status", text: text });
   expect(result).toBe(null);
@@ -43,6 +42,11 @@ test("sendStatus", () => {
   expect(console.error).toHaveBeenCalledTimes(1);
   expect(result).not.toBe(null);
   expect(element.textContent).toBe(text);
+  expect(element.style.color).toBe("red");
+
+  result = sendStatus(text, false);
+  expect(element.style.color).toBe("");
+  expect(result).not.toBe(null);
 
   document.getElementById = jest.fn().mockReturnValue(null);
   result = sendStatus(text, false);

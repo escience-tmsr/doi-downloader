@@ -77,9 +77,13 @@ async function performAction(job, myTabId) {
 
 self.performAction = performAction;
 async function maybeRunJob(myTabId) {
-  const result = await browser.storage.local.get("job").catch(err => {
+  let result = null;
+  try {
+    result = await browser.storage.local.get("job")
+  } catch(err) {
     self.sendStatus(`[default-extension] error reading job from storage: ${err}`);
-  });
+    return;
+  };
   const job = result.job;
   if (!job || job.tabId !== myTabId) return "invalid job";
   self.sendStatus(`Entered maybeRunJob, tabId is ${myTabId}, url is ${job.url}`);

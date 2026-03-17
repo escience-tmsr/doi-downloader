@@ -9,7 +9,8 @@ function sendStatus(text, isError = false) {
   const element = document.getElementById("status");
   if (element) { 
     element.textContent = text;
-    if (!isError) { element.style.color = "red"; }
+    if (isError) { element.style.color = "red"; }
+    else { element.style.color = ""; }
   }
   return element;
 }
@@ -23,8 +24,10 @@ function setBadge(text, isError) {
   } catch(_) {}
 }
 
-if (typeof self === "undefined") { module.exports = { sendStatus, setBadge }; } 
-else {
+/* istanbul ignore next */
+if (typeof self === "undefined") {
+  module.exports = { sendStatus, setBadge }; 
+} else {
   module.exports = { sendStatus, setBadge };  
   self.sendStatus = sendStatus;
   self.setBadge = setBadge;

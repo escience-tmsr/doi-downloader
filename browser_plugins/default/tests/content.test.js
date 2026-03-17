@@ -53,6 +53,17 @@ test("performAction", async() => {
   result = await performAction(job, myTabId);
   expect(result).toBe("button found");
 
+  browser.runtime.sendMessage = jest.fn().mockResolvedValue();
+  data = document.createElement("button");
+  data["click"] = jest.fn().mockImplementation(() => {
+    throw new Error("error");
+  });
+  self.findElementByPhrase = jest.fn().mockReturnValue(data);
+  self.sendStatus.mockClear();
+  result = await performAction(job, myTabId);
+  expect(result).toBe("button found");
+  expect(self.sendStatus).toHaveBeenCalledWith(expect.stringMatching("^Failed clicking"));
+
   self.findElementByPhrase = jest.fn().mockReturnValue();
   result = await performAction(job, myTabId);
   expect(result).toBe("not found");
@@ -85,7 +96,7 @@ test("maybeRunJob", async() => {
     "used": false,
     "usedUrl": [],
   }
-  global.browser.storage.local. get = jest.fn().mockResolvedValue({"job": job});
+  global.browser.storage.local.get = jest.fn().mockResolvedValue({"job": job});
   global.locations = {"href": "here-2"};
   self.performAction = jest.fn();
   self.sendStatus.mockClear();
@@ -94,4 +105,26 @@ test("maybeRunJob", async() => {
   expect(result).toBe("finished job");
   expect(self.sendStatus).toHaveBeenCalledTimes(2);
   jest.useRealTimers();
+
+  jest.useFakeTimers();
+  job = {
+    "tabId": myTabId,
+    "used": false,
+    "usedUrl": [],
+  }
+  global.browser.storage.local.get = jest.fn().mockResolvedValue({"job": job});
+  self.performAction = jest.fn().mockImplementation(() => {
+    throw new Error("error");
+  });
+  self.sendStatus.mockClear();
+  result = await maybeRunJob(myTabId);
+  jest.runAllTimers();
+  expect(self.sendStatus).toHaveBeenCalledWith(expect.stringMatching("^Error while searching link"));
+  jest.useRealTimers();
+
+  global.browser.storage.local.get = jest.fn().mockRejectedValue(new Error("error"));
+  self.performAction = jest.fn();
+  self.sendStatus.mockClear();
+  result = await maybeRunJob(myTabId);
+  expect(self.sendStatus).toHaveBeenCalledWith(expect.stringMatching("error reading job"));
 });
