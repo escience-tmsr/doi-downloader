@@ -1,72 +1,99 @@
 const { findElementByPhrase, performAction, sendStatus }  = require("../src/content.functions");
 
-test("sendStatus", () => {
-  global.browser = {"runtime": {"sendMessage": jest.fn()}};
-  global.console = {"log": jest.fn()};
-  const text = "text";
-  sendStatus(text);
-  expect(self.browser.runtime.sendMessage).toHaveBeenCalledTimes(1);
-  expect(self.console.log).toHaveBeenCalledTimes(1);
+describe("sendStatus", () => {
+  test("report status", () => {
+    global.browser = {"runtime": {"sendMessage": jest.fn()}};
+    global.console = {"log": jest.fn()};
+    const text = "text";
+    sendStatus(text);
+    expect(self.browser.runtime.sendMessage).toHaveBeenCalledTimes(1);
+    expect(self.console.log).toHaveBeenCalledTimes(1);
+  });
 });
 
-test("findElementByPhrase", () => {
+describe("findElementByPhrase", () => {
   let data = document.createElement("a");
   data.title = "innerText.outerText";
-  document.querySelectorAll = jest.fn().mockReturnValue([data]);
-  let phrases = ["abc", "def"];
-  self.sendStatus = jest.fn();
-  let result = findElementByPhrase(phrases);
-  expect(result).toBe(null);
-  expect(document.querySelectorAll).toHaveBeenCalledTimes(phrases.length);
-  expect(self.sendStatus).toHaveBeenCalledTimes(phrases.length * 2);
 
-  self.sendStatus.mockClear();
-  phrases = ["innerText", "outerText"];
-  result = findElementByPhrase(phrases);
-  expect(self.sendStatus).toHaveBeenCalledTimes(2);
-  expect(result).not.toBe(null);
+  beforeEach(() => {
+    jest.clearAllMocks();
+    document.querySelectorAll = jest.fn().mockReturnValue([data]);
+  });
+
+  test("search for non-matching phrases", () => {
+    const phrases = ["ABC", "def"];
+    self.sendStatus = jest.fn();
+    let result = findElementByPhrase(phrases);
+    expect(result).toBe(null);
+    expect(document.querySelectorAll).toHaveBeenCalledTimes(phrases.length);
+    expect(self.sendStatus).toHaveBeenCalledTimes(phrases.length * 2);
+    phrases.forEach(phrase => {
+      expect(self.sendStatus).toHaveBeenCalledWith(expect.stringMatching(phrase.toLowerCase()));
+    });
+  });
+  
+  test("search for matching phrases", () => {
+    const phrases = ["innerText", "outerText"];
+    result = findElementByPhrase(phrases);
+    expect(result).not.toBe(null);
+    expect(self.sendStatus).toHaveBeenCalledTimes(2);
+  });
 });
 
-test("performAction", async() => {
+describe("performAction", () => {
   const job = {"phrase": "abc"}
   const myTabId = 0;
-  let data = document.createElement("a");
-  data.innerText = "outerText";
-  data.href = "href";
-  self.findElementByPhrase = jest.fn().mockReturnValue(data);
-  global.browser = {"runtime": {"sendMessage": jest.fn().mockResolvedValue()}};
-  self.sendStatus = jest.fn();
-  let result = await performAction(job, myTabId);
-  expect(self.sendStatus).toHaveBeenCalledTimes(2);
-  expect(result).toBe("link found");
 
-  browser.runtime.sendMessage = jest.fn().mockRejectedValue(new Error("error"));
-  self.sendStatus.mockClear();
-  result = await performAction(job, myTabId);
-  expect(result).toBe("error");
-  expect(self.sendStatus).toHaveBeenCalledWith(expect.stringMatching("^Error"));
-  expect(self.sendStatus).toHaveBeenCalledTimes(3);
-
-  browser.runtime.sendMessage = jest.fn().mockResolvedValue();
-  data = document.createElement("button");
-  self.findElementByPhrase = jest.fn().mockReturnValue(data);
-  result = await performAction(job, myTabId);
-  expect(result).toBe("button found");
-
-  browser.runtime.sendMessage = jest.fn().mockResolvedValue();
-  data = document.createElement("button");
-  data["click"] = jest.fn().mockImplementation(() => {
-    throw new Error("error");
+  beforeEach(() => {
+    jest.clearAllMocks();
+    global.browser = {"runtime": {"sendMessage": jest.fn().mockResolvedValue()}};
   });
-  self.findElementByPhrase = jest.fn().mockReturnValue(data);
-  self.sendStatus.mockClear();
-  result = await performAction(job, myTabId);
-  expect(result).toBe("button found");
-  expect(self.sendStatus).toHaveBeenCalledWith(expect.stringMatching("^Failed clicking"));
 
-  self.findElementByPhrase = jest.fn().mockReturnValue();
-  result = await performAction(job, myTabId);
-  expect(result).toBe("not found");
+  test("detect phrase in hyperlink: success", async() => {
+    let data = document.createElement("a");
+    data.innerText = "outerText";
+    data.href = "href";
+    self.findElementByPhrase = jest.fn().mockReturnValue(data);
+    self.sendStatus = jest.fn();
+    const result = await performAction(job, myTabId);
+    expect(self.sendStatus).toHaveBeenCalledTimes(2);
+    expect(result).toBe("link found");
+  });
+  
+  test("detect phrase in hyperlink: error", async() => {
+    let data = document.createElement("a");
+    data.innerText = "outerText";
+    data.href = "href";
+    self.findElementByPhrase = jest.fn().mockReturnValue(data);
+    browser.runtime.sendMessage = jest.fn().mockRejectedValue(new Error("error"));
+    const result = await performAction(job, myTabId);
+    expect(result).toBe("error");
+    expect(self.sendStatus).toHaveBeenCalledWith(expect.stringMatching("^Error asking"));
+    expect(self.sendStatus).toHaveBeenCalledTimes(3);
+  });
+  
+  test("detect phrase in button: success", async() => {
+    const data = document.createElement("button");
+    self.findElementByPhrase = jest.fn().mockReturnValue(data);
+    const result = await performAction(job, myTabId);
+    expect(result).toBe("button found");
+  });
+  
+  test("detect phrase in button: error", async() => {
+    let data = document.createElement("button");
+    data["click"] = jest.fn().mockImplementation(() => {
+      throw new Error("error");
+    });
+    self.findElementByPhrase = jest.fn().mockReturnValue(data);
+    const result = await performAction(job, myTabId);
+    expect(self.sendStatus).toHaveBeenCalledWith(expect.stringMatching("^Failed clicking"));
+  });
+  
+  test("phrase not found in hyperlink or button", async() => {
+    self.findElementByPhrase = jest.fn().mockReturnValue(null);
+    result = await performAction(job, myTabId);
+    expect(result).toBe("not found");
+  });
 });
 
 test("maybeRunJob", async() => {
