@@ -96,62 +96,57 @@ describe("performAction", () => {
   });
 });
 
-test("maybeRunJob", async() => {
+describe("maybeRunJob", () => {
   const myTabId = 67;
-  let job = {
-    "tabId": myTabId, 
-    "used": false,
-    "usedUrl": [],
-  }          
-  global.browser = {"storage": {"local": {
-    "get": jest.fn().mockResolvedValue({"job": job}),
-    "set": jest.fn().mockResolvedValue(),
-  }}};
-  global.locations = {"href": "here-1"};
-  self.sendStatus = jest.fn();
-  let result = await maybeRunJob(myTabId);
-  expect(result).toBe("finished job");
-  expect(self.sendStatus).toHaveBeenCalledTimes(2);
-  expect(global.browser.storage.local.set).toHaveBeenCalledTimes(1);
+  let job = {};
 
-  result = await maybeRunJob(myTabId);
-  expect(result).toBe("processed job");
-
-  jest.useFakeTimers();
-  job = {
-    "tabId": myTabId,
-    "used": false,
-    "usedUrl": [],
-  }
-  global.browser.storage.local.get = jest.fn().mockResolvedValue({"job": job});
-  global.locations = {"href": "here-2"};
-  self.performAction = jest.fn();
-  self.sendStatus.mockClear();
-  result = await maybeRunJob(myTabId);
-  jest.runAllTimers();
-  expect(result).toBe("finished job");
-  expect(self.sendStatus).toHaveBeenCalledTimes(2);
-  jest.useRealTimers();
-
-  jest.useFakeTimers();
-  job = {
-    "tabId": myTabId,
-    "used": false,
-    "usedUrl": [],
-  }
-  global.browser.storage.local.get = jest.fn().mockResolvedValue({"job": job});
-  self.performAction = jest.fn().mockImplementation(() => {
-    throw new Error("error");
+  beforeEach(()=> {
+    jest.clearAllMocks();
+    job = {
+      "tabId": myTabId, 
+      "usedUrls": [],
+    }          
+    global.browser = {"storage": {"local": {
+      "get": jest.fn().mockResolvedValue({"job": job}),
+      "set": jest.fn().mockResolvedValue(),
+    }}};
+    self.sendStatus = jest.fn();
+    self.performAction = jest.fn();
   });
-  self.sendStatus.mockClear();
-  result = await maybeRunJob(myTabId);
-  jest.runAllTimers();
-  expect(self.sendStatus).toHaveBeenCalledWith(expect.stringMatching("^Error while searching link"));
-  jest.useRealTimers();
 
-  global.browser.storage.local.get = jest.fn().mockRejectedValue(new Error("error"));
-  self.performAction = jest.fn();
-  self.sendStatus.mockClear();
-  result = await maybeRunJob(myTabId);
-  expect(self.sendStatus).toHaveBeenCalledWith(expect.stringMatching("error reading job"));
+  test("run successfully", async() => {
+    const result = await maybeRunJob(myTabId);
+    expect(result).toBe("finished job");
+    expect(self.sendStatus).toHaveBeenCalledTimes(2);
+    expect(global.browser.storage.local.set).toHaveBeenCalledTimes(1);
+   });
+
+  test("job already processed", async() => {
+    job.usedUrls.push(global.location.href);
+    global.browser.storage.local.get = jest.fn().mockResolvedValue({"job": job});
+    const result = await maybeRunJob(myTabId);
+    expect(result).toBe("processed job");
+   });
+
+  test("invalid myTabId", async() => {
+    const result = await maybeRunJob(myTabId + "invalid");
+    expect(result).toBe("invalid job");
+  });
+  
+  test("running job fails", async() => {
+    jest.useFakeTimers();
+    self.performAction = jest.fn().mockImplementation(() => {
+      throw new Error("error");
+    });
+    const result = await maybeRunJob(myTabId);
+    jest.runAllTimers();
+    expect(self.sendStatus).toHaveBeenCalledWith(expect.stringMatching("^Error while searching link"));
+    jest.useRealTimers();
+  });
+
+  test("cannot read job variable", async() => {
+    global.browser.storage.local.get = jest.fn().mockRejectedValue(new Error("error"));
+    const result = await maybeRunJob(myTabId);
+    expect(self.sendStatus).toHaveBeenCalledWith(expect.stringMatching("error reading job"));
+  });
 });

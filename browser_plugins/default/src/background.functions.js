@@ -143,8 +143,7 @@ function startJob(doi) {
       url,
       phrase,
       doi: normalizedDoi,
-      used: false,
-      usedUrl: [],
+      usedUrls: [],
       tabId: tab.id
     };
 

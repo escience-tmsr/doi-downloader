@@ -89,13 +89,12 @@ async function maybeRunJob(myTabId) {
   self.sendStatus(`Entered maybeRunJob, tabId is ${myTabId}, url is ${job.url}`);
 
   const here = location.href;
-  if (job.used && job.usedUrl.includes(here)) {
+  if (job.usedUrls.includes(here)) {
     self.sendStatus(`Skipping: already processed this page.`);
     return "processed job";
   }
 
-  job.used = true;
-  job.usedUrl.push(here);
+  job.usedUrls.push(here);
   await browser.storage.local.set({ job });
 
   self.sendStatus("[default-extension] tabId matches job, running job");
