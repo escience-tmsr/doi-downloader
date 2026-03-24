@@ -8,10 +8,15 @@ The browser extension was developed for and tested in the [Firefox](https://www.
 
 1. Download or clone this repository: `git clone https://github.com/escience-tmsr/doi-downloader.git`
 2. Open [about:debugging](about:debugging) in the address bar of Firefox
-2. Click on `This Firefox` in the left menu
-3. Click on the button `Load Temporary Add-on`
-4. Open the extension's file `manifest.json`, it should be available from your computer disk together with the other files from this directory
-5. In case you are running private windows: Open [about:addons](about.addons) in the address bar of Firefox, Click on the extension name (Default extension), and then click on "Allow" next to "Run in Private Windows".
+3. Click on `This Firefox` in the left menu
+4. Click on the button `Load Temporary Add-on`
+5. Open the extension's file `manifest.json`, it should be available from your computer disk together with the other files from this directory, file path: doi-downloader/browser_plugins/default/manifest.json
+
+The properties of the extension should be shown now, including the status message "Running". If the status message is "Stopped", additional steps might be necessary:
+
+6. Open [about:addons](about.addons) in the address bar of Firefox
+7. Click on the extension name (Default extension)
+8. Next click on "Allow" next to "Run in Private Windows".
 
 After these steps, the extension can be used for accessing paper PDFs via their DOIs:
 
