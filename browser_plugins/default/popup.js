@@ -1,3 +1,12 @@
+browser.runtime.onMessage.addListener((msg) => {
+  if (msg?.type === "status") {
+    const element = document.getElementById("status");
+    if (element) {
+      element.textContent = msg.text;
+    }
+  }
+});
+
 document.getElementById("startButton").addEventListener("click", () => {
   const doi = document.getElementById("doiInput").value.trim();
 
@@ -13,14 +22,6 @@ document.getElementById("startButton").addEventListener("click", () => {
     sendStatus("Error starting job: " + err, isError = true);
   });
 
-  browser.runtime.onMessage.addListener((msg) => {
-    if (msg?.type === "status") {
-      const element = document.getElementById("status");
-      if (element) {
-        element.textContent = msg.text;
-      }
-    }
-  });
 });
 
 document.getElementById("saveLog").addEventListener("click", () => {
