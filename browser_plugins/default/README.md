@@ -11,8 +11,9 @@ The browser extension was developed for and tested in the [Firefox](https://www.
 2. Click on `This Firefox` in the left menu
 3. Click on the button `Load Temporary Add-on`
 4. Open the extension's file `manifest.json`, it should be available from your computer disk together with the other files from this directory
+5. In case you are running private windows: Open [about:addons](about.addons) in the address bar of Firefox, Click on the extension name (Default extension), and then click on "Allow" next to "Run in Private Windows".
 
-After these four steps, the extension can be used for accessing paper PDFs via their DOIs:
+After these steps, the extension can be used for accessing paper PDFs via their DOIs:
 
 1. Access the extension by clicking on the jigsaw puzzle piece logo in the top right of the browser window: ![](../images/puzzle_piece.png "")
 2. A popup window appears, open the extension by clicking on its name: `Default extension`
