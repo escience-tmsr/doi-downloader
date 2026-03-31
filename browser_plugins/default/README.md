@@ -29,24 +29,24 @@ The extension will open the main web page associated with DOI, look for a button
 
 ## Evaluation
 
-The extension was compared to Zotero (version 8.0.4) with respect to retrieving a PDF provided a DOI for fourteen DOIs representing papers from different publishers (test date 20260323). Zotero found six PDFs (43%) via the "Find Full Text" menu option while the extension was able to retrieve seven PDFs (50%). The only difference between the two methods involved Zotero being identified as a robot by the target website and successively being refused access to the PDF file. The test did not involve logging in to websites so PDFs behind paywalls were inaccessible to both approaches.
+The extension was compared to Zotero (version 8.0.4) with respect to retrieving a PDF provided a DOI for fourteen DOIs representing papers from different publishers (test date 20260323). Zotero found six PDFs (43%) via the "Find Full Text" menu option while the extension was able to retrieve seven PDFs (50%). The only difference between the two methods involved Zotero being identified as a robot by the target website and successively being refused access to the PDF file. The test did not involve logging in to websites so PDFs behind paywalls were inaccessible to both approaches. The combination of five plugins of the doi-downloader outperformed the two approaches with nine successful downloads (64%).
 
-| DOI                               | Publisher/Journal       | Zotero | This extension |
-|-----------------------------------|-------------------------|:------:|:--------------:|
-| 10.1613/jair.49                   | jair.org                |   +    |       +        |
-| 10.1038/s41586-025-10047-5        | nature.com              |   +    |       +        |
-| 10.3390/electronics15040795       | mdpi.com                |   +    |       +        |
-| 10.3389/fpsyt.2025.1739639        | frontiersin.com         |   +    |       +        |
-| 10.4236/jhrss.2026.141006         | scirp.com               |   +    |       +        |
-| 10.3897/aiep.51.63489             | pensoft.com             |   +    |       +        |  
-| 10.1016/j.jss.2026.112792         | sciencedirectassets.com |   -    |       +        |
-| 10.1177/0022002714560349          | sagepub.com             |   -    |       -        |
-| 10.1007/s10198-013-0496-x         | springer.com            |   -    |       -        |
-| 10.1111/j.1465-7295.2010.00309.x  | wiley.com               |   -    |       -        |
-| 10.1016/j.econlet.2009.08.024     | sciencedirect.com       |   -    |       -        |
-| 10.1093/ei/cb1001                 | wiley.com               |   -    |       -        |
-| 10.2174/2213476X07666200423081738 | bethamscience.com       |   -    |       -        |
-| 10.1504/EJIM.2025.150039          | inderscience.com        |   -    |       -        |
+| DOI                               | Publisher/Journal       | Zotero | This extension | doi-downloader |
+|-----------------------------------|-------------------------|:------:|:--------------:|:--------------:|
+| 10.1613/jair.49                   | jair.org                |   +    |       +        |       +        |
+| 10.1038/s41586-025-10047-5        | nature.com              |   +    |       +        |       +        |
+| 10.3390/electronics15040795       | mdpi.com                |   +    |       +        |       -        |
+| 10.3389/fpsyt.2025.1739639        | frontiersin.com         |   +    |       +        |       +        |
+| 10.4236/jhrss.2026.141006         | scirp.com               |   +    |       +        |       +        |
+| 10.3897/aiep.51.63489             | pensoft.com             |   +    |       +        |       +        |
+| 10.1016/j.nlp.2026.100202         | sciencedirectassets.com |   -    |       +        |       -        |
+| 10.1177/0022002714560349          | sagepub.com             |   -    |       -        |       +        |
+| 10.1007/s10198-013-0496-x         | springer.com            |   -    |       -        |       -        |
+| 10.1111/j.1465-7295.2010.00309.x  | wiley.com               |   -    |       -        |       +        |
+| 10.1016/j.econlet.2009.08.024     | sciencedirect.com       |   -    |       -        |       +        |
+| 10.1093/ei/cb1001                 | wiley.com               |   -    |       -        |       +        |
+| 10.2174/2213476X07666200423081738 | bethamscience.com       |   -    |       -        |       -        |
+| 10.1504/EJIM.2025.150039          | inderscience.com        |   -    |       -        |       -        |
 
 ## Code sequence diagram
 
