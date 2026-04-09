@@ -23,13 +23,18 @@ class AAADoiorgPlugin(Plugin):
     def robots_check(self, url):
         url_splitted = urlsplit(url)
         robots_txt_url = url_splitted.scheme + "://" + url_splitted.netloc + "/robots.txt"
-        response = requests.get(robots_txt_url)
-        if response.status_code != 200:
+        try:
+            response = requests.get(robots_txt_url)
+        except requests.RequestException as e:
+            print(f"website access problem: {e}")
             return True
-        rp = RobotFileParser()
-        rp.set_url(robots_txt_url)
-        rp.read()
-        return rp.can_fetch("*", url)
+        if response.status_code != 200:
+            print(f"webpage access problem: {response.status_code}")
+            return True
+        robot_parsed = RobotFileParser()
+        robot_parsed.set_url(robots_txt_url)
+        robot_parsed.parse(response.text.splitlines())
+        return robot_parsed.can_fetch("*", url)
         
     def fetch_metadata(self, doi):
         url = DOIORG_URL.format(doi=doi)
