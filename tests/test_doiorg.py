@@ -12,8 +12,8 @@ JSON_RESPONSE={"authors":[{"name":"Cushing, R."},{"name":"de Laat, C."},{"name":
 def test_get_url():
     doiorg_url = DOIORG_URL.format(doi=TEST_DOI)
 
-    with patch.object(doi_downloader.plugins.doiorg.AAADoiorgPlugin, "fetch_metadata", return_value=doiorg_url):
-        instance = doiorg.AAADoiorgPlugin()
+    with patch.object(doi_downloader.plugins.doiorg.DoiorgPlugin, "fetch_metadata", return_value=doiorg_url):
+        instance = doiorg.DoiorgPlugin()
         url = instance.get_pdf_url(TEST_DOI, use_cache=False)
     assert url == doiorg_url
 
