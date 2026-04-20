@@ -97,7 +97,7 @@ class DoiorgPlugin(Plugin):
             print(f"[doi.org] Using cached data for {doi}.")
             return cached_data
         metadata = self.fetch_metadata(doi)
-        if use_cache and meta_data:
+        if use_cache and metadata:
             self.cache.set_cache(doi, metadata)
             print(f"[doi.org] Data cached for {doi}.")
         return metadata
