@@ -1,5 +1,6 @@
 attrs==24.3.0
 black==24.8.0
+bs4==0.0.2
 certifi==2024.8.30
 charset-normalizer==3.3.2
 click==8.1.7
