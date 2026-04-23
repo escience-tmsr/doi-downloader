@@ -8,6 +8,11 @@ from urllib.parse import urlsplit
 
 
 DOIORG_URL = "https://doi.org/{doi}"
+HTTP_HEADERS = {
+   "User-Agent": ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+   "AppleWebKit/537.36 (KHTML, like Gecko) "
+   "Chrome/120.0.0.0 Safari/537.36"),
+}
 
 
 class DoiorgPlugin(Plugin):
@@ -39,18 +44,14 @@ class DoiorgPlugin(Plugin):
 
     def get_web_page(self, doi):
         url = DOIORG_URL.format(doi=doi)
-        headers = {
-            "User-Agent": ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                           "AppleWebKit/537.36 (KHTML, like Gecko) "
-                           "Chrome/120.0.0.0 Safari/537.36"),
-        }
+        headers = HTTP_HEADERS
         return requests.get(url, headers=headers, timeout=10)
 
  
     def get_pdf_url_from_meta(self, soup):
         """Get url pointing to PDF related to DOI from publisher metadata in web page"""
         meta = soup.find("meta", attrs={"name": "citation_pdf_url"})
-        if meta and meta["content"]:
+        if meta and "content" in meta.attrs:
             return meta["content"]
         else:
             return None
@@ -64,7 +65,7 @@ class DoiorgPlugin(Plugin):
                                                                text, 
                                                                flags=regex.IGNORECASE))
         for link in links:
-            if link["href"]:
+            if link and "href" in link.attrs and regex.search("pdf|download", link["href"], regex.IGNORECASE):
                 return link["href"]
         return None
 
@@ -76,7 +77,7 @@ class DoiorgPlugin(Plugin):
             response = self.get_web_page(doi)
             # Raise an HTTPError for bad responses (4xx and 5xx)
             response.raise_for_status()
-        except requests.exceptions.RequestException, requests.exceptions.HTTPError as e:
+        except (requests.exceptions.RequestException, requests.exceptions.HTTPError) as e:
             print(f"[doi.org] An error occurred: {e}")
             return None
 
