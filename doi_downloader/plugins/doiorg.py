@@ -20,9 +20,8 @@ class DoiorgPlugin(Plugin):
 
     def robot_access_allowed(self, url):
         """Check if website allows access to url by robots"""
-        url_splitted = urlsplit(url)
-        robots_txt_url = (url_splitted.scheme + "://" + 
-                          url_splitted.netloc + "/robots.txt")
+        split_url = urlsplit(url)
+        robots_txt_url = f"{split_url.scheme}://{split_url.netloc}/robots.txt"
         try:
             response = requests.get(robots_txt_url)
         except requests.RequestException as e:
