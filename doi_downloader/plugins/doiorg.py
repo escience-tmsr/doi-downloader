@@ -77,18 +77,19 @@ class DoiorgPlugin(Plugin):
             response = self.get_web_page(doi)
             # Raise an HTTPError for bad responses (4xx and 5xx)
             response.raise_for_status()
-            if not self.robot_access_allowed(response.url):
-                print(f"[doi.org] robots.txt blocked acccess to {response.url}")
-                return None
-            soup = BeautifulSoup(response.text, "html.parser")
-            if (pdf_url := self.get_pdf_url_from_meta(soup)):
-                return pdf_url
-            if (pdf_url := self.get_pdf_url_from_links(soup)):
-                return pdf_url
-            return None
-        except requests.exceptions.RequestException as e:
+        except requests.exceptions.RequestException, requests.exceptions.HTTPError as e:
             print(f"[doi.org] An error occurred: {e}")
             return None
+
+        if not self.robot_access_allowed(response.url):
+            print(f"[doi.org] robots.txt blocked acccess to {response.url}")
+            return None
+        soup = BeautifulSoup(response.text, "html.parser")
+        if (pdf_url := self.get_pdf_url_from_meta(soup)):
+            return pdf_url
+        if (pdf_url := self.get_pdf_url_from_links(soup)):
+            return pdf_url
+        return None
 
 
     def get_pdf_url(self, doi, use_cache=True, ttl=0):
