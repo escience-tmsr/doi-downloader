@@ -1,5 +1,4 @@
 from doi_downloader.plugins import doiorg
-import doi_downloader.plugins.doiorg
 from unittest.mock import patch
 import responses
 
