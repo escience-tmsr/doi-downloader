@@ -216,7 +216,7 @@ class ArticleDataObject:
             if published_date.get("date-parts"):
                 try:
                     return f'{published_date["date-parts"][0][0]}-{published_date["date-parts"][0][1]}'
-                except Exception as e:
+                except Exception:
                     pass
             return ""
         def extract_pdf_link(data):
