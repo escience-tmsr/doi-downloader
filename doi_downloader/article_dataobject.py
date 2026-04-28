@@ -214,7 +214,10 @@ class ArticleDataObject:
         ]
         def convert_published_date(published_date):
             if published_date.get("date-parts"):
-                return f'{published_date["date-parts"][0][0]}-{published_date["date-parts"][0][1]}'
+                try:
+                    return f'{published_date["date-parts"][0][0]}-{published_date["date-parts"][0][1]}'
+                except Exception:
+                    pass
             return ""
         def extract_pdf_link(data):
             """
