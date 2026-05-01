@@ -44,8 +44,7 @@ class DoiorgPlugin(Plugin):
 
     def get_web_page(self, doi):
         url = DOIORG_URL.format(doi=doi)
-        headers = HTTP_HEADERS
-        return requests.get(url, headers=headers, timeout=10)
+        return requests.get(url, headers=HTTP_HEADERS, timeout=10)
 
  
     def get_pdf_url_from_meta(self, soup):
