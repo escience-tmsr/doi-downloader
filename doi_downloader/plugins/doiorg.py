@@ -60,13 +60,12 @@ class DoiorgPlugin(Plugin):
     def get_pdf_url_from_links(self, soup):
         """Get url pointing to PDF related to DOI from links in web page"""
         links = soup.find_all("a", 
-                              string=lambda text: text and 
+                              string=lambda href: href and 
                                                   regex.search("download|pdf", 
-                                                               text, 
+                                                               href, 
                                                                flags=regex.IGNORECASE))
         for link in links:
-            if link and "href" in link.attrs and regex.search("pdf|download", link["href"], regex.IGNORECASE):
-                return link["href"]
+            return link["href"]
         return None
 
 
