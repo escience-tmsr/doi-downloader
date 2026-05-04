@@ -63,10 +63,7 @@ class DoiorgPlugin(Plugin):
                                                   regex.search("download|pdf", 
                                                                href, 
                                                                flags=regex.IGNORECASE))
-        for link in links:
-            return link["href"]
-        return None
-
+        return links[0]["href"] if links else None
 
 
     def fetch_metadata(self, doi):
