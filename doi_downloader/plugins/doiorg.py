@@ -58,12 +58,11 @@ class DoiorgPlugin(Plugin):
 
     def get_pdf_url_from_links(self, soup):
         """Get url pointing to PDF related to DOI from links in web page"""
-        links = soup.find_all("a", 
-                              string=lambda href: href and 
-                                                  regex.search("download|pdf", 
-                                                               href, 
-                                                               flags=regex.IGNORECASE))
-        return links[0]["href"] if links else None
+        return soup.find("a", 
+                         string=lambda href: href and 
+                                             regex.search("download|pdf", 
+                                                          href, 
+                                                          flags=regex.IGNORECASE))
 
 
     def fetch_metadata(self, doi):
