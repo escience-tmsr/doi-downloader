@@ -6,6 +6,8 @@ import sys
 from doi_downloader.doi_downloader import download
 from doi_downloader.benchmark import BenchmarkLogger, BenchmarkAnalyzer
 
+MAX_DOI = 20
+
 def process_csv(input_csv, output_dir="downloads"):
     """
     Process CSV file with DOI, URL, and domain columns
@@ -25,7 +27,8 @@ def process_csv(input_csv, output_dir="downloads"):
             doi = row.get('doi', '').strip()
             domain = row.get('domain', '').strip()
             
-            if total > 10:
+            if total >= MAX_DOI:
+                print(f"Pre-set maximum ({MAX_DOI}) reached. Stopping...")
                 break
             if not doi:
                 continue
