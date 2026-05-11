@@ -30,12 +30,12 @@ class GoogleScholarSerpAPIPlugin(Plugin):
         """Compare returned links with target DOI"""
         target_doi_suffix = "/".join(target_doi.split("/")[1:])
         if regex.search(target_doi_suffix, str(pdf_link)):
-            print(f"PDF link {pdf_link} matches DOI {target_doi}")
+            print(f"✅ PDF link {pdf_link} matches DOI {target_doi}")
             return True
         if regex.search(target_doi_suffix, str(link)):
-            print(f"PDF link {pdf_link} matches DOI {target_doi}")
+            print(f"✅ PDF link {pdf_link} matches DOI {target_doi}")
             return True
-        print(f"Failed matching DOI {target_doi} to either {link} or {pdf_link}")
+        print(f"❌ Failed matching DOI {target_doi} to either {link} or {pdf_link}")
         return False
 
 
@@ -57,11 +57,11 @@ class GoogleScholarSerpAPIPlugin(Plugin):
             response, content, history = await self.get_page_with_playwright(link)
             print(response.status)
             if regex.search(target_doi, content, regex.IGNORECASE):
-                print(f"Found DOI {target_doi} in contents of link {link}")
+                print(f"✅ Found DOI {target_doi} in contents of link {link}")
                 return True
         except Exception:
             pass
-        print(f"DOI {target_doi} not found in contents of link {link}")
+        print(f"❌ DOI {target_doi} not found in contents of link {link}")
         return False
 
          
