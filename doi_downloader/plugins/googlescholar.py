@@ -29,11 +29,11 @@ class GoogleScholarSerpAPIPlugin(Plugin):
     def verify_links_by_url(self, target_doi, link, pdf_link):
         """Compare returned links with target DOI"""
         target_doi_suffix = "/".join(target_doi.split("/")[1:])
-        if regex.search(target_doi_suffix, str(pdf_link)):
+        if pdf_link and regex.search(target_doi_suffix, str(pdf_link)):
             print(f"✅ PDF link {pdf_link} matches DOI {target_doi}")
             return True
-        if regex.search(target_doi_suffix, str(link)):
-            print(f"✅ PDF link {pdf_link} matches DOI {target_doi}")
+        if link and regex.search(target_doi_suffix, str(link)):
+            print(f"✅ link {link} matches DOI {target_doi}")
             return True
         print(f"❌ Failed matching DOI {target_doi} to either {link} or {pdf_link}")
         return False
@@ -51,7 +51,7 @@ class GoogleScholarSerpAPIPlugin(Plugin):
             return response, content, history
 
 
-    async def verify_links_by_contents(self, target_doi, link, pdf_link):
+    async def verify_link_by_contents(self, target_doi, link):
         """Compare content of returned links with target DOI"""
         try:
             response, content, history = await self.get_page_with_playwright(link)
@@ -70,9 +70,9 @@ class GoogleScholarSerpAPIPlugin(Plugin):
         top_result = data["organic_results"][0]
         title = top_result.get("title", "no_title")
         link = top_result.get("link", ("no_link"))
-        pdf_link = top_result.get("resources", [{}])[0].get("link", "no_pdf_link")
-        if not self.verify_links_by_url(doi, link, pdf_link):
-            await self.verify_links_by_contents(doi, link, pdf_link)
+        pdf_link = top_result.get("resources", [{}])[0].get("link", None)
+        if not self.verify_links_by_url(doi, link, pdf_link) and link:
+            await self.verify_link_by_contents(doi, link)
 
         data_object = ado.ArticleDataObject(None)
         data_object.set_title(title)
