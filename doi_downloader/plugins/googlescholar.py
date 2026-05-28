@@ -30,12 +30,12 @@ class GoogleScholarSerpAPIPlugin(Plugin):
         """Compare returned links with target DOI"""
         target_doi_suffix = "/".join(target_doi.split("/")[1:])
         if pdf_link and regex.search(target_doi_suffix, str(pdf_link)):
-            print(f"✅ PDF link {pdf_link} matches DOI {target_doi}")
+            print(f"✅ PDF link matches DOI {target_doi}")
             return True
         if link and regex.search(target_doi_suffix, str(link)):
-            print(f"✅ link {link} matches DOI {target_doi}")
+            print(f"✅ link matches DOI {target_doi}")
             return True
-        print(f"❌ Failed matching DOI {target_doi} to either {link} or {pdf_link}")
+        print(f"Remark: failed matching DOI {target_doi} to either link or pdf link")
         return False
 
 
@@ -51,20 +51,32 @@ class GoogleScholarSerpAPIPlugin(Plugin):
             return response, content, history
 
 
-    async def verify_link_by_contents(self, target_doi, link):
-        """Compare content of returned links with target DOI"""
+    async def verify_link_by_metadata(self, target_doi, link):
+        """Compare content of returned links (metadata) with target DOI"""
         try:
             response, content, history = await self.get_page_with_playwright(link)
             print(response.status)
-            if regex.search(target_doi, content, regex.IGNORECASE):
-                print(f"✅ Found DOI {target_doi} in contents of link {link}")
+            if (nbr_of_matches := len(regex.findall(target_doi, content, regex.IGNORECASE))) > 0:
+                print(f"✅ Found DOI {target_doi} in metadata of link ({nbr_of_matches} times)")
                 return True
         except Exception:
             pass
-        print(f"❌ DOI {target_doi} not found in contents of link {link}")
+        print(f"Remark: DOI {target_doi} not found in metadata of link {link}")
         return False
 
-         
+
+    async def search_pdf_for_doi(filename, target_doi):
+        """search_pdf: find search_string in PDF file stored on disk, Claude code"""
+        with open(filename, "rb") as infile:
+            reader = pypdf.PdfReader(infile)
+            for page_num, page in enumerate(reader.pages):
+                text = page.extract_text()
+                if target_doi.lower() in text.lower():
+                    print(f"✅ Found DOI on page {page_num + 1}")
+                    return True
+        return False
+
+
     async def make_data_object(self, data, doi):
         """Convert data object returned by Google Scholar to plugin format"""
         top_result = data["organic_results"][0]
@@ -72,7 +84,7 @@ class GoogleScholarSerpAPIPlugin(Plugin):
         link = top_result.get("link", ("no_link"))
         pdf_link = top_result.get("resources", [{}])[0].get("link", None)
         if not self.verify_links_by_url(doi, link, pdf_link) and link:
-            await self.verify_link_by_contents(doi, link)
+            await self.verify_link_by_metadata(doi, link)
 
         data_object = ado.ArticleDataObject(None)
         data_object.set_title(title)
