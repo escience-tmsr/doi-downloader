@@ -26,16 +26,18 @@ class GoogleScholarSerpAPIPlugin(Plugin):
         return SERPAPI_KEY is not None
 
 
-    def verify_links_by_url(self, target_doi, link, pdf_link):
+    def verify_links_by_url(self, target_doi, link, pdf_links):
         """Compare returned links with target DOI"""
         target_doi_suffix = "/".join(target_doi.split("/")[1:])
-        if pdf_link and regex.search(target_doi_suffix, str(pdf_link)):
-            print(f"✅ PDF link matches DOI {target_doi}")
-            return True
+        for pdf_link in pdf_links:
+            if pdf_link and regex.search(target_doi_suffix, str(pdf_link)):
+                print(f"[serpapi] ✅ PDF link matches DOI {target_doi}")
+                return True
         if link and regex.search(target_doi_suffix, str(link)):
-            print(f"✅ link matches DOI {target_doi}")
+            print(f"[serpapi] ✅ link matches DOI {target_doi}")
             return True
-        print(f"Remark: failed matching DOI {target_doi} to either link or pdf link")
+        if False:
+            print(f"[serpapi] Remark: failed matching DOI {target_doi} to either link or pdf link")
         return False
 
 
@@ -55,42 +57,37 @@ class GoogleScholarSerpAPIPlugin(Plugin):
         """Compare content of returned links (metadata) with target DOI"""
         try:
             response, content, history = await self.get_page_with_playwright(link)
-            print(response.status)
             if (nbr_of_matches := len(regex.findall(target_doi, content, regex.IGNORECASE))) > 0:
-                print(f"✅ Found DOI {target_doi} in metadata of link ({nbr_of_matches} times)")
+                print(f"[serpapi] ✅ Found DOI {target_doi} in metadata of link ({nbr_of_matches} times)")
                 return True
         except Exception:
             pass
-        print(f"Remark: DOI {target_doi} not found in metadata of link {link}")
-        return False
-
-
-    async def search_pdf_for_doi(filename, target_doi):
-        """search_pdf: find search_string in PDF file stored on disk, Claude code"""
-        with open(filename, "rb") as infile:
-            reader = pypdf.PdfReader(infile)
-            for page_num, page in enumerate(reader.pages):
-                text = page.extract_text()
-                if target_doi.lower() in text.lower():
-                    print(f"✅ Found DOI on page {page_num + 1}")
-                    return True
+        if False:
+            print(f"[serpapi] Remark: DOI {target_doi} not found in metadata of link {link}")
         return False
 
 
     async def make_data_object(self, data, doi):
-        """Convert data object returned by Google Scholar to plugin format"""
-        top_result = data["organic_results"][0]
+        """Convert data object returned by Google Scholar to plugin format.
+           Serpapi returns one result (list data["organic_results"][0]) 
+           with a link to the publisher (data["organic_results"][0]["link"])
+           and the PDFs (data["organic_results"][0]["resources"][*]["link"])
+        """
+        try: top_result = data["organic_results"][0]
+        except: return None
         title = top_result.get("title", "no_title")
         link = top_result.get("link", ("no_link"))
-        pdf_link = top_result.get("resources", [{}])[0].get("link", None)
-        if not self.verify_links_by_url(doi, link, pdf_link) and link:
+        pdf_links = [record["link"] for record in top_result.get("resources", [])]
+        links_verified = self.verify_links_by_url(doi, link, pdf_links)
+        if not links_verified and link:
             await self.verify_link_by_metadata(doi, link)
 
         data_object = ado.ArticleDataObject(None)
         data_object.set_title(title)
         data_object.set_doi(doi)
         data_object.add_link(link)
-        data_object.add_pdf_link(pdf_link)
+        for pdf_link in pdf_links:
+            data_object.add_pdf_link(pdf_link)
 
         return data_object
 
@@ -116,7 +113,7 @@ class GoogleScholarSerpAPIPlugin(Plugin):
 
 
     # Function to get the URL of the PDF from the DOI
-    async def get_pdf_url(self, doi, use_cache=True, ttl=0):
+    async def get_pdf_urls(self, doi, use_cache=True, ttl=0):
         """
         Get PDF URL from Google Scholar API
         
@@ -134,14 +131,13 @@ class GoogleScholarSerpAPIPlugin(Plugin):
                 print(f"[serpapi] using cached data for {doi}.")
                 data_object = ado.ArticleDataObject.from_json(cached_data)
                 data_object.validate()
-                return data_object.get_pdf_link()
+                return data_object.get_pdf_links()
 
         metadata = await self.fetch_metadata(doi)
-        print("metadata", metadata.get_link() if metadata else None)
         if metadata:
-            url = metadata.get_pdf_link()
+            urls = metadata.get_pdf_links()
             if use_cache:
                 self.cache.set_cache(doi, metadata.to_json())
-            return url
+            return urls
         else:
             return None

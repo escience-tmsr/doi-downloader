@@ -150,6 +150,14 @@ class ArticleDataObject:
         """
         return self.data["pdf_links"][0] if self.data["pdf_links"] else None
 
+    def get_pdf_links(self):
+        """
+        Get all PDF link from the Article data object.
+
+        :return: All PDF links
+        """
+        return self.data["pdf_links"]
+
     def validate(self):
         """
         Validate the Article data against the provided schema.

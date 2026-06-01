@@ -14,21 +14,22 @@ def is_valid_pdf(filename):
         return False
 
 
-def search_pdf_for_doi(filename, target_doi):
-    """search_pdf: find search_string in PDF file stored on disk, Claude code"""
+def verify_pdf(filename, target_doi, plugin_name=None):
+    """verify_pdf: find search_string in PDF file stored on disk, Claude code"""
     with open(filename, "rb") as infile:
         reader = pypdf.PdfReader(infile)
         for page_num, page in enumerate(reader.pages):
             text = page.extract_text()
             if target_doi.lower() in text.lower():
-                print(f"✅ Found DOI in PDF on page {page_num + 1}")
+                print(f"[{plugin_name}] ✅ Found DOI in PDF on page {page_num + 1}")
                 return True
-    print("Remark: DOI not found in PDF")
+    if False:
+        print(f"[{plugin_name}] Remark: DOI not found in PDF")
     return False
 
 
 # Function to download PDF
-def download_pdf(pdf_url, filename, directory=".", plugin_name="unknown", doi="not_a_doi_value"):
+def download_pdf(pdf_url, filename, directory=".", plugin_name=None, doi="not_a_doi_value"):
     try:
         response = requests.get(pdf_url, headers=config.headers, timeout=30)
     except (ConnectTimeout, ConnectionError) as e:
@@ -41,7 +42,7 @@ def download_pdf(pdf_url, filename, directory=".", plugin_name="unknown", doi="n
 
         # Check if the downloaded file is a valid PDF
         if is_valid_pdf(full_path):
-            search_pdf_for_doi(full_path, doi)
+            verify_pdf(full_path, doi, plugin_name)
             return full_path
         else:
             os.remove(full_path)
