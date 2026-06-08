@@ -42,11 +42,11 @@ def download_pdf(pdf_url, filename, directory=".", plugin_name=None, doi="not_a_
 
         # Check if the downloaded file is a valid PDF
         if is_valid_pdf(full_path):
-            verify_pdf(full_path, doi, plugin_name)
-            return full_path
+            pdf_has_doi = verify_pdf(full_path, doi, plugin_name)
+            return full_path, pdf_has_doi
         else:
             os.remove(full_path)
-            return False
+            return False, False
 
-    return False
+    return False, False
 

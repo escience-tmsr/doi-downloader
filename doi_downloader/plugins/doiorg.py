@@ -42,8 +42,7 @@ class DoiorgPlugin(Plugin):
         return robot_parsed.can_fetch("*", url)
   
 
-    def get_web_page(self, doi):
-        url = DOIORG_URL.format(doi=doi)
+    def get_web_page_contents(self, url):
         return requests.get(url, headers=HTTP_HEADERS, timeout=10)
 
  
@@ -64,11 +63,10 @@ class DoiorgPlugin(Plugin):
                                                           href, 
                                                           flags=regex.IGNORECASE))
 
-
-    def fetch_metadata(self, doi):
-        """Get url pointing to PDF related to DOI from the web"""
+    def get_pdf_url_from_url(self, url):
+        """Get pdf url from url/link"""
         try:
-            response = self.get_web_page(doi)
+            response = self.get_web_page_contents(url)
             # Raise an HTTPError for bad responses (4xx and 5xx)
             response.raise_for_status()
         except (requests.exceptions.RequestException, requests.exceptions.HTTPError) as e:
@@ -84,6 +82,12 @@ class DoiorgPlugin(Plugin):
         if (pdf_url := self.get_pdf_url_from_links(soup)):
             return pdf_url
         return None
+
+
+    def fetch_metadata(self, doi):
+        """Get url pointing to PDF related to DOI from the web"""
+        url = DOIORG_URL.format(doi=doi)
+        return self.get_pdf_url_from_url(url)
 
 
     def get_pdf_url(self, doi, use_cache=True, ttl=0):

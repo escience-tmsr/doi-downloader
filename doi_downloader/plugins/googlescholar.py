@@ -1,6 +1,7 @@
 import os
 import regex
 import requests
+from doi_downloader import loader as ld
 from doi_downloader.plugins import Plugin
 from doi_downloader.cache_duckdb import Cache
 from doi_downloader import article_dataobject as ado
@@ -78,6 +79,9 @@ class GoogleScholarSerpAPIPlugin(Plugin):
         title = top_result.get("title", "no_title")
         link = top_result.get("link", ("no_link"))
         pdf_links = [record["link"] for record in top_result.get("resources", [])]
+        pdf_url_link = ld.plugins["DoiorgPlugin"].get_pdf_url_from_url(link)
+        if pdf_url_link and pdf_url_link not in pdf_links:
+            pdf_links.append(pdf_url_link)
         links_verified = self.verify_links_by_url(doi, link, pdf_links)
         if not links_verified and link:
             await self.verify_link_by_metadata(doi, link)
