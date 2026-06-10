@@ -1,8 +1,8 @@
 import os
 import pypdf
 import requests
-from requests.exceptions import ConnectTimeout, ConnectionError
-from . import config
+from doi_downloader import config
+from doi_downloader.lib import robot_access_allowed
 
 # Function to check if file is a PDF file
 def is_valid_pdf(filename):
@@ -12,6 +12,7 @@ def is_valid_pdf(filename):
             return header == b'%PDF'
     except Exception:
         return False
+
 
 
 def verify_pdf(filename, target_doi, plugin_name=None):
@@ -30,9 +31,13 @@ def verify_pdf(filename, target_doi, plugin_name=None):
 
 # Function to download PDF
 def download_pdf(pdf_url, filename, directory=".", plugin_name=None, doi="not_a_doi_value"):
+    if not robot_access_allowed(pdf_url, plugin_name=plugin_name):
+        print(f"[{plugin_name}] robots.txt denied download access to {pdf_url}")
+        return False, False
     try:
         response = requests.get(pdf_url, headers=config.headers, timeout=30)
-    except (ConnectTimeout, ConnectionError) as e:
+    except (requests.exceptions.ConnectTimeout, 
+            requests.exceptions.ConnectionError) as e:
         print(f"Request failed for {plugin_name}: {e}")
         response = None
     if response and response.status_code == 200:

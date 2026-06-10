@@ -1,14 +1,12 @@
 import os
 import regex
 import requests
-import urllib.robotparser
-import urllib.parse
-from doi_downloader import loader as ld
-from doi_downloader.plugins import Plugin
-from doi_downloader.cache_duckdb import Cache
-from doi_downloader import article_dataobject as ado
-from doi_downloader.benchmark import BenchmarkLogger
 from playwright.async_api import async_playwright
+from doi_downloader import article_dataobject as ado
+from doi_downloader.cache_duckdb import Cache
+from doi_downloader.benchmark import BenchmarkLogger
+from doi_downloader.lib import get_pdf_url_from_web_page, robot_access_allowed
+from doi_downloader.plugins import Plugin
 
 
 SERPAPI_KEY = os.getenv("SERPAPI_KEY")
@@ -40,67 +38,39 @@ class GoogleScholarSerpAPIPlugin(Plugin):
         if link and regex.search(target_doi_suffix, str(link)):
             print(f"[serpapi] ✅ link matches DOI {target_doi}")
             return True
-        if False:
-            print(f"[serpapi] Remark: failed matching DOI {target_doi} to either link or pdf link")
         return False
-
-
-    def may_fetch(url, user_agent="*"):
-        """Check robots.txt file for robot access permission, Claude code"""
-        print("may_fetch 1", url)
-        parts = urllib.parse.urlparse(url)
-        print("may_fetch 2")
-        robots_url = f"{parts.scheme}://{parts.netloc}/robots.txt"
-        print("may_fetch 3")
-        rp = urllib.robotparser.RobotFileParser()
-        print("may_fetch 4")
-        rp.set_url(robots_url)
-        print("may_fetch 5")
-        try:
-            print("may_fetch 6")
-            rp.read()
-        except Exception:
-            print("robots.txt access error")
-            return True
-        print("may_fetch 7")
-        return rp.can_fetch(user_agent, url)
 
 
     async def get_page_with_playwright(self, url):
         async with async_playwright() as p:
-            if not self.may_fetch(url):
-                print("robot access refused")
+            if not robot_access_allowed(url, plugin_name="serpapi"):
+                print(f"[serpapi] robot access for validation refused to {url}")
                 return None, "", []
-            else:
-                browser = await p.firefox.launch()
-                page = await browser.new_page()
-                history = []
-                page.on("response", lambda r: history.append((r.status, r.url)))
-                response = await page.goto(url)
-                content = await page.content()
-                await browser.close()
-                return response, content, history
+            browser = await p.firefox.launch()
+            page = await browser.new_page()
+            history = []
+            page.on("response", lambda r: history.append((r.status, r.url)))
+            response = await page.goto(url)
+            content = await page.content()
+            await browser.close()
+            return response, content, history
 
 
     async def verify_link_by_metadata(self, target_doi, link):
         """Compare content of returned links (metadata) with target DOI"""
         try:
-            response, content, history = await self.get_page_with_playwright(link)
-            print(f"response.status: {response.status} {len(content)} history: len: {len(history)}, contents: {history}")
+            _, content, _ = await self.get_page_with_playwright(link)
             if (nbr_of_matches := len(regex.findall(target_doi, content, regex.IGNORECASE))) > 0:
-                print(f"[serpapi] ✅ Found DOI {target_doi} in metadata of link ({nbr_of_matches} times)")
+                print(f"[serpapi] ✅ Found DOI {target_doi} in metadata ({nbr_of_matches} times)")
                 return True
         except Exception as e:
-            print(f"verification failed: {e}")
-            #pass
-        if False:
-            print(f"[serpapi] Remark: DOI {target_doi} not found in metadata of link {link}")
+            print(f"[serpapi] link verification by metadata failed: {e}")
         return False
 
 
     async def make_data_object(self, results, doi):
         """Convert data object returned by Google Scholar to plugin format.
-           Serpapi returns one result (list data["organic_results"][0]) 
+           Serpapi returns one result (list data["organic_results"][0])
            with a link to the publisher (data["organic_results"][0]["link"])
            and the PDFs (data["organic_results"][0]["resources"][*]["link"]).
            Returns: publisher PDF link plus all PDF links from the first result
@@ -109,7 +79,7 @@ class GoogleScholarSerpAPIPlugin(Plugin):
         title = top_result.get("title", "no_title")
         link = top_result.get("link", ("no_link"))
         pdf_links = [record["link"] for record in top_result.get("resources", [])]
-        pdf_url_link = ld.plugins["DoiorgPlugin"].get_pdf_url_from_url(link)
+        pdf_url_link = get_pdf_url_from_web_page(link, plugin_name="serpapi")
         if pdf_url_link and pdf_url_link not in pdf_links:
             pdf_links.append(pdf_url_link)
         links_verified = self.verify_links_by_url(doi, link, pdf_links)
@@ -132,13 +102,13 @@ class GoogleScholarSerpAPIPlugin(Plugin):
             raise EnvironmentError("Please set SERPAPI_KEY environment variable.")
 
         try:
-            response = requests.get(SERPAPI_SEARCH_URL, 
+            response = requests.get(SERPAPI_SEARCH_URL,
                                     params=PARAMS_BASE | {"q": f"doi:{doi}"},
                                     timeout=10)
             response.raise_for_status()
             results = response.json().get("organic_results")
 
-            if not results or not isinstance(results, list): 
+            if not results or not isinstance(results, list):
                 print(f"No Google Scholar results for DOI {doi}")
                 return None
 
@@ -151,12 +121,12 @@ class GoogleScholarSerpAPIPlugin(Plugin):
     async def get_pdf_urls(self, doi, use_cache=True, ttl=0):
         """
         Get PDF URL from Google Scholar API
-        
+
         Args:
             doi: DOI identifier
             use_cache: Whether to use cached results
             ttl: Cache time-to-live in seconds
-            
+
         Returns:
             PDF URL or None if not found
         """
@@ -174,5 +144,4 @@ class GoogleScholarSerpAPIPlugin(Plugin):
             if use_cache:
                 self.cache.set_cache(doi, metadata.to_json())
             return urls
-        else:
-            return None
+        return None
