@@ -1,5 +1,6 @@
 import regex
 import requests
+from playwright.async_api import async_playwright
 from urllib.robotparser import RobotFileParser
 from urllib.parse import urlsplit
 from bs4 import BeautifulSoup
@@ -31,7 +32,27 @@ def robot_access_allowed(url, plugin_name=""):
     return robot_parsed.can_fetch("*", url)
 
 
+async def get_page_with_playwright(url):
+    """Get web page with playwright library"""
+    async with async_playwright() as p:
+        if not robot_access_allowed(url, plugin_name="serpapi"):
+            print(f"[serpapi] robot access for validation refused to {url}")
+            return None, "", []
+        browser = await p.firefox.launch()
+        page = await browser.new_page()
+        history = []
+        page.on("response", lambda r: history.append((r.status, r.url)))
+        response = await page.goto(url)
+        content = await page.content()
+        await browser.close()
+        return response, content, history
+
+
 def get_web_page_contents(url):
+    """Get web page with requests library"""
+    if not robot_access_allowed(url, plugin_name="serpapi"):
+        print(f"[serpapi] robot access for validation refused to {url}")
+        return None
     return requests.get(url, headers=HTTP_HEADERS, timeout=10)
 
 

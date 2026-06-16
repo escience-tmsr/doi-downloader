@@ -67,7 +67,8 @@ class ArticleDataObject:
             "DOI": "",
             "published_date": "",
             "links": [],
-            "pdf_links": []
+            "pdf_links": [],
+            "links_verified": False
 
         }
         self.schema = schema
@@ -115,6 +116,14 @@ class ArticleDataObject:
         :param day: The day of publication.
         """
         self.data["published_date"] = f"{year}-{month}-{day}"
+
+    def set_links_verified(self, links_verified):
+        """
+        Set the links_verified flag
+
+        :param links_verified: flag indicating if PDF links could be verified for the target DOI
+        """
+        self.data["links_verified"] = links_verified
 
     def add_link(self, url):
         """

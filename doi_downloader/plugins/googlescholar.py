@@ -1,11 +1,10 @@
 import os
 import regex
 import requests
-from playwright.async_api import async_playwright
 from doi_downloader import article_dataobject as ado
 from doi_downloader.cache_duckdb import Cache
 from doi_downloader.benchmark import BenchmarkLogger
-from doi_downloader.lib import get_pdf_url_from_web_page, robot_access_allowed
+from doi_downloader.lib import get_pdf_url_from_web_page, get_page_with_playwright
 from doi_downloader.plugins import Plugin
 
 
@@ -30,30 +29,14 @@ class GoogleScholarSerpAPIPlugin(Plugin):
 
     def verify_links_by_url(self, target_doi, link, pdf_links):
         """Compare returned links with target DOI"""
-        target_doi_suffix = "/".join(target_doi.split("/")[1:])
         for pdf_link in pdf_links:
-            if pdf_link and regex.search(target_doi_suffix, str(pdf_link)):
+            if pdf_link and regex.search(target_doi, str(pdf_link)):
                 print(f"[serpapi] ✅ PDF link matches DOI {target_doi}")
                 return True
-        if link and regex.search(target_doi_suffix, str(link)):
+        if link and regex.search(target_doi, str(link)):
             print(f"[serpapi] ✅ link matches DOI {target_doi}")
             return True
         return False
-
-
-    async def get_page_with_playwright(self, url):
-        async with async_playwright() as p:
-            if not robot_access_allowed(url, plugin_name="serpapi"):
-                print(f"[serpapi] robot access for validation refused to {url}")
-                return None, "", []
-            browser = await p.firefox.launch()
-            page = await browser.new_page()
-            history = []
-            page.on("response", lambda r: history.append((r.status, r.url)))
-            response = await page.goto(url)
-            content = await page.content()
-            await browser.close()
-            return response, content, history
 
 
     async def verify_link_by_metadata(self, target_doi, link):
@@ -71,27 +54,28 @@ class GoogleScholarSerpAPIPlugin(Plugin):
     async def make_data_object(self, results, doi):
         """Convert data object returned by Google Scholar to plugin format.
            Serpapi returns one result (list data["organic_results"][0])
-           with a link to the publisher (data["organic_results"][0]["link"])
+           with links to the publisher (data["organic_results"][0]["link"])
            and the PDFs (data["organic_results"][0]["resources"][*]["link"]).
            Returns: publisher PDF link plus all PDF links from the first result
         """
         top_result = results[0]
-        title = top_result.get("title", "no_title")
-        link = top_result.get("link", ("no_link"))
+        publisher_link = top_result.get("link", ("no_link"))
         pdf_links = [record["link"] for record in top_result.get("resources", [])]
-        pdf_url_link = get_pdf_url_from_web_page(link, plugin_name="serpapi")
-        if pdf_url_link and pdf_url_link not in pdf_links:
-            pdf_links.append(pdf_url_link)
-        links_verified = self.verify_links_by_url(doi, link, pdf_links)
-        if not links_verified and link:
-            await self.verify_link_by_metadata(doi, link)
+        publisher_pdf_link = get_pdf_url_from_web_page(publisher_link, plugin_name="serpapi")
+        if publisher_pdf_link and publisher_pdf_link not in pdf_links:
+            pdf_links.append(publisher_pdf_link)
+
+        links_verified = self.verify_links_by_url(doi, publisher_link, pdf_links)
+        if not links_verified and publisher_link:
+            links_verified = await self.verify_link_by_metadata(doi, publisher_link)
 
         data_object = ado.ArticleDataObject(None)
-        data_object.set_title(title)
+        data_object.set_title(top_result.get("title", "no_title"))
         data_object.set_doi(doi)
-        data_object.add_link(link)
+        data_object.add_link(publisher_link)
         for pdf_link in pdf_links:
             data_object.add_pdf_link(pdf_link)
+        data_object.set_links_verified(links_verified)
 
         return data_object
 
