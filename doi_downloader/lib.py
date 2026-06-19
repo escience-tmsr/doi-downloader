@@ -18,26 +18,31 @@ def robot_access_allowed(url, plugin_name=""):
     split_url = urlsplit(url)
     robots_txt_url = f"{split_url.scheme}://{split_url.netloc}/robots.txt"
     try:
-        response = requests.get(robots_txt_url)
+        response = requests.get(robots_txt_url, timeout=10)
     except requests.RequestException as e:
-        print(f"[{plugin_name}] website access problem for robots.txt: {e}")
+        # website access problem for robots.txt
         return True
     if response.status_code != 200:
-        print(f"[{plugin_name}] webpage access problem for robots.txt: "
-              f"{response.status_code}")
+        # webpage access problem for robots.txt: "
         return True
     robot_parsed = RobotFileParser()
     robot_parsed.set_url(robots_txt_url)
     robot_parsed.parse(response.text.splitlines())
-    return robot_parsed.can_fetch("*", url)
+    if not robot_parsed.can_fetch("*", url):
+        print(f"[{plugin_name}] robots.txt blocked access to {url}")
+        return False
+    else:
+        return True
+
+
+def get_page_with_requests(url, params={}, timeout=10):
+    """Get web page with requests library"""
+    return requests.get(url, params=params, timeout=timeout)
 
 
 async def get_page_with_playwright(url):
     """Get web page with playwright library"""
     async with async_playwright() as p:
-        if not robot_access_allowed(url, plugin_name="serpapi"):
-            print(f"[serpapi] robot access for validation refused to {url}")
-            return None, "", []
         browser = await p.firefox.launch()
         page = await browser.new_page()
         history = []
@@ -50,9 +55,6 @@ async def get_page_with_playwright(url):
 
 def get_web_page_contents(url):
     """Get web page with requests library"""
-    if not robot_access_allowed(url, plugin_name="serpapi"):
-        print(f"[serpapi] robot access for validation refused to {url}")
-        return None
     return requests.get(url, headers=HTTP_HEADERS, timeout=10)
 
 
@@ -83,9 +85,6 @@ def get_pdf_url_from_web_page(url, plugin_name=""):
         print(f"[{plugin_name}] An error occurred: {e}")
         return None
 
-    if not robot_access_allowed(response.url):
-        print(f"[{plugin_name}] robots.txt blocked acccess to {response.url}")
-        return None
     soup = BeautifulSoup(response.text, "html.parser")
     if (pdf_url := get_pdf_url_from_meta(soup)):
         return pdf_url
