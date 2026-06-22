@@ -1,6 +1,6 @@
 from doi_downloader.plugins import Plugin
 from doi_downloader.cache_duckdb import Cache
-from doi_downloader.lib import get_pdf_url_from_web_page
+from doi_downloader.lib import get_pdf_url_from_html_text, get_page_with_requests
 
 
 DOIORG_URL = "https://doi.org/{doi}"
@@ -17,7 +17,8 @@ class DoiorgPlugin(Plugin):
     def fetch_metadata(self, doi):
         """Get url pointing to PDF related to DOI from the web"""
         url = DOIORG_URL.format(doi=doi)
-        return get_pdf_url_from_web_page(url, plugin_name="doi.org")
+        html_text = get_page_wth_requests(url)
+        return get_pdf_url_from_html_text(url, plugin_name="doi.org")
 
 
     def get_pdf_url(self, doi, use_cache=True, ttl=0):

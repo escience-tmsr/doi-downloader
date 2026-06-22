@@ -1,9 +1,14 @@
+import logging
 import regex
 import requests
+from urllib.parse import urljoin
 from playwright.async_api import async_playwright
 from urllib.robotparser import RobotFileParser
 from urllib.parse import urlsplit
 from bs4 import BeautifulSoup
+
+
+logger = logging.getLogger(__name__)
 
 
 HTTP_HEADERS = {
@@ -29,15 +34,19 @@ def robot_access_allowed(url, plugin_name=""):
     robot_parsed.set_url(robots_txt_url)
     robot_parsed.parse(response.text.splitlines())
     if not robot_parsed.can_fetch("*", url):
-        print(f"[{plugin_name}] robots.txt blocked access to {url}")
+        logger.info(f"[{plugin_name}] robots.txt blocked access to {url}")
         return False
     else:
         return True
 
 
-def get_page_with_requests(url, params={}, timeout=10):
+def get_page_with_requests(url, params={}, timeout=10, plugin_name=""):
     """Get web page with requests library"""
-    return requests.get(url, params=params, timeout=timeout)
+    try:
+        return requests.get(url, params=params, timeout=timeout)
+    except (requests.exceptions.RequestException, requests.exceptions.HTTPError) as e:
+        logger.info(f"[{plugin_name}] Error retrieving web page: {e}")
+        return None
 
 
 async def get_page_with_playwright(url):
@@ -53,11 +62,6 @@ async def get_page_with_playwright(url):
         return response, content, history
 
 
-def get_web_page_contents(url):
-    """Get web page with requests library"""
-    return requests.get(url, headers=HTTP_HEADERS, timeout=10)
-
-
 def get_pdf_url_from_meta(soup):
     """Get url pointing to PDF related to DOI from publisher metadata in web page"""
     meta = soup.find("meta", attrs={"name": "citation_pdf_url"})
@@ -67,27 +71,20 @@ def get_pdf_url_from_meta(soup):
         return None
 
 
-def get_pdf_url_from_links(soup):
+def get_pdf_url_from_links(soup, base_url):
     """Get url pointing to PDF related to DOI from links in web page"""
-    return soup.find("a",
-                     string=lambda href: href and
+    link = soup.find("a", href=lambda h: h and 
                                          regex.search("download|pdf",
-                                                      href,
-                                                      flags=regex.IGNORECASE))
+                                                      h,
+                                                      flags=regex.IGNORECASE)).get("href")
+    return urljoin(base_url, link["href"]) if link else None
 
 
-def get_pdf_url_from_web_page(url, plugin_name=""):
-    """Extract pdf url from html page, returns link to PDF"""
-    try:
-        response = get_web_page_contents(url)
-        response.raise_for_status()
-    except (requests.exceptions.RequestException, requests.exceptions.HTTPError) as e:
-        print(f"[{plugin_name}] An error occurred: {e}")
-        return None
-
-    soup = BeautifulSoup(response.text, "html.parser")
+def get_pdf_url_from_html_text(html_text, plugin_name=""):
+    """Extract pdf url from html text, returns link to PDF"""
+    soup = BeautifulSoup(html_text, "html.parser")
     if (pdf_url := get_pdf_url_from_meta(soup)):
         return pdf_url
-    if (pdf_url := get_pdf_url_from_links(soup)):
+    if (pdf_url := get_pdf_url_from_links(soup, base_url=response.url)):
         return pdf_url
     return None
