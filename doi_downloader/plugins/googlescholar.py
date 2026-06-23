@@ -41,7 +41,7 @@ class GoogleScholarSerpAPIPlugin(Plugin):
             if target_doi.lower() in str(response.text).lower():
                 self.logger.info(f"[serpapi] ✅ Found DOI {target_doi} in metadata")
                 return True
-        except Exception as e:
+        except ConnectionError as e:
             self.logger.info(f"[serpapi] link verification by metadata failed: {e}")
             pass
         return False
@@ -87,6 +87,7 @@ class GoogleScholarSerpAPIPlugin(Plugin):
         if not SERPAPI_KEY:
             raise EnvironmentError("[serpapi] Please set SERPAPI_KEY environment variable.")
 
+        empty_data_object = self.make_data_object({}, doi, None, [], False)
         try:
             response = get_page_with_requests(SERPAPI_SEARCH_URL,
                                               params=PARAMS_BASE | {"q": f"doi:{doi}"},
@@ -97,12 +98,12 @@ class GoogleScholarSerpAPIPlugin(Plugin):
 
             if not results or not isinstance(results, list):
                 self.logger.info(f"[serpapi] search results for DOI {doi}")
-                return None
+                return empty_data_object
 
             return self.get_data_object(results, doi)
-        except Exception as e:
+        except ConnectionError as e:
             self.logger.info(f"[serpapi] SerpAPI request failed: {e}")
-            return None
+            return empty_data_object
 
 
     def get_pdf_url(self, doi, use_cache=True, ttl=0):
@@ -120,20 +121,15 @@ class GoogleScholarSerpAPIPlugin(Plugin):
             ttl: Cache time-to-live in seconds
 
         Returns:
-            list of PDF URLs or None if not found
+            list of PDF URLs
         """
-        if read_from_cache:
-            cached_data = self.cache.get_cache(doi, ttl=ttl)
-            if cached_data:
-                self.logger.info(f"[serpapi] using cached data for {doi}.")
-                data_object = ado.ArticleDataObject.from_json(cached_data)
-                data_object.validate()
-                return data_object.get_pdf_links()
+        if read_from_cache and (cached_data := self.cache.get_cache(doi, ttl=ttl)):
+            self.logger.info(f"[serpapi] using cached data for {doi}.")
+            data_object = ado.ArticleDataObject.from_json(cached_data)
+            data_object.validate()
+            return data_object.get_pdf_links()
 
         metadata = self.fetch_metadata(doi)
         if save_to_cache:
-            self.cache.set_cache(doi, metadata.to_json() if metadata else None)
-        if metadata:
-            urls = metadata.get_pdf_links()
-            return urls
-        return None
+            self.cache.set_cache(doi, metadata.to_json())
+        return metadata.get_pdf_links()

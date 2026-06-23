@@ -1,6 +1,7 @@
 import logging
 import regex
 import requests
+from functools import cache
 from urllib.parse import urljoin
 from playwright.async_api import async_playwright
 from urllib.robotparser import RobotFileParser
@@ -18,12 +19,18 @@ HTTP_HEADERS = {
 }
 
 
+@cache
+def get_robots_txt(robots_txt_url):
+    """Retrieve robots.txt file of a website"""
+    return requests.get(robots_txt_url, timeout=10)
+
+
 def robot_access_allowed(url, plugin_name=""):
     """Check if website allows access to url by robots"""
     split_url = urlsplit(url)
     robots_txt_url = f"{split_url.scheme}://{split_url.netloc}/robots.txt"
     try:
-        response = requests.get(robots_txt_url, timeout=10)
+        response = get_robots_txt(robots_txt_url)
     except requests.RequestException as e:
         # website access problem for robots.txt
         return True
@@ -34,7 +41,6 @@ def robot_access_allowed(url, plugin_name=""):
     robot_parsed.set_url(robots_txt_url)
     robot_parsed.parse(response.text.splitlines())
     if not robot_parsed.can_fetch("*", url):
-        logger.info(f"[{plugin_name}] robots.txt blocked access to {url}")
         return False
     else:
         return True
