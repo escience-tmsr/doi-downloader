@@ -31,6 +31,8 @@ def verify_pdf(filename, target_doi, plugin_name=None):
 
 # Function to download PDF
 def download_pdf(pdf_url, filename, directory=".", plugin_name=None, doi="not_a_doi_value"):
+    if not pdf_url:
+        return False, False
     if not robot_access_allowed(pdf_url, plugin_name=plugin_name):
         print(f"[{plugin_name}] robots.txt denied download access to {pdf_url}")
         return False, False

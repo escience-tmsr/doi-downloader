@@ -39,7 +39,7 @@ class CrossrefPlugin(Plugin):
             return None
 
     # Function to get the URL of the PDF from the DOI
-    def get_pdf_url(self, doi, use_cache=True, ttl=0):
+    def get_pdf_urls(self, doi, read_from_cache=True, save_to_cache=True, ttl=0):
         """
         Get PDF URL from CORE API
         
@@ -51,20 +51,18 @@ class CrossrefPlugin(Plugin):
         Returns:
             PDF URL or None if not found
         """
-        if use_cache:
+        if read_from_cache:
             cached_data = self.cache.get_cache(doi, ttl=ttl)
             if cached_data:
                 print(f"[crossref] using cached data for {doi}.")
                 data_object = ado.ArticleDataObject.from_json(cached_data)
                 data_object.validate()
-                return data_object.get_pdf_link()
+                pdf_link = data_object.get_pdf_link()
+                return [pdf_link] if pdf_link else []
 
         metadata = self.fetch_metadata(doi)
         if metadata:
             url = metadata.get_pdf_link()
-            if use_cache:
+            if save_to_cache:
                 self.cache.set_cache(doi, metadata.to_json())
-            return url
-        else:
-            return None
-
+            return [url] if url else []

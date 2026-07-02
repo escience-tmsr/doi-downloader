@@ -17,17 +17,17 @@ class DoiorgPlugin(Plugin):
     def fetch_metadata(self, doi):
         """Get url pointing to PDF related to DOI from the web"""
         url = DOIORG_URL.format(doi=doi)
-        html_text = get_page_wth_requests(url)
+        html_text = get_page_with_requests(url)
         return get_pdf_url_from_html_text(url, plugin_name="doi.org")
 
 
-    def get_pdf_url(self, doi, use_cache=True, ttl=0):
+    def get_pdf_urls(self, doi, read_from_cache=True, save_to_cache=True, ttl=0):
         """Get url pointing to PDF related to DOI, from cache or from the web"""
-        if use_cache and (cached_data := self.cache.get_cache(doi, ttl=ttl)):
+        if read_from_cache and (cached_data := self.cache.get_cache(doi, ttl=ttl)):
             print(f"[doi.org] Using cached data for {doi}.")
-            return cached_data
+            return [cached_data]
         metadata = self.fetch_metadata(doi)
-        if use_cache and metadata:
+        if save_to_cache and metadata:
             self.cache.set_cache(doi, metadata)
             print(f"[doi.org] Data cached for {doi}.")
-        return metadata
+        return [metadata] if metadata else []
