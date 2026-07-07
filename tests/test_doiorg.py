@@ -10,5 +10,5 @@ def test_get_url():
 
     with patch.object(doiorg.DoiorgPlugin, "fetch_metadata", return_value=doiorg_url):
         instance = doiorg.DoiorgPlugin()
-        url = instance.get_pdf_url(TEST_DOI, use_cache=False)
-    assert url == doiorg_url
+        urls = instance.get_pdf_urls(TEST_DOI, read_from_cache=False, save_to_cache=False)
+    assert urls == [doiorg_url]

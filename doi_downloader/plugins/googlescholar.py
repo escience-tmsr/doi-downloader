@@ -1,5 +1,6 @@
 import logging
 import os
+import sys
 from doi_downloader import article_dataobject as ado
 from doi_downloader.cache_duckdb import Cache
 from doi_downloader.benchmark import BenchmarkLogger
@@ -16,6 +17,10 @@ class GoogleScholarSerpAPIPlugin(Plugin):
     cache = Cache("database.db", "googlescholar_serpapi")
     benchmark_logger = BenchmarkLogger("benchmark/logs/serpapi_benchmark.jsonl")
     logger = logging.getLogger(__name__)
+    handler = logging.StreamHandler(sys.stdout)
+    handler.setFormatter(logging.Formatter("%(message)s"))
+    logger.propagate = False
+    logger.addHandler(handler)
 
 
     def test(self):

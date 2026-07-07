@@ -45,7 +45,8 @@ class CrossrefPlugin(Plugin):
         
         Args:
             doi: DOI identifier
-            use_cache: Whether to use cached results
+            read_from_cache: whether to read the results from the cache
+            save_to_cache: whether to save the results to the cache
             ttl: Cache time-to-live in seconds
             
         Returns:

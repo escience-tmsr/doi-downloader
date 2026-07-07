@@ -82,15 +82,15 @@ def get_pdf_url_from_links(soup, base_url):
     link = soup.find("a", href=lambda h: h and 
                                          regex.search("download|pdf",
                                                       h,
-                                                      flags=regex.IGNORECASE)).get("href")
-    return urljoin(base_url, link["href"]) if link else None
+                                                      flags=regex.IGNORECASE))
+    return urljoin(base_url, link["href"]) if link and base_url else None
 
 
-def get_pdf_url_from_html_text(html_text, plugin_name=""):
+def get_pdf_url_from_html_text(html_text, plugin_name="", base_url=None):
     """Extract pdf url from html text, returns link to PDF"""
     soup = BeautifulSoup(html_text, "html.parser")
     if (pdf_url := get_pdf_url_from_meta(soup)):
         return pdf_url
-    if (pdf_url := get_pdf_url_from_links(soup, base_url=response.url)):
+    if (pdf_url := get_pdf_url_from_links(soup, base_url=base_url)):
         return pdf_url
     return None

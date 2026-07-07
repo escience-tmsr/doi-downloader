@@ -50,7 +50,7 @@ class MyPlugin(Plugin):
             return None
 
 
-    def get_pdf_url(self, doi, use_cache=True, ttl=0):
+    def get_pdf_url(self, doi, read_from_cache=True, save_to_cache=False, ttl=0):
         metadata = self.fetch_metadata(doi)
         return metadata.get_pdf_url() if metadata else None
 ```
@@ -93,8 +93,8 @@ class MyPlugin(Plugin):
     def fetch_metadata(self, doi):
         return None
 
-    def get_pdf_url(self, doi, use_cache=True, ttl=0):
-        if use_cache:
+    def get_pdf_url(self, doi, read_from_cache=True, save_to_cache=False, ttl=0):
+        if read_from_cache:
             cached_data = self.cache.get_cache(doi, ttl=ttl)
             if cached_data:
                 data_object = ado.ArticleDataObject.from_json(cached_data)
@@ -103,7 +103,7 @@ class MyPlugin(Plugin):
 
         metadata = self.fetch_metadata(doi)
         if metadata:
-            if use_cache:
+            if save_to_cache:
                 self.cache.set_cache(doi, metadata.to_json())
             return metadata.get_pdf_link()
         else:

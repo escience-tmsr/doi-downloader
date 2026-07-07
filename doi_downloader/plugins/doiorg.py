@@ -15,14 +15,14 @@ class DoiorgPlugin(Plugin):
 
 
     def fetch_metadata(self, doi):
-        """Get url pointing to PDF related to DOI from the web"""
+        """Get publisher web page related to DOI from doi.org and extract url pointing to PDF from page"""
         url = DOIORG_URL.format(doi=doi)
-        html_text = get_page_with_requests(url)
-        return get_pdf_url_from_html_text(url, plugin_name="doi.org")
+        response = get_page_with_requests(url)
+        return get_pdf_url_from_html_text(response.text, plugin_name="doi.org", base_url=response.url)
 
 
     def get_pdf_urls(self, doi, read_from_cache=True, save_to_cache=True, ttl=0):
-        """Get url pointing to PDF related to DOI, from cache or from the web"""
+        """Get url pointing to PDF related to DOI, from cache or from website doi.org"""
         if read_from_cache and (cached_data := self.cache.get_cache(doi, ttl=ttl)):
             print(f"[doi.org] Using cached data for {doi}.")
             return [cached_data]
