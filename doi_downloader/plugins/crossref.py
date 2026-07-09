@@ -3,6 +3,7 @@ from doi_downloader.plugins import Plugin
 from doi_downloader.cache_duckdb import Cache
 from doi_downloader import article_dataobject as ado # import ArticleDataObject
 from doi_downloader.benchmark import BenchmarkLogger
+from doi_downloader.lib import get_page_with_requests
 
 # Read API keys and other sensitive data from environment variables
 CROSSREF_API_URL = "https://api.crossref.org/works/{doi}"
@@ -23,7 +24,7 @@ class CrossrefPlugin(Plugin):
     def fetch_metadata(self, doi):
         url = CROSSREF_API_URL.format(doi=doi)
         try:
-            response = requests.get(url, timeout=10)
+            response = get_page_with_requests(url, params={}, plugin_name="crossref")
             response.raise_for_status()  # Raise an HTTPError for bad responses (4xx and 5xx)
             data = response.json()
             if "message" not in data:

@@ -1,6 +1,7 @@
 import logging
 import regex
 import requests
+import time
 from functools import cache
 from urllib.parse import urljoin
 from playwright.async_api import async_playwright
@@ -46,12 +47,37 @@ def robot_access_allowed(url, plugin_name=""):
         return True
 
 
-def get_page_with_requests(url, params={}, timeout=10, plugin_name=""):
-    """Get web page with requests library"""
+BROWSER_PARAMS = { "User-Agent": ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                                  "AppleWebKit/537.36 (KHTML, like Gecko) "
+                                  "Chrome/120.0.0.0 Safari/537.36") }
+
+def get_page_with_requests(url, params=BROWSER_PARAMS, timeout=10, plugin_name=""):
+    """Get web page with requests library; check return statr=us and robots.txt"""
     try:
-        return requests.get(url, params=params, timeout=timeout)
+        session = requests.Session()
+        session.headers.update(params)
+        while True:
+            time.sleep(1)
+            response = session.get(url, params=params, timeout=timeout, allow_redirects=False)
+            if response is None:
+                return None
+            elif response.status_code in [301, 302, 303]:
+                url = urljoin(response.url, response.headers.get("Location"))
+                if robot_access_allowed(response.url):
+                    continue
+                else:
+                    print(f"[{plugin_name}] robots.txt blocks {url}")
+                    return response
+            elif response.status_code  == 200:
+                return response
+            elif response.status_code  in [401, 403]:
+                print(f"[{plugin_name}] forbidden access to {url}")
+                return response
+            else:
+                print(f"unexpected status code: {response.status_code}")
+                return response
     except (requests.exceptions.RequestException, requests.exceptions.HTTPError) as e:
-        logger.info(f"[{plugin_name}] Error retrieving web page: {e}")
+        print(f"[{plugin_name}] Error retrieving web page: {e}")
         return None
 
 
