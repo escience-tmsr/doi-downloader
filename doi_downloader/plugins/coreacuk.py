@@ -4,6 +4,7 @@ from doi_downloader.plugins import Plugin
 from doi_downloader.cache_duckdb import Cache
 from doi_downloader import article_dataobject as ado
 from dotenv import load_dotenv
+from doi_downloader.lib import get_page_with_requests
 
 # Load environment variables from .env file
 load_dotenv()
@@ -45,7 +46,8 @@ class CoreacukPlugin(Plugin):
         try:
             retries = 1
             for i in range(retries):
-                response = requests.get(full_url, headers=headers, params=params)
+                response = get_page_with_requests(full_url, params=headers, plugin_name="coreacuk")
+                response.raise_for_status()  # Raise an HTTPError for bad responses (4xx and 5xx)
 
                 if response.status_code == 200:
                     paper = response.json()

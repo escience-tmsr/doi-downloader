@@ -28,10 +28,9 @@ class UnpaywallPlugin(Plugin):
             raise EnvironmentError("Please make sure email is set using set_email().")
         url = UNPAYWALL_API_URL.format(doi=doi, email=UNPAYWALL_EMAIL)
         try:
-            response = get_page_with_requests(url, plugin_name="unpaywall")
+            response = get_page_with_requests(url, params={}, plugin_name="unpaywall")
             response.raise_for_status()  # Raise an HTTPError for bad responses (4xx and 5xx)
             data = response.json()
-            # print(data)
             dataObj = ado.ArticleDataObject.from_unpaywall_json(data)
             return dataObj
         except requests.exceptions.RequestException as e:
