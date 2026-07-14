@@ -28,8 +28,8 @@ def main():
     upw = plugins['UnpaywallPlugin']
 
     for doi in unique_dois:
-        pdf_url = upw.get_pdf_url(doi, use_cache=True)
-        print(f'{doi}: {pdf_url}')
+        pdf_urls = upw.get_pdf_urls(doi, use_cache=True)
+        print(f'{doi}: {pdf_urls}')
         
 
     # Get URLs for dois

@@ -16,9 +16,14 @@ class DoiorgPlugin(Plugin):
 
     def fetch_metadata(self, doi):
         """Get publisher web page related to DOI from doi.org and extract url pointing to PDF from page"""
-        url = DOIORG_URL.format(doi=doi)
-        response = get_page_with_requests(url, plugin_name="doi.org")
-        return get_pdf_url_from_html_text(response.text, plugin_name="doi.org", base_url=response.url)
+        try:
+            url = DOIORG_URL.format(doi=doi)
+            response = get_page_with_requests(url, plugin_name="doi.org")
+            response.raise_for_status()
+            return get_pdf_url_from_html_text(response.text, plugin_name="doi.org", base_url=response.url)
+        except Exception as e:
+            print(f"[doi.org] fetching data failed: {e}")
+            return None
 
 
     def get_pdf_urls(self, doi, read_from_cache=True, save_to_cache=True, ttl=0):

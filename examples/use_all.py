@@ -30,9 +30,9 @@ def main():
 
     for doi in unique_dois:
         for name, plugin in plugins.items():
-            url = plugin.get_pdf_url(doi)
-            if url:
-                print(f"Plugin: {name},  doi:{doi},  url: {plugin.get_pdf_url(doi)}")
+            urls = plugin.get_pdf_urls(doi)
+            if urls:
+                print(f"Plugin: {name},  doi:{doi},  url: {urls}")
                 continue
 
 main()

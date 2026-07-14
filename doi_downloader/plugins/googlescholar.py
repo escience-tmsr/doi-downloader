@@ -1,5 +1,6 @@
 import logging
 import os
+import requests
 import sys
 from doi_downloader import article_dataobject as ado
 from doi_downloader.cache_duckdb import Cache
@@ -46,7 +47,7 @@ class GoogleScholarSerpAPIPlugin(Plugin):
             if target_doi.lower() in str(response.text).lower():
                 self.logger.info(f"[serpapi] ✅ Found DOI {target_doi} in html")
                 return True
-        except ConnectionError as e:
+        except requests.exceptions.ConnectionError as e:
             self.logger.info(f"[serpapi] link verification by html failed: {e}")
             pass
         return False
@@ -106,13 +107,9 @@ class GoogleScholarSerpAPIPlugin(Plugin):
                 return empty_data_object
 
             return self.get_data_object(results, doi)
-        except ConnectionError as e:
+        except requests.exceptions.ConnectionError as e:
             self.logger.info(f"[serpapi] SerpAPI request failed: {e}")
             return empty_data_object
-
-
-    def get_pdf_url(self, doi, use_cache=True, ttl=0):
-        raise NotImplementedError("function get_pdf_url replaced by get_pdf_urls")
 
 
     def get_pdf_urls(self, doi, read_from_cache=True, save_to_cache=True, ttl=0):

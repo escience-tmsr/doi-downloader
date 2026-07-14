@@ -69,7 +69,7 @@ for doi in doi_list:
         downloaded_files = pdf_dl.download_pdf(pdf_urls[0], safe_filename, "downloads")
         if downloaded_files:
             print(f"Downloaded {doi} to {downloaded_files}")
-    if not pdf_url or not downloaded_files
+    if not pdf_urls or not downloaded_files:
         print(f"Failed to download {doi} ({pdf_urls})")
 ```
 

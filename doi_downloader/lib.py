@@ -64,14 +64,14 @@ def get_page_with_requests(url, params=BROWSER_PARAMS, timeout=10, plugin_name="
                 return None
             elif response.status_code in [301, 302, 303]:
                 url = urljoin(response.url, response.headers.get("Location"))
-                if robot_access_allowed(response.url):
+                if robot_access_allowed(url):
                     continue
                 else:
                     print(f"[{plugin_name}] robots.txt blocks {url}")
                     return response
-            elif response.status_code  == 200:
+            elif response.status_code == 200:
                 return response
-            elif response.status_code  in [401, 403]:
+            elif response.status_code in [401, 403]:
                 print(f"[{plugin_name}] forbidden access to {url}")
                 return response
             else:

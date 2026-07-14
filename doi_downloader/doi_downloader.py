@@ -9,6 +9,12 @@ plugins = ld.plugins
 # Initialize benchmark logger
 benchmark_logger = BenchmarkLogger("benchmark/logs/benchmark_log.jsonl")
 
+
+def sanitize_doi(doi):
+    """Replace slashes and periods in doi by underscores"""
+    return doi.replace("/", "_").replace(".", "_")
+
+
 def download(doi, output_dir=".", force_download=False, 
              journal_domain=None, enable_benchmark=True):
     """
@@ -26,9 +32,10 @@ def download(doi, output_dir=".", force_download=False,
     
     os.makedirs(output_dir, exist_ok=True)
     
-    if not force_download and os.path.exists(os.path.join(output_dir, f"{doi}.pdf")):
-        print(f"File already exists: {os.path.join(output_dir, f'{doi}.pdf')}")
-        return os.path.join(output_dir, f"{doi}.pdf")
+    safe_filename = sanitize_doi(doi) + ".pdf"
+    if not force_download and os.path.exists(os.path.join(output_dir, f"{safe_filename}")):
+        print(f"File already exists: {os.path.join(output_dir, f'{safe_filename}')}")
+        return os.path.join(output_dir, f"{safe_filename}")
 
     downloaded_file = None
 
@@ -43,18 +50,16 @@ def download(doi, output_dir=".", force_download=False,
         
         try:
             # Call plugin with original signature (no ctx parameter)
-            url = plugin.get_pdf_url(doi)
+            urls = plugin.get_pdf_urls(doi)
             
-            if url:
+            if urls:
                 # Mark URL resolution success
                 if attempt:
                     attempt.url_resolved = True
-                    attempt.resolved_url = url
+                    attempt.resolved_url = urls[0]
                 
-                # Sanitize DOI for filename
-                safe_filename = doi.replace("/", "_").replace(".", "_") + ".pdf"
-                print(f"Plugin: {name},  doi:{doi},  url: {url}")
-                downloaded_file = pdf_dl.download_pdf(url, safe_filename, output_dir)
+                print(f"Plugin: {name},  doi:{doi},  url: {urls[0]}")
+                downloaded_file, verified = pdf_dl.download_pdf(urls[0], safe_filename, output_dir)
                 
                 if downloaded_file:
                     # Mark download success
@@ -76,4 +81,4 @@ def download(doi, output_dir=".", force_download=False,
                 attempt.duration_ms = round((time.time() - start_time) * 1000, 2)
                 benchmark_logger.log_attempt(attempt)
 
-    return downloaded_file
+    return downloaded_file, verified

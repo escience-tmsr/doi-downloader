@@ -27,8 +27,8 @@ def main():
     serpapi = plugins['GoogleScholarSerpAPIPlugin']
 
     for doi in unique_dois:
-        pdf_url = serpapi.get_pdf_url(doi, use_cache=True)
-        print(f'{doi}: {pdf_url}')
+        pdf_urls = serpapi.get_pdf_urls(doi, use_cache=True)
+        print(f'{doi}: {pdf_urls}')
         
 
 
