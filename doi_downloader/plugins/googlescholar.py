@@ -39,15 +39,15 @@ class GoogleScholarSerpAPIPlugin(Plugin):
         return False
 
 
-    def verify_link_by_metadata(self, target_doi, publisher_link):
-        """Compare content of returned links (metadata) with target DOI"""
+    def verify_link_by_html(self, target_doi, publisher_link):
+        """Compare content of returned links (html) with target DOI"""
         try:
             response = get_page_with_requests(publisher_link)
             if target_doi.lower() in str(response.text).lower():
-                self.logger.info(f"[serpapi] ✅ Found DOI {target_doi} in metadata")
+                self.logger.info(f"[serpapi] ✅ Found DOI {target_doi} in html")
                 return True
         except ConnectionError as e:
-            self.logger.info(f"[serpapi] link verification by metadata failed: {e}")
+            self.logger.info(f"[serpapi] link verification by html failed: {e}")
             pass
         return False
 
@@ -76,7 +76,7 @@ class GoogleScholarSerpAPIPlugin(Plugin):
         pdf_links = [record["link"] for record in top_result.get("resources", []) if record.get("link")]
         links_verified = self.verify_links_by_url(doi, publisher_link, pdf_links)
         if not links_verified and publisher_link:
-            links_verified = self.verify_link_by_metadata(doi, publisher_link)
+            links_verified = self.verify_link_by_html(doi, publisher_link)
 
         if robot_access_allowed(publisher_link):
             response = get_page_with_requests(publisher_link, plugin_name="serpapi")
