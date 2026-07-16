@@ -1,10 +1,11 @@
-import requests
 import os
 from doi_downloader.plugins import Plugin
 from doi_downloader.cache_duckdb import Cache
 from doi_downloader import article_dataobject as ado # import ArticleDataObject
 from doi_downloader.benchmark import BenchmarkLogger
 from doi_downloader.lib import get_page_with_requests
+from requests.exceptions import ConnectionError, HTTPError, TooManyRedirects
+
 
 # Read API keys and other sensitive data from environment variables
 # UNPAYWALL_EMAIL = None
@@ -33,7 +34,7 @@ class UnpaywallPlugin(Plugin):
             data = response.json()
             dataObj = ado.ArticleDataObject.from_unpaywall_json(data)
             return dataObj
-        except requests.exceptions.RequestException as e:
+        except (ConnectionError, HTTPError, TooManyRedirects) as e:
             print(f"An error occurred: {e}")
             return None
 

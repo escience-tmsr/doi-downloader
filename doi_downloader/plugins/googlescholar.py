@@ -1,13 +1,12 @@
 import logging
 import os
-import requests
 import sys
 from doi_downloader import article_dataobject as ado
 from doi_downloader.cache_duckdb import Cache
 from doi_downloader.benchmark import BenchmarkLogger
 from doi_downloader.lib import get_pdf_url_from_html_text, get_page_with_requests, robot_access_allowed
 from doi_downloader.plugins import Plugin
-
+from requests.exceptions import ConnectionError, HTTPError, TooManyRedirects
 
 SERPAPI_KEY = os.getenv("SERPAPI_KEY")
 SERPAPI_SEARCH_URL = "https://serpapi.com/search.json"
@@ -40,16 +39,11 @@ class GoogleScholarSerpAPIPlugin(Plugin):
         return False
 
 
-    def verify_link_by_html(self, target_doi, publisher_link):
+    def verify_link_by_html(self, target_doi, text):
         """Compare content of returned links (html) with target DOI"""
-        try:
-            response = get_page_with_requests(publisher_link)
-            if target_doi.lower() in str(response.text).lower():
-                self.logger.info(f"[serpapi] ✅ Found DOI {target_doi} in html")
-                return True
-        except requests.exceptions.ConnectionError as e:
-            self.logger.info(f"[serpapi] link verification by html failed: {e}")
-            pass
+        if target_doi.lower() in str(text).lower():
+            self.logger.info(f"[serpapi] ✅ Found DOI {target_doi} in html")
+            return True
         return False
 
 
@@ -76,14 +70,18 @@ class GoogleScholarSerpAPIPlugin(Plugin):
         publisher_link = top_result.get("link")
         pdf_links = [record["link"] for record in top_result.get("resources", []) if record.get("link")]
         links_verified = self.verify_links_by_url(doi, publisher_link, pdf_links)
-        if not links_verified and publisher_link:
-            links_verified = self.verify_link_by_html(doi, publisher_link)
 
         if robot_access_allowed(publisher_link):
-            response = get_page_with_requests(publisher_link, plugin_name="serpapi")
-            publisher_pdf_link = get_pdf_url_from_html_text(response.text, plugin_name="serpapi")
-            if publisher_pdf_link and publisher_pdf_link not in pdf_links and not links_verified:
-                links_verified = self.verify_links_by_url(doi, publisher_link, [publisher_pdf_link])
+            try:
+                response = get_page_with_requests(publisher_link, plugin_name="serpapi")
+                response.raise_for_status()
+                publisher_pdf_link = get_pdf_url_from_html_text(response.text, plugin_name="serpapi")
+                if not links_verified and publisher_link:
+                    links_verified = self.verify_link_by_html(doi, response.text)
+                if publisher_pdf_link and publisher_pdf_link not in pdf_links and not links_verified:
+                    links_verified = self.verify_links_by_url(doi, publisher_link, [publisher_pdf_link])
+            except (ConnectionError, HTTPError, TooManyRedirects) as e:
+                print(f"[serpapi] error accessing plugin_link: {e}")
 
         return self.make_data_object(top_result, doi, publisher_link, pdf_links, links_verified)
 
@@ -103,11 +101,11 @@ class GoogleScholarSerpAPIPlugin(Plugin):
             results = response.json().get("organic_results")
 
             if not results or not isinstance(results, list):
-                self.logger.info(f"[serpapi] search results for DOI {doi}")
+                self.logger.info(f"[serpapi] no search results for DOI {doi}")
                 return empty_data_object
 
             return self.get_data_object(results, doi)
-        except requests.exceptions.ConnectionError as e:
+        except (ConnectionError, HTTPError, TooManyRedirects) as e:
             self.logger.info(f"[serpapi] SerpAPI request failed: {e}")
             return empty_data_object
 

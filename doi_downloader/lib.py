@@ -54,32 +54,22 @@ BROWSER_PARAMS = { "User-Agent": ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
 
 def get_page_with_requests(url, params=BROWSER_PARAMS, timeout=10, plugin_name=""):
     """Get web page with requests library; check return statr=us and robots.txt"""
-    try:
-        session = requests.Session()
-        session.headers.update(params)
-        while True:
-            time.sleep(1)
-            response = session.get(url, params=params, timeout=timeout, allow_redirects=False)
-            if response is None:
-                return None
-            elif response.status_code in [301, 302, 303]:
-                url = urljoin(response.url, response.headers.get("Location"))
-                if robot_access_allowed(url):
-                    continue
-                else:
-                    print(f"[{plugin_name}] robots.txt blocks {url}")
-                    return response
-            elif response.status_code == 200:
-                return response
-            elif response.status_code in [401, 403]:
-                print(f"[{plugin_name}] forbidden access to {url}")
-                return response
+    session = requests.Session()
+    session.headers.update(params)
+    max_hops = 10
+    for hop in range(max_hops):
+        response = session.get(url, params=params, timeout=timeout, allow_redirects=False)
+        time.sleep(1)
+        if response.status_code not in [301, 302, 303]:
+            return response
+        else:
+            url = urljoin(response.url, response.headers.get("Location"))
+            if robot_access_allowed(url):
+                continue
             else:
-                print(f"unexpected status code: {response.status_code}")
+                print(f"[{plugin_name}] robots.txt blocks {url}")
                 return response
-    except (requests.exceptions.RequestException, requests.exceptions.HTTPError) as e:
-        print(f"[{plugin_name}] Error retrieving web page: {e}")
-        return None
+    raise Exception(f"[{plugin_name}] get_page_with_requests: too many hops: {max_hops}")
 
 
 async def get_page_with_playwright(url):

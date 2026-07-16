@@ -161,20 +161,15 @@ def test_verify_links_by_url_no_match():
 
 
 # checked
-@responses.activate
 def test_verify_link_by_html_match():
     plugin = googlescholar.GoogleScholarSerpAPIPlugin()
-    responses.add(responses.GET, PUBLISHER_LINK,
-                  body=f"<html>DOI: {TEST_DOI}</html>", status=200)
 
-    assert plugin.verify_link_by_html(TEST_DOI, PUBLISHER_LINK) is True
+    assert plugin.verify_link_by_html(TEST_DOI, f"<html>DOI: {TEST_DOI}</html>") is True
 
 
 # checked
 @responses.activate
 def test_verify_link_by_html_no_match():
     plugin = googlescholar.GoogleScholarSerpAPIPlugin()
-    responses.add(responses.GET, PUBLISHER_LINK,
-                  body="<html>Unrelated content</html>", status=200)
 
-    assert plugin.verify_link_by_html(TEST_DOI, PUBLISHER_LINK) is False
+    assert plugin.verify_link_by_html(TEST_DOI, "<html> unrelated </html>") is False
