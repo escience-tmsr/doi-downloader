@@ -81,13 +81,13 @@ class GoogleScholarSerpAPIPlugin(Plugin):
                 if publisher_pdf_link and publisher_pdf_link not in pdf_links and not links_verified:
                     links_verified = self.verify_links_by_url(doi, publisher_link, [publisher_pdf_link])
             except HTTPError:
-                print(f"[serpapi] access error for publisher page")
+                print("[serpapi] access error for publisher page")
             except ConnectionError:
-                print(f"[serpapi] connection error for publisher page")
+                print("[serpapi] connection error for publisher page")
             except ReadTimeout:
-                print(f"[serpapi] timeout accessing publisher page")
+                print("[serpapi] timeout accessing publisher page")
             except TooManyRedirects:
-                print(f"[serpapi] too many redirects acccessing publisher page")
+                print("[serpapi] too many redirects acccessing publisher page")
 
         return self.make_data_object(top_result, doi, publisher_link, pdf_links, links_verified)
 
@@ -112,13 +112,13 @@ class GoogleScholarSerpAPIPlugin(Plugin):
 
             return self.get_data_object(results, doi)
         except HTTPError:
-            print(f"[serpapi] access error while fetching data")
+            print("[serpapi] access error while fetching data")
         except ConnectionError:
-            print(f"[serpapi] connection error while fetching data")
+            print("[serpapi] connection error while fetching data")
         except ReadTimeout:
-            print(f"[serpapi] timeout while fetching data")
+            print("[serpapi] timeout while fetching data")
         except TooManyRedirects:
-            print(f"[serpapi] too many redirects while fetching data")
+            print("[serpapi] too many redirects while fetching data")
         return empty_data_object
 
 

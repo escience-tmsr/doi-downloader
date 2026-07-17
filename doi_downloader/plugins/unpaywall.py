@@ -35,16 +35,16 @@ class UnpaywallPlugin(Plugin):
             dataObj = ado.ArticleDataObject.from_unpaywall_json(data)
             return dataObj
         except HTTPError:
-            print(f"[unpaywall] access error while fetching data")
+            print("[unpaywall] access error while fetching data")
             return None
         except (ConnectTimeout, ReadTimeout):
-            print(f"[unpaywall] timeout while fetching data")
+            print("[unpaywall] timeout while fetching data")
             return None
         except ConnectionError:
-            print(f"[unpaywall] connection error while fetching data")
+            print("[unpaywall] connection error while fetching data")
             return None
         except TooManyRedirects:
-            print(f"[unpaywall] too many redirects while fetching data")
+            print("[unpaywall] too many redirects while fetching data")
             return None
 
     # Function to get the URL of the PDF from the DOI

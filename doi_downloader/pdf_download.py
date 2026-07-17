@@ -39,10 +39,10 @@ def download_pdf(pdf_url, filename, directory=".", plugin_name=None, doi="not_a_
     try:
         response = get_page_with_requests(pdf_url, params=config.headers, plugin_name=plugin_name, timeout=30)
         response.raise_for_status()
-    except ConnectTimeout as e:
+    except ConnectTimeout:
         print(f"[{plugin_name}] connection timeout for pdf download")
         response = None
-    except HTTPError as e:
+    except HTTPError:
         print(f"[{plugin_name}] access error for pdf download")
         response = None
     except (ConnectionError, TooManyRedirects) as e:

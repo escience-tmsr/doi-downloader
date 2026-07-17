@@ -1,7 +1,6 @@
 import logging
 import regex
 import requests
-import responses
 import time
 from functools import cache
 from urllib.parse import urljoin
@@ -33,7 +32,7 @@ def robot_access_allowed(url, plugin_name=""):
     robots_txt_url = f"{split_url.scheme}://{split_url.netloc}/robots.txt"
     try:
         response = get_robots_txt(robots_txt_url)
-    except requests.RequestException as e:
+    except requests.RequestException:
         # website access problem for robots.txt
         return True
     if response.status_code != 200:

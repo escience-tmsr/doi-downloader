@@ -23,16 +23,16 @@ class DoiorgPlugin(Plugin):
             response.raise_for_status()
             return get_pdf_url_from_html_text(response.text, plugin_name="doi.org", base_url=response.url)
         except HTTPError:
-            print(f"[doi.org] access error while fetching data")
+            print("[doi.org] access error while fetching data")
             return None
         except ConnectionError:
-            print(f"[doi.org] connection error while fetching data")
+            print("[doi.org] connection error while fetching data")
             return None
         except ReadTimeout:
-            print(f"[doi.org] timeout while fetching data")
+            print("[doi.org] timeout while fetching data")
             return None
         except TooManyRedirects:
-            print(f"[doi.org] too many redirects while fetching data")
+            print("[doi.org] too many redirects while fetching data")
             return None
 
 

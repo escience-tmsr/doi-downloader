@@ -36,16 +36,16 @@ class CrossrefPlugin(Plugin):
             return dataObj
 
         except HTTPError:
-            print(f"[crossref] access error while fetching data")
+            print("[crossref] access error while fetching data")
             return None
         except ConnectionError:
-            print(f"[crossref] connection error while fetching data")
+            print("[crossref] connection error while fetching data")
             return None
         except ReadTimeout:
-            print(f"[crossref] timeout while fetching data")
+            print("[crossref] timeout while fetching data")
             return None
         except TooManyRedirects:
-            print(f"[crossref] too many redirects while fetching data")
+            print("[crossref] too many redirects while fetching data")
             return None
 
     # Function to get the URL of the PDF from the DOI

@@ -41,7 +41,6 @@ class CoreacukPlugin(Plugin):
             "Content-Type": "application/json"
         }
 
-        params = {}
         full_url = f"{base_url}/{doi}"
 
         try:
@@ -86,16 +85,16 @@ class CoreacukPlugin(Plugin):
             return None
 
         except HTTPError:
-            print(f"[coreacuk] access error while fethcing data, authorization problem?")
+            print("[coreacuk] access error while fethcing data, authorization problem?")
             return None
         except ReadTimeout:
-            print(f"[coreacuk] timeout while fetching data")
+            print("[coreacuk] timeout while fetching data")
             return None
         except ConnectionError:
-            print(f"[coreacuk] connection error while fetching data")
+            print("[coreacuk] connection error while fetching data")
             return None
         except TooManyRedirects:
-            print(f"[coreacuk] too many redirects while fetching data")
+            print("[coreacuk] too many redirects while fetching data")
             return None
 
     # Original function signature restored - no ctx parameter
