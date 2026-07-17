@@ -4,7 +4,7 @@ from doi_downloader.cache_duckdb import Cache
 from doi_downloader import article_dataobject as ado
 from dotenv import load_dotenv
 from doi_downloader.lib import get_page_with_requests
-from requests.exceptions import ConnectionError, HTTPError, TooManyRedirects
+from requests.exceptions import ConnectionError, HTTPError, ReadTimeout, TooManyRedirects
 
 
 # Load environment variables from .env file
@@ -85,8 +85,17 @@ class CoreacukPlugin(Plugin):
                     return None
             return None
 
-        except (ConnectionError, HTTPError, TooManyRedirects) as e:
-            print(f"[coreacuk] An error occurred: {e}")
+        except HTTPError:
+            print(f"[coreacuk] access error while fethcing data, authorization problem?")
+            return None
+        except ReadTimeout:
+            print(f"[coreacuk] timeout while fetching data")
+            return None
+        except ConnectionError:
+            print(f"[coreacuk] connection error while fetching data")
+            return None
+        except TooManyRedirects:
+            print(f"[coreacuk] too many redirects while fetching data")
             return None
 
     # Original function signature restored - no ctx parameter

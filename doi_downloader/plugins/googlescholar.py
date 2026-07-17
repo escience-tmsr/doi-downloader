@@ -6,7 +6,7 @@ from doi_downloader.cache_duckdb import Cache
 from doi_downloader.benchmark import BenchmarkLogger
 from doi_downloader.lib import get_pdf_url_from_html_text, get_page_with_requests, robot_access_allowed
 from doi_downloader.plugins import Plugin
-from requests.exceptions import ConnectionError, HTTPError, TooManyRedirects
+from requests.exceptions import ConnectionError, HTTPError, ReadTimeout, TooManyRedirects
 
 SERPAPI_KEY = os.getenv("SERPAPI_KEY")
 SERPAPI_SEARCH_URL = "https://serpapi.com/search.json"
@@ -80,8 +80,14 @@ class GoogleScholarSerpAPIPlugin(Plugin):
                     links_verified = self.verify_link_by_html(doi, response.text)
                 if publisher_pdf_link and publisher_pdf_link not in pdf_links and not links_verified:
                     links_verified = self.verify_links_by_url(doi, publisher_link, [publisher_pdf_link])
-            except (ConnectionError, HTTPError, TooManyRedirects) as e:
-                print(f"[serpapi] error accessing plugin_link: {e}")
+            except HTTPError:
+                print(f"[serpapi] access error for publisher page")
+            except ConnectionError:
+                print(f"[serpapi] connection error for publisher page")
+            except ReadTimeout:
+                print(f"[serpapi] timeout accessing publisher page")
+            except TooManyRedirects:
+                print(f"[serpapi] too many redirects acccessing publisher page")
 
         return self.make_data_object(top_result, doi, publisher_link, pdf_links, links_verified)
 
@@ -105,9 +111,15 @@ class GoogleScholarSerpAPIPlugin(Plugin):
                 return empty_data_object
 
             return self.get_data_object(results, doi)
-        except (ConnectionError, HTTPError, TooManyRedirects) as e:
-            self.logger.info(f"[serpapi] SerpAPI request failed: {e}")
-            return empty_data_object
+        except HTTPError:
+            print(f"[serpapi] access error while fetching data")
+        except ConnectionError:
+            print(f"[serpapi] connection error while fetching data")
+        except ReadTimeout:
+            print(f"[serpapi] timeout while fetching data")
+        except TooManyRedirects:
+            print(f"[serpapi] too many redirects while fetching data")
+        return empty_data_object
 
 
     def get_pdf_urls(self, doi, read_from_cache=True, save_to_cache=True, ttl=0):

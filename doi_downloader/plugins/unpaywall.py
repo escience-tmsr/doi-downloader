@@ -4,7 +4,7 @@ from doi_downloader.cache_duckdb import Cache
 from doi_downloader import article_dataobject as ado # import ArticleDataObject
 from doi_downloader.benchmark import BenchmarkLogger
 from doi_downloader.lib import get_page_with_requests
-from requests.exceptions import ConnectionError, HTTPError, TooManyRedirects
+from requests.exceptions import ConnectionError, ConnectTimeout, HTTPError, ReadTimeout, TooManyRedirects
 
 
 # Read API keys and other sensitive data from environment variables
@@ -34,8 +34,17 @@ class UnpaywallPlugin(Plugin):
             data = response.json()
             dataObj = ado.ArticleDataObject.from_unpaywall_json(data)
             return dataObj
-        except (ConnectionError, HTTPError, TooManyRedirects) as e:
-            print(f"An error occurred: {e}")
+        except HTTPError:
+            print(f"[unpaywall] access error while fetching data")
+            return None
+        except (ConnectTimeout, ReadTimeout):
+            print(f"[unpaywall] timeout while fetching data")
+            return None
+        except ConnectionError:
+            print(f"[unpaywall] connection error while fetching data")
+            return None
+        except TooManyRedirects:
+            print(f"[unpaywall] too many redirects while fetching data")
             return None
 
     # Function to get the URL of the PDF from the DOI

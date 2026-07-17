@@ -39,13 +39,13 @@ def download(doi, output_dir=".", force_download=False,
 
     downloaded_file = None
 
-    for name, plugin in sorted(plugins.items(), key=lambda item: item[0]):
+    for plugin_name, plugin in sorted(plugins.items(), key=lambda item: item[0]):
         # Create attempt record if benchmarking is enabled
         attempt = None
         start_time = None
         
         if enable_benchmark:
-            attempt = benchmark_logger.create_attempt(doi, name, journal_domain)
+            attempt = benchmark_logger.create_attempt(doi, plugin_name, journal_domain)
             start_time = time.time()
         
         try:
@@ -58,8 +58,8 @@ def download(doi, output_dir=".", force_download=False,
                     attempt.url_resolved = True
                     attempt.resolved_url = urls[0]
                 
-                print(f"Plugin: {name},  doi:{doi},  url: {urls[0]}")
-                downloaded_file, verified = pdf_dl.download_pdf(urls[0], safe_filename, output_dir)
+                print(f"Plugin: {plugin_name},  doi:{doi},  url: {urls[0]}")
+                downloaded_file, verified = pdf_dl.download_pdf(urls[0], safe_filename, directory=output_dir, plugin_name=plugin_name)
                 
                 if downloaded_file:
                     # Mark download success

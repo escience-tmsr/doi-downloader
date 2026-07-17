@@ -2,7 +2,7 @@ import os
 import pypdf
 from doi_downloader import config
 from doi_downloader.lib import robot_access_allowed, get_page_with_requests
-from requests.exceptions import ConnectionError, HTTPError, TooManyRedirects
+from requests.exceptions import ConnectionError, ConnectTimeout, HTTPError, TooManyRedirects
 
 # Function to check if file is a PDF file
 def is_valid_pdf(filename):
@@ -39,8 +39,14 @@ def download_pdf(pdf_url, filename, directory=".", plugin_name=None, doi="not_a_
     try:
         response = get_page_with_requests(pdf_url, params=config.headers, plugin_name=plugin_name, timeout=30)
         response.raise_for_status()
-    except (ConnectionError, HTTPError, TooManyRedirects) as e:
-        print(f"[{plugin_name}] Request failed for {plugin_name}: {e}")
+    except ConnectTimeout as e:
+        print(f"[{plugin_name}] connection timeout for pdf download")
+        response = None
+    except HTTPError as e:
+        print(f"[{plugin_name}] access error for pdf download")
+        response = None
+    except (ConnectionError, TooManyRedirects) as e:
+        print(f"[{plugin_name}] pdf download failed for {plugin_name}: {e}")
         response = None
     if response and response.status_code == 200:
         full_path = os.path.join(directory, filename)

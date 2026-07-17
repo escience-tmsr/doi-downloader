@@ -1,7 +1,7 @@
 from doi_downloader.plugins import Plugin
 from doi_downloader.cache_duckdb import Cache
 from doi_downloader.lib import get_pdf_url_from_html_text, get_page_with_requests
-from requests.exceptions import ConnectionError, HTTPError, TooManyRedirects
+from requests.exceptions import ConnectionError, HTTPError, ReadTimeout, TooManyRedirects
 
 
 DOIORG_URL = "https://doi.org/{doi}"
@@ -22,8 +22,17 @@ class DoiorgPlugin(Plugin):
             response = get_page_with_requests(url, plugin_name="doi.org")
             response.raise_for_status()
             return get_pdf_url_from_html_text(response.text, plugin_name="doi.org", base_url=response.url)
-        except (ConnectionError, HTTPError, TooManyRedirects) as e:
-            print(f"[doi.org] fetching data failed: {e}")
+        except HTTPError:
+            print(f"[doi.org] access error while fetching data")
+            return None
+        except ConnectionError:
+            print(f"[doi.org] connection error while fetching data")
+            return None
+        except ReadTimeout:
+            print(f"[doi.org] timeout while fetching data")
+            return None
+        except TooManyRedirects:
+            print(f"[doi.org] too many redirects while fetching data")
             return None
 
 
