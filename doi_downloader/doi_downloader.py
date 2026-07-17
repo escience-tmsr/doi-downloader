@@ -38,6 +38,7 @@ def download(doi, output_dir=".", force_download=False,
         return os.path.join(output_dir, f"{safe_filename}")
 
     downloaded_file = None
+    verified = False
 
     for plugin_name, plugin in sorted(plugins.items(), key=lambda item: item[0]):
         # Create attempt record if benchmarking is enabled

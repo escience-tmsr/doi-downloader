@@ -46,7 +46,7 @@ class CoreacukPlugin(Plugin):
         try:
             retries = 1
             for i in range(retries):
-                response = get_page_with_requests(full_url, params=headers, plugin_name="coreacuk")
+                response = get_page_with_requests(full_url, headers=headers, plugin_name="coreacuk")
                 response.raise_for_status()  # Raise an HTTPError for bad responses (4xx and 5xx)
 
                 if response.status_code == 200:

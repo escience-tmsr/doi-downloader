@@ -28,7 +28,7 @@ def main():
     upw = plugins['UnpaywallPlugin']
 
     for doi in unique_dois:
-        pdf_urls = upw.get_pdf_urls(doi, use_cache=True)
+        pdf_urls = upw.get_pdf_urls(doi, read_from_cache=False, save_to_cache=False)
         print(f'{doi}: {pdf_urls}')
         
 

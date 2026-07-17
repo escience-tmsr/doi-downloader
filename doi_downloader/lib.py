@@ -51,10 +51,10 @@ BROWSER_PARAMS = { "User-Agent": ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
                                   "AppleWebKit/537.36 (KHTML, like Gecko) "
                                   "Chrome/120.0.0.0 Safari/537.36") }
 
-def get_page_with_requests(url, params=BROWSER_PARAMS, timeout=10, plugin_name=""):
+def get_page_with_requests(url, headers=BROWSER_PARAMS, params=None, timeout=10, plugin_name=""):
     """Get web page with requests library; check return statr=us and robots.txt"""
     session = requests.Session()
-    session.headers.update(params)
+    session.headers.update(headers)
     max_hops = 10
     for hop in range(max_hops):
         response = session.get(url, params=params, timeout=timeout, allow_redirects=False)

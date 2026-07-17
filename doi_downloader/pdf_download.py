@@ -24,8 +24,6 @@ def verify_pdf(filename, target_doi, plugin_name=None):
             if target_doi.lower() in text.lower():
                 print(f"[{plugin_name}] ✅ Found DOI in PDF on page {page_num + 1}")
                 return True
-    if False:
-        print(f"[{plugin_name}] Remark: DOI not found in PDF")
     return False
 
 
@@ -37,7 +35,7 @@ def download_pdf(pdf_url, filename, directory=".", plugin_name=None, doi="not_a_
         print(f"[{plugin_name}] robots.txt denied download access to {pdf_url}")
         return False, False
     try:
-        response = get_page_with_requests(pdf_url, params=config.headers, plugin_name=plugin_name, timeout=30)
+        response = get_page_with_requests(pdf_url, headers=config.headers, plugin_name=plugin_name, timeout=30)
         response.raise_for_status()
     except ConnectTimeout:
         print(f"[{plugin_name}] connection timeout for pdf download")
