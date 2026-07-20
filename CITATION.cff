@@ -1,0 +1,20 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "doi-downloader"
+authors:
+  - family-names: "Tjong Kim Sang"
+    given-names: "Erik"
+    orcid: "https://orcid.org/0000-0002-8431-081X"
+  - family-names: "Cushing"
+    given-names: "Reggie"
+    orcid: "https://orcid.org/0000-0002-5967-7302"
+  - family-names: "Moodley"
+    given-names: "Kody"
+    orcid: "https://orcid.org/0000-0001-5666-1658"
+  - family-names: "van Rijn"
+    given-names: "Sander"
+    orcid: "https://orcid.org/0000-0001-6159-041X"
+repository-code: "https://github.com/escience-tmsr/doi-downloader"
+license: Apache License 2.0
+version: 0.1.0
+date-released: 2026-07-20
