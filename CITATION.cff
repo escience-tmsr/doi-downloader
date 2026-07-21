@@ -11,9 +11,12 @@ authors:
   - family-names: "Moodley"
     given-names: "Kody"
     orcid: "https://orcid.org/0000-0001-5666-1658"
-  - family-names: "van Rijn"
-    given-names: "Sander"
-    orcid: "https://orcid.org/0000-0001-6159-041X"
+  - family-names: Rijn
+    given-names: Sander
+    name-particle: van
+    orcid: 'https://orcid.org/0000-0001-6159-041X'
+    email: s.vanrijn@esciencecenter.nl
+    affiliation: Netherlands eScience Center
 repository-code: "https://github.com/escience-tmsr/doi-downloader"
 license: Apache License 2.0
 version: 0.1.0
