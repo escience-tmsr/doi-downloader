@@ -15,6 +15,6 @@ def test_get_url():
                   status=200)
 
 
-    url = core.get_pdf_url(TEST_DOI, use_cache=False)
-    assert url == 'https://core.ac.uk/download/543085677.pdf'
+    urls = core.get_pdf_urls(TEST_DOI, read_from_cache=False, save_to_cache=False)
+    assert urls == ['https://core.ac.uk/download/543085677.pdf']
 #

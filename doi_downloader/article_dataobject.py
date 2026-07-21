@@ -7,7 +7,7 @@ schema = {
     "$id": "https://example.com/crossref-schema",
     "title": "Crossref Metadata Schema",
     "type": "object",
-    "required": ["version", "title", "DOI", "source", "pdf_links" ],
+    "required": ["version", "title", "DOI", "source", "links", "pdf_links" ],
     "properties": {
                 "title": {"type": "string" },
                 "version": {"type": "string"},
@@ -28,6 +28,13 @@ schema = {
                     "pattern": "^10\\.\\d{4,9}/[-._;()/:a-zA-Z0-9]+$"
                 },
                 "published_date": {"type": "string"},
+                "links": {
+                    "type": "array",
+                    "items": {
+                        "type": "string",
+                        "format": "uri"
+                    }
+                },
                 "pdf_links": {
                     "type": "array",
                     "items": {
@@ -59,7 +66,9 @@ class ArticleDataObject:
             "author": [],
             "DOI": "",
             "published_date": "",
-            "pdf_links": []
+            "links": [],
+            "pdf_links": [],
+            "links_verified": False
 
         }
         self.schema = schema
@@ -108,22 +117,55 @@ class ArticleDataObject:
         """
         self.data["published_date"] = f"{year}-{month}-{day}"
 
-    def add_pdf_link(self, url):
+    def set_links_verified(self, links_verified):
+        """
+        Set the links_verified flag
+
+        :param links_verified: flag indicating if PDF links could be verified for the target DOI
+        """
+        self.data["links_verified"] = links_verified
+
+    def add_link(self, url):
         """
         Add a link to the Article data object.
 
         :param url: The URL of the link.
         :param content_type: The content type of the link.
         """
+        self.data["links"].append(url)
+
+    def add_pdf_link(self, url):
+        """
+        Add a pdf_link to the Article data object.
+
+        :param url: The URL of the link.
+        :param content_type: The content type of the link.
+        """
         self.data["pdf_links"].append(url)
+
+    def get_link(self):
+        """
+        Get the first link from the Article data object.
+
+        :return: The first link if available, otherwise None.
+        """
+        return self.data["links"][0] if self.data["links"] else None
 
     def get_pdf_link(self):
         """
-        Get the PDF link from the Article data object.
+        Get the first PDF link from the Article data object.
 
-        :return: The PDF link if available, otherwise None.
+        :return: The first PDF link if available, otherwise None.
         """
         return self.data["pdf_links"][0] if self.data["pdf_links"] else None
+
+    def get_pdf_links(self):
+        """
+        Get all PDF link from the Article data object.
+
+        :return: All PDF links
+        """
+        return self.data["pdf_links"]
 
     def validate(self):
         """
@@ -186,6 +228,7 @@ class ArticleDataObject:
             "DOI": unpaywall_data.get("doi", ""),
             "publisher": unpaywall_data.get("publisher", ""),
             "published_date": unpaywall_data.get("published_date", ""),
+            "links": [],
             "pdf_links": [extract_pdf_link(unpaywall_data)] if extract_pdf_link(unpaywall_data) else []
         }
         return cls(data)
@@ -238,6 +281,7 @@ class ArticleDataObject:
             "DOI": crossref_data.get("DOI", ""),
             "publisher": crossref_data.get("publisher", ""),
             "published_date": convert_published_date(crossref_data.get("published", {})),
+            "links": [],
             "pdf_links": [extract_pdf_link(crossref_data)] if extract_pdf_link(crossref_data) else []
         }
 

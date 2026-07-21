@@ -1,0 +1,23 @@
+# AI Declaration Format (aidecl)
+# Use a role or team name rather than personal name if this file will be public
+
+schema_version: 1.0.0
+project:
+  name: doi-downloader
+  repository: https://github.com/escience-tmsr/doi-downloader
+  content_type: software
+ai_usage:
+  used: true
+  summary: programming questions, advice, code reviews and occasionally code writing, checeked and marked like in tests/test_googlescholar.py
+  level: minimal
+  tools:
+  - name: Claude Code, Claude.ai
+    vendor: Anthropic
+    type: assistant
+    purpose:
+    - as above
+  scope:
+    code_completion: true
+declaration:
+  date: '2026-07-14'
+  declared_by: eriktks

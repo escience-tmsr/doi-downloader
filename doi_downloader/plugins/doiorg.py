@@ -1,18 +1,10 @@
-import regex
-import requests
 from doi_downloader.plugins import Plugin
 from doi_downloader.cache_duckdb import Cache
-from bs4 import BeautifulSoup
-from urllib.robotparser import RobotFileParser
-from urllib.parse import urlsplit
+from doi_downloader.lib import get_pdf_url_from_html_text, get_page_with_requests
+from requests.exceptions import ConnectionError, HTTPError, ReadTimeout, TooManyRedirects
 
 
 DOIORG_URL = "https://doi.org/{doi}"
-HTTP_HEADERS = {
-   "User-Agent": ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-   "AppleWebKit/537.36 (KHTML, like Gecko) "
-   "Chrome/120.0.0.0 Safari/537.36"),
-}
 
 
 class DoiorgPlugin(Plugin):
@@ -23,76 +15,34 @@ class DoiorgPlugin(Plugin):
         return instance
 
 
-    def robot_access_allowed(self, url):
-        """Check if website allows access to url by robots"""
-        split_url = urlsplit(url)
-        robots_txt_url = f"{split_url.scheme}://{split_url.netloc}/robots.txt"
-        try:
-            response = requests.get(robots_txt_url)
-        except requests.RequestException as e:
-            print(f"[doi.org] website access problem for robots.txt: {e}")
-            return True
-        if response.status_code != 200:
-            print(f"[doi.org] webpage access problem for robots.txt: "
-                  f"{response.status_code}")
-            return True
-        robot_parsed = RobotFileParser()
-        robot_parsed.set_url(robots_txt_url)
-        robot_parsed.parse(response.text.splitlines())
-        return robot_parsed.can_fetch("*", url)
-  
-
-    def get_web_page(self, doi):
-        url = DOIORG_URL.format(doi=doi)
-        return requests.get(url, headers=HTTP_HEADERS, timeout=10)
-
- 
-    def get_pdf_url_from_meta(self, soup):
-        """Get url pointing to PDF related to DOI from publisher metadata in web page"""
-        meta = soup.find("meta", attrs={"name": "citation_pdf_url"})
-        if meta and "content" in meta.attrs:
-            return meta["content"]
-        else:
-            return None
-
-
-    def get_pdf_url_from_links(self, soup):
-        """Get url pointing to PDF related to DOI from links in web page"""
-        return soup.find("a", 
-                         string=lambda href: href and 
-                                             regex.search("download|pdf", 
-                                                          href, 
-                                                          flags=regex.IGNORECASE))
-
-
     def fetch_metadata(self, doi):
-        """Get url pointing to PDF related to DOI from the web"""
+        """Get publisher web page related to DOI from doi.org and extract url pointing to PDF from page"""
         try:
-            response = self.get_web_page(doi)
-            # Raise an HTTPError for bad responses (4xx and 5xx)
+            url = DOIORG_URL.format(doi=doi)
+            response = get_page_with_requests(url, plugin_name="doi.org")
             response.raise_for_status()
-        except (requests.exceptions.RequestException, requests.exceptions.HTTPError) as e:
-            print(f"[doi.org] An error occurred: {e}")
+            return get_pdf_url_from_html_text(response.text, plugin_name="doi.org", base_url=response.url)
+        except HTTPError:
+            print("[doi.org] access error while fetching data")
+            return None
+        except ConnectionError:
+            print("[doi.org] connection error while fetching data")
+            return None
+        except ReadTimeout:
+            print("[doi.org] timeout while fetching data")
+            return None
+        except TooManyRedirects:
+            print("[doi.org] too many redirects while fetching data")
             return None
 
-        if not self.robot_access_allowed(response.url):
-            print(f"[doi.org] robots.txt blocked acccess to {response.url}")
-            return None
-        soup = BeautifulSoup(response.text, "html.parser")
-        if (pdf_url := self.get_pdf_url_from_meta(soup)):
-            return pdf_url
-        if (pdf_url := self.get_pdf_url_from_links(soup)):
-            return pdf_url
-        return None
 
-
-    def get_pdf_url(self, doi, use_cache=True, ttl=0):
-        """Get url pointing to PDF related to DOI, from cache or from the web"""
-        if use_cache and (cached_data := self.cache.get_cache(doi, ttl=ttl)):
+    def get_pdf_urls(self, doi, read_from_cache=True, save_to_cache=True, ttl=0):
+        """Get url pointing to PDF related to DOI, from cache or from website doi.org"""
+        if read_from_cache and (cached_data := self.cache.get_cache(doi, ttl=ttl)):
             print(f"[doi.org] Using cached data for {doi}.")
-            return cached_data
+            return [cached_data]
         metadata = self.fetch_metadata(doi)
-        if use_cache and metadata:
+        if save_to_cache and metadata:
             self.cache.set_cache(doi, metadata)
             print(f"[doi.org] Data cached for {doi}.")
-        return metadata
+        return [metadata] if metadata else []

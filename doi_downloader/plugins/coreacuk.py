@@ -1,9 +1,11 @@
-import requests
 import os
 from doi_downloader.plugins import Plugin
 from doi_downloader.cache_duckdb import Cache
 from doi_downloader import article_dataobject as ado
 from dotenv import load_dotenv
+from doi_downloader.lib import get_page_with_requests
+from requests.exceptions import ConnectionError, HTTPError, ReadTimeout, TooManyRedirects
+
 
 # Load environment variables from .env file
 load_dotenv()
@@ -39,13 +41,13 @@ class CoreacukPlugin(Plugin):
             "Content-Type": "application/json"
         }
 
-        params = {}
         full_url = f"{base_url}/{doi}"
 
         try:
             retries = 1
             for i in range(retries):
-                response = requests.get(full_url, headers=headers, params=params)
+                response = get_page_with_requests(full_url, headers=headers, plugin_name="coreacuk")
+                response.raise_for_status()  # Raise an HTTPError for bad responses (4xx and 5xx)
 
                 if response.status_code == 200:
                     paper = response.json()
@@ -82,36 +84,44 @@ class CoreacukPlugin(Plugin):
                     return None
             return None
 
-        except requests.exceptions.RequestException as e:
-            print(f"[coreacuk] An error occurred: {e}")
+        except HTTPError:
+            print("[coreacuk] access error while fethcing data, authorization problem?")
+            return None
+        except ReadTimeout:
+            print("[coreacuk] timeout while fetching data")
+            return None
+        except ConnectionError:
+            print("[coreacuk] connection error while fetching data")
+            return None
+        except TooManyRedirects:
+            print("[coreacuk] too many redirects while fetching data")
             return None
 
     # Original function signature restored - no ctx parameter
-    def get_pdf_url(self, doi, use_cache=True, ttl=0):
+    def get_pdf_urls(self, doi, read_from_cache=True, save_to_cache=True, ttl=0):
         """
         Get PDF URL from CORE API
         
         Args:
             doi: DOI identifier
-            use_cache: Whether to use cached results
+            read_from_cache: whether to read the results from the cache
+            save_to_cache: whether to save the results to the cache
             ttl: Cache time-to-live in seconds
             
         Returns:
             PDF URL or None if not found
         """
-        if use_cache:
+        if read_from_cache:
             cached_data = self.cache.get_cache(doi, ttl=ttl)
             if cached_data:
                 print(f"[coreacuk] using cached data for {doi}.")
                 data_object = ado.ArticleDataObject.from_json(cached_data)
                 data_object.validate()
-                return data_object.get_pdf_link()
+                return [data_object.get_pdf_link()]
 
         metadata = self.fetch_metadata(doi)
         if metadata:
             url = metadata.get_pdf_link()
-            if use_cache:
+            if save_to_cache:
                 self.cache.set_cache(doi, metadata.to_json())
-            return url
-        else:
-            return None
+            return [url] if url else []

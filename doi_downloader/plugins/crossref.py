@@ -1,8 +1,9 @@
-import requests
 from doi_downloader.plugins import Plugin
 from doi_downloader.cache_duckdb import Cache
 from doi_downloader import article_dataobject as ado # import ArticleDataObject
 from doi_downloader.benchmark import BenchmarkLogger
+from doi_downloader.lib import get_page_with_requests
+from requests.exceptions import ConnectionError, HTTPError, ReadTimeout, TooManyRedirects
 
 # Read API keys and other sensitive data from environment variables
 CROSSREF_API_URL = "https://api.crossref.org/works/{doi}"
@@ -23,7 +24,7 @@ class CrossrefPlugin(Plugin):
     def fetch_metadata(self, doi):
         url = CROSSREF_API_URL.format(doi=doi)
         try:
-            response = requests.get(url, timeout=10)
+            response = get_page_with_requests(url, params={}, plugin_name="crossref")
             response.raise_for_status()  # Raise an HTTPError for bad responses (4xx and 5xx)
             data = response.json()
             if "message" not in data:
@@ -34,37 +35,45 @@ class CrossrefPlugin(Plugin):
             dataObj.validate()
             return dataObj
 
-        except requests.exceptions.RequestException as e:
-            print(f"An error occurred: {e}")
+        except HTTPError:
+            print("[crossref] access error while fetching data")
+            return None
+        except ConnectionError:
+            print("[crossref] connection error while fetching data")
+            return None
+        except ReadTimeout:
+            print("[crossref] timeout while fetching data")
+            return None
+        except TooManyRedirects:
+            print("[crossref] too many redirects while fetching data")
             return None
 
     # Function to get the URL of the PDF from the DOI
-    def get_pdf_url(self, doi, use_cache=True, ttl=0):
+    def get_pdf_urls(self, doi, read_from_cache=True, save_to_cache=True, ttl=0):
         """
         Get PDF URL from CORE API
         
         Args:
             doi: DOI identifier
-            use_cache: Whether to use cached results
+            read_from_cache: whether to read the results from the cache
+            save_to_cache: whether to save the results to the cache
             ttl: Cache time-to-live in seconds
             
         Returns:
             PDF URL or None if not found
         """
-        if use_cache:
+        if read_from_cache:
             cached_data = self.cache.get_cache(doi, ttl=ttl)
             if cached_data:
                 print(f"[crossref] using cached data for {doi}.")
                 data_object = ado.ArticleDataObject.from_json(cached_data)
                 data_object.validate()
-                return data_object.get_pdf_link()
+                pdf_link = data_object.get_pdf_link()
+                return [pdf_link] if pdf_link else []
 
         metadata = self.fetch_metadata(doi)
         if metadata:
             url = metadata.get_pdf_link()
-            if use_cache:
+            if save_to_cache:
                 self.cache.set_cache(doi, metadata.to_json())
-            return url
-        else:
-            return None
-
+            return [url] if url else []

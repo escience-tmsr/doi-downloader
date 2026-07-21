@@ -31,8 +31,8 @@ def main():
     crf = plugins['CrossrefPlugin']
 
     for doi in unique_dois:
-        url = crf.get_pdf_url(doi)
-        print(f'{doi} {url}')
+        urls = crf.get_pdf_urls(doi, read_from_cache=False, save_to_cache=False)
+        print(f'{doi} {urls}')
 
 
 main()
