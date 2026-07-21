@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>Usage - doi_downloader</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Usage";
+        var mkdocs_page_input_path = "usage.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href=".." class="icon icon-home"> doi_downloader
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../install/">Installation</a>
+                </li>
+              </ul>
+              <ul class="current">
+                <li class="toctree-l1 current"><a class="reference internal current" href="#">Usage</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#1-download-a-pdf-file-given-a-doi">1. Download a PDF file given a DOI</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#2-using-a-single-plugin-for-retrieving-the-pdf-url-related-to-a-doi">2. Using a single plugin for retrieving the PDF URL related to a DOI</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#3-reading-dois-from-a-csv-file-and-retrieving-the-pdf-urls">3. Reading DOIs from a CSV file and retrieving the PDF URLs</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#4-reading-dois-from-a-csv-file-and-retrieving-the-pdfs">4. Reading DOIs from a CSV file and retrieving the PDFs</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#5-using-multiple-plugins-for-retrieving-the-pdfs">5. Using multiple plugins for retrieving the PDFs</a>
+    </li>
+    </ul>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../configuration/">Configuration</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../benchmarking/">Testing</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../writing_a_plugin/">Developing new plugins</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../contributing/">Contributing</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../license/">License</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">doi_downloader</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Usage</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h2 id="usage">Usage</h2>
+<p>This text contains five examples of how <code>doi_downloader</code> can be used.</p>
+<h3 id="1-download-a-pdf-file-given-a-doi">1. Download a PDF file given a DOI</h3>
+<p>In this example, we try to download a PDF file given a DOI, from a Python program or a Jupyter notebook. We call the
+download function, which will iterate through all the available plugins and try to find a PDF URL for the given 
+DOI. If a plugin finds a URL related to the DOI, an attempt will be made to download the PDF file and save it to 
+the specified output directory:</p>
+<pre><code class="language-python">from doi_downloader import doi_downloader as ddl
+
+doi = &quot;10.1038/s41586-020-2649-2&quot;
+ddl.download(doi, output_dir=&quot;downloads&quot;)
+</code></pre>
+<p>The download function will return the location of the downloaded PDF file, if the download was successful. In other 
+cases, the download will return <code>False</code>.</p>
+<h3 id="2-using-a-single-plugin-for-retrieving-the-pdf-url-related-to-a-doi">2. Using a single plugin for retrieving the PDF URL related to a DOI</h3>
+<p>This example uses the Crossref plugin to fetch a PDF URL for a DOI. Note that the plugin call only tries to retrieve an URL. 
+It does not try to fetch a PDF. </p>
+<pre><code class="language-python">from doi_downloader import loader as ld
+
+doi = &quot;10.1038/s41586-020-2649-2&quot;
+pdf_url = ld.plugins['CrossrefPlugin'].get_pdf_url(doi)
+print(f'{doi}: {pdf_url}')
+</code></pre>
+<p>The names of the plugins in the code are: <code>CoreacukPlugin</code>, <code>CrossrefPlugin</code>, <code>GoogleScholarSerpAPIPlugin</code> and
+<code>UnpaywallPlugin</code>. Not all plugins are successful in recovering a URL for the example DOI. If a plugin cannot
+find a URL for the DOI, it will return <code>None</code>.</p>
+<h3 id="3-reading-dois-from-a-csv-file-and-retrieving-the-pdf-urls">3. Reading DOIs from a CSV file and retrieving the PDF URLs</h3>
+<p>This example reads DOIs from a CSV file and uses the Crossref plugin to fetch a PDF URL for each DOI.</p>
+<pre><code class="language-python">from doi_downloader import csv, loader as ld
+import os
+
+doi_list = csv.load_dois_from_file(os.path.abspath(&quot;doi_examples.csv&quot;), &quot;doi&quot;)
+for doi in doi_list:
+    pdf_url = ld.plugins['CrossrefPlugin'].get_pdf_url(doi, use_cache=True)
+    print(f'{doi}: {pdf_url}')
+</code></pre>
+<p>The example file contains two DOIs. The plugin finds a URL for one of them but not for the other.</p>
+<h3 id="4-reading-dois-from-a-csv-file-and-retrieving-the-pdfs">4. Reading DOIs from a CSV file and retrieving the PDFs</h3>
+<p>This example reads DOIs from a CSV file, uses the Crossref plugin to fetch a URL and tries to download the 
+associated PDF.</p>
+<pre><code class="language-python">from doi_downloader import csv, loader as ld, pdf_download as pdf_dl
+import os
+
+doi_list = csv.load_dois_from_file(os.path.abspath(&quot;doi_examples.csv&quot;), &quot;doi&quot;)
+for doi in doi_list:
+    pdf_url = ld.plugins['CrossrefPlugin'].get_pdf_url(doi, use_cache=True)
+    if pdf_url:
+        safe_filename = doi.replace(&quot;/&quot;, &quot;_&quot;).replace(&quot;.&quot;, &quot;_&quot;) + &quot;.pdf&quot;
+        downloaded_file = pdf_dl.download_pdf(pdf_url, safe_filename, &quot;downloads&quot;)
+        if downloaded_file:
+            print(f&quot;Downloaded {doi} to {downloaded_file}&quot;)
+    if not pdf_url or not downloaded_file:
+        print(f&quot;Failed to download {doi} ({pdf_url})&quot;)
+</code></pre>
+<p>The example file contains two DOIs. The plugin finds a URL for one of them and manages to download a PDF from the URL. 
+For the other DOI, no URL was found.</p>
+<h3 id="5-using-multiple-plugins-for-retrieving-the-pdfs">5. Using multiple plugins for retrieving the PDFs</h3>
+<p>This example uses all plugins through a helper function <code>ddl.download</code> that attempts to download the PDFs.</p>
+<pre><code class="language-python">from doi_downloader import csv, doi_downloader as ddl
+import os
+
+doi_list = csv.load_dois_from_file(os.path.abspath(&quot;doi_examples.csv&quot;), &quot;doi&quot;)
+for doi in doi_list:
+    if ddl.download(doi, output_dir=&quot;downloads&quot;, force_download=True):
+        print(f&quot;Download successful for doi {doi}&quot;)
+</code></pre>
+<p>The plugins will be called in alphabetical order of the names until one of them finds a URL from which a PDF can
+be downloaded. Other plugins will not be called. If plugin finds a url, it will print a message. When a download
+is successful, an extra message is shown.</p>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../install/" class="btn btn-neutral float-left" title="Installation"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../configuration/" class="btn btn-neutral float-right" title="Configuration">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+      <span><a href="../install/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../configuration/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>
