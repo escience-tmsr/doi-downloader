@@ -23,7 +23,7 @@ class CoreacukPlugin(Plugin):
     def test(self):
         return True
 
-    def fetch_metadata(self, doi):
+    def fetch_metadata(self, doi, plugin_name=""):
         """
         Retrieve metadata for a paper using its DOI from CORE API.
 
@@ -64,64 +64,31 @@ class CoreacukPlugin(Plugin):
                         if "pdf" in source:
                             data_object.add_pdf_link(source) 
 
-                    print(f"[coreacuk] Title: {title} has download url: {download_link} and full text sources: {full_text_sources}")
+                    print(f"[{plugin_name}] Title: {title} has download url: {download_link} and full text sources: {full_text_sources}")
                     return data_object
 
                 if response.status_code == 429:
-                    print(f"[coreacuk] Rate limit exceeded for doi {doi}.")
+                    print(f"[{plugin_name}] Rate limit exceeded for doi {doi}.")
                     return None
                 if response.status_code == 404:
-                    print(f"[coreacuk] Paper with DOI {doi} not found.")
+                    print(f"[{plugin_name}] Paper with DOI {doi} not found.")
                     return None
                 if response.status_code == 403:
-                    print("[coreacuk] Forbidden access. Check your API key.")
+                    print(f"[{plugin_name}] Forbidden access. Check your API key.")
                     return None
                 if response.status_code == 401:
-                    print("[coreacuk] Unauthorized access. Check your API key.")
+                    print(f"[{plugin_name}] Unauthorized access. Check your API key.")
                     return None
                 if response.status_code >= 500:
-                    print(f"[coreacuk] Server error for doi {doi}.")
+                    print(f"[{plugin_name}] Server error for doi {doi}.")
                     return None
-            return None
 
         except HTTPError:
-            print("[coreacuk] access error while fethcing data, authorization problem?")
-            return None
+            print(f"[{plugin_name}] access error while fethcing data, authorization problem?")
         except ReadTimeout:
-            print("[coreacuk] timeout while fetching data")
-            return None
+            print(f"[{plugin_name}] timeout while fetching data")
         except ConnectionError:
-            print("[coreacuk] connection error while fetching data")
-            return None
+            print(f"[{plugin_name}] connection error while fetching data")
         except TooManyRedirects:
-            print("[coreacuk] too many redirects while fetching data")
-            return None
-
-    # Original function signature restored - no ctx parameter
-    def get_pdf_urls(self, doi, read_from_cache=True, save_to_cache=True, ttl=0):
-        """
-        Get PDF URL from CORE API
-        
-        Args:
-            doi: DOI identifier
-            read_from_cache: whether to read the results from the cache
-            save_to_cache: whether to save the results to the cache
-            ttl: Cache time-to-live in seconds
-            
-        Returns:
-            PDF URL or None if not found
-        """
-        if read_from_cache:
-            cached_data = self.cache.get_cache(doi, ttl=ttl)
-            if cached_data:
-                print(f"[coreacuk] using cached data for {doi}.")
-                data_object = ado.ArticleDataObject.from_json(cached_data)
-                data_object.validate()
-                return [data_object.get_pdf_link()]
-
-        metadata = self.fetch_metadata(doi)
-        if metadata:
-            url = metadata.get_pdf_link()
-            if save_to_cache:
-                self.cache.set_cache(doi, metadata.to_json())
-            return [url] if url else []
+            print(f"[{plugin_name}] too many redirects while fetching data")
+        return None

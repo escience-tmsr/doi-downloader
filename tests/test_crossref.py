@@ -15,6 +15,6 @@ def test_get_url():
                   status=200)
 
 
-    urls = crf.get_pdf_urls(TEST_DOI,  read_from_cache=False, save_to_cache=False)
+    urls = crf.get_pdf_urls(TEST_DOI,  read_from_cache=False)
     assert urls == ['https://link.springer.com/content/pdf/10.1007/s10207-021-00566-3.pdf']
 #

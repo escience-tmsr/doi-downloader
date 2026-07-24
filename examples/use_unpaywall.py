@@ -28,26 +28,7 @@ def main():
     upw = plugins['UnpaywallPlugin']
 
     for doi in unique_dois:
-        pdf_urls = upw.get_pdf_urls(doi, read_from_cache=False, save_to_cache=False)
+        pdf_urls = upw.get_pdf_urls(doi, read_from_cache=False)
         print(f'{doi}: {pdf_urls}')
         
-
-    # Get URLs for dois
-    # urls = upw.get_urls(dois)
-    # false_values = sum(1 for value in urls.values() if value is False)
-    # print(false_values)
-    # no_urls = upw.get_list_with_no_urls()
-    # for (doi, _, _) in no_urls:
-    #     print(doi)
-    # print(len(no_urls))
-    # for url in urls:
-    #     print(f'{url["doi"]}: {url["url"]}')
-
-    # Download files
-
-    # dois = load_dois_from_file(dois_file_path)
-    # files = upw.download_from_dois(dois)
-    # print(files)
-
-
 main()

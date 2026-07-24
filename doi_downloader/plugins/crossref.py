@@ -21,7 +21,7 @@ class CrossrefPlugin(Plugin):
     def test(self):
         return True
 
-    def fetch_metadata(self, doi):
+    def fetch_metadata(self, doi, plugin_name=""):
         url = CROSSREF_API_URL.format(doi=doi)
         try:
             response = get_page_with_requests(url, params={}, plugin_name="crossref")
@@ -36,44 +36,11 @@ class CrossrefPlugin(Plugin):
             return dataObj
 
         except HTTPError:
-            print("[crossref] access error while fetching data")
-            return None
+            print(f"[{plugin_name}] access error while fetching data")
         except ConnectionError:
-            print("[crossref] connection error while fetching data")
-            return None
+            print(f"[{plugin_name}] connection error while fetching data")
         except ReadTimeout:
-            print("[crossref] timeout while fetching data")
-            return None
+            print(f"[{plugin_name}] timeout while fetching data")
         except TooManyRedirects:
-            print("[crossref] too many redirects while fetching data")
-            return None
-
-    # Function to get the URL of the PDF from the DOI
-    def get_pdf_urls(self, doi, read_from_cache=True, save_to_cache=True, ttl=0):
-        """
-        Get PDF URL from CORE API
-        
-        Args:
-            doi: DOI identifier
-            read_from_cache: whether to read the results from the cache
-            save_to_cache: whether to save the results to the cache
-            ttl: Cache time-to-live in seconds
-            
-        Returns:
-            PDF URL or None if not found
-        """
-        if read_from_cache:
-            cached_data = self.cache.get_cache(doi, ttl=ttl)
-            if cached_data:
-                print(f"[crossref] using cached data for {doi}.")
-                data_object = ado.ArticleDataObject.from_json(cached_data)
-                data_object.validate()
-                pdf_link = data_object.get_pdf_link()
-                return [pdf_link] if pdf_link else []
-
-        metadata = self.fetch_metadata(doi)
-        if metadata:
-            url = metadata.get_pdf_link()
-            if save_to_cache:
-                self.cache.set_cache(doi, metadata.to_json())
-            return [url] if url else []
+            print(f"[{plugin_name}] too many redirects while fetching data")
+        return None

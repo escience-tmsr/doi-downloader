@@ -24,7 +24,7 @@ class UnpaywallPlugin(Plugin):
     def test(self):
         return True
 
-    def fetch_metadata(self, doi):
+    def fetch_metadata(self, doi, plugin_name=""):
         if not UNPAYWALL_EMAIL:
             raise EnvironmentError("Please make sure email is set using set_email().")
         url = UNPAYWALL_API_URL.format(doi=doi, email=UNPAYWALL_EMAIL)
@@ -35,43 +35,11 @@ class UnpaywallPlugin(Plugin):
             dataObj = ado.ArticleDataObject.from_unpaywall_json(data)
             return dataObj
         except HTTPError:
-            print("[unpaywall] access error while fetching data")
-            return None
+            print(f"[{plugin_name}] access error while fetching data")
         except (ConnectTimeout, ReadTimeout):
-            print("[unpaywall] timeout while fetching data")
-            return None
+            print(f"[{plugin_name}] timeout while fetching data")
         except ConnectionError:
-            print("[unpaywall] connection error while fetching data")
-            return None
+            print(f"[{plugin_name}] connection error while fetching data")
         except TooManyRedirects:
-            print("[unpaywall] too many redirects while fetching data")
-            return None
-
-    # Function to get the URL of the PDF from the DOI
-    def get_pdf_urls(self, doi, read_from_cache=True, save_to_cache=True, ttl=0):
-        """
-        Get PDF URL from CORE API
-        
-        Args:
-            doi: DOI identifier
-            read_from_cache: whether to read the results from the cache
-            save_to_cache: whether to save the results to the cache
-            ttl: Cache time-to-live in seconds
-            
-        Returns:
-            PDF URL or None if not found
-        """
-        if read_from_cache:
-            cached_data = self.cache.get_cache(doi, ttl=ttl)
-            if cached_data:
-                print(f"[unpaywall] using cached data for {doi}.")
-                data_object = ado.ArticleDataObject.from_json(cached_data)
-                data_object.validate()
-                return [data_object.get_pdf_link()]
-
-        metadata = self.fetch_metadata(doi)
-        if metadata:
-            url = metadata.get_pdf_link()
-            if save_to_cache:
-                self.cache.set_cache(doi, metadata.to_json())
-            return [url] if url else []
+            print(f"[{plugin_name}] too many redirects while fetching data")
+        return None
