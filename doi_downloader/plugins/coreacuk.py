@@ -1,6 +1,5 @@
 import os
 from doi_downloader.plugins import Plugin
-from doi_downloader.cache_duckdb import Cache
 from doi_downloader import article_dataobject as ado
 from dotenv import load_dotenv
 from doi_downloader.lib import get_page_with_requests
@@ -15,15 +14,12 @@ CORE_API_URL = "https://api.core.ac.uk/v3/works"
 CORE_API_KEY = os.getenv("CORE_API_KEY")
 
 class CoreacukPlugin(Plugin):
-    def __new__(self):
-        instance = super(Plugin, self).__new__(self)
-        self.cache = Cache("database.db", "coreacuk")
-        return instance
+    plugin_name = "coreacuk"
 
     def test(self):
         return True
 
-    def fetch_metadata(self, doi, plugin_name=""):
+    def fetch_metadata(self, doi, plugin_name=None):
         """
         Retrieve metadata for a paper using its DOI from CORE API.
 
@@ -33,6 +29,7 @@ class CoreacukPlugin(Plugin):
         Returns:
             Metadata dictionary or an error message
         """
+        plugin_name = plugin_name if plugin_name else self.plugin_name
         base_url = CORE_API_URL
         api_key = CORE_API_KEY
         
@@ -46,49 +43,34 @@ class CoreacukPlugin(Plugin):
         try:
             retries = 1
             for i in range(retries):
-                response = get_page_with_requests(full_url, headers=headers, plugin_name="coreacuk")
+                response = get_page_with_requests(full_url, headers=headers, plugin_name=self.plugin_name)
                 response.raise_for_status()  # Raise an HTTPError for bad responses (4xx and 5xx)
 
-                if response.status_code == 200:
-                    paper = response.json()
-                    title = paper.get("title", "N/A")
-                    download_link = paper.get("downloadUrl", "N/A")
-                    full_text_sources = paper.get("sourceFulltextUrls", [])
-                    data_object = ado.ArticleDataObject(None)
-                    data_object.set_title(title)
-                    data_object.set_doi(doi)
-                    
-                    if download_link:
-                        data_object.add_pdf_link(download_link)
-                    for source in full_text_sources:
-                        if "pdf" in source:
-                            data_object.add_pdf_link(source) 
+                paper = response.json()
+                title = paper.get("title", "N/A")
+                download_link = paper.get("downloadUrl", "N/A")
+                full_text_sources = paper.get("sourceFulltextUrls", [])
+                data_object = ado.ArticleDataObject(None)
+                data_object.set_title(title)
+                data_object.set_doi(doi)
+                
+                if download_link:
+                    data_object.add_pdf_link(download_link)
+                for source in full_text_sources:
+                    if "pdf" in source:
+                        data_object.add_pdf_link(source) 
 
-                    print(f"[{plugin_name}] Title: {title} has download url: {download_link} and full text sources: {full_text_sources}")
-                    return data_object
-
-                if response.status_code == 429:
-                    print(f"[{plugin_name}] Rate limit exceeded for doi {doi}.")
-                    return None
-                if response.status_code == 404:
-                    print(f"[{plugin_name}] Paper with DOI {doi} not found.")
-                    return None
-                if response.status_code == 403:
-                    print(f"[{plugin_name}] Forbidden access. Check your API key.")
-                    return None
-                if response.status_code == 401:
-                    print(f"[{plugin_name}] Unauthorized access. Check your API key.")
-                    return None
-                if response.status_code >= 500:
-                    print(f"[{plugin_name}] Server error for doi {doi}.")
-                    return None
+                print(f"[{plugin_name}] Title: {title} has download url: {download_link} and full text sources: {full_text_sources}")
+                return data_object
 
         except HTTPError:
-            print(f"[{plugin_name}] access error while fethcing data, authorization problem?")
+            print(f"[{plugin_name}] access error while fetching data, authorization problem?")
         except ReadTimeout:
             print(f"[{plugin_name}] timeout while fetching data")
         except ConnectionError:
             print(f"[{plugin_name}] connection error while fetching data")
         except TooManyRedirects:
             print(f"[{plugin_name}] too many redirects while fetching data")
+        except ValueError:
+            print(f"[{plugin_name}] error processing JSON data")
         return None

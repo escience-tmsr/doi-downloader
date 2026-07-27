@@ -5,8 +5,6 @@ import sys
 from requests.exceptions import ConnectionError, HTTPError, ReadTimeout, TooManyRedirects
 
 from doi_downloader import article_dataobject as ado
-from doi_downloader.cache_duckdb import Cache
-from doi_downloader.benchmark import BenchmarkLogger
 from doi_downloader.lib import get_pdf_url_from_html_text, get_page_with_requests, robot_access_allowed
 from doi_downloader.plugins import Plugin
 
@@ -16,15 +14,7 @@ PARAMS_BASE =  { "engine": "google_scholar", "api_key": SERPAPI_KEY }
 
 
 class GoogleScholarSerpAPIPlugin(Plugin):
-    benchmark_logger = BenchmarkLogger("benchmark/logs/serpapi_benchmark.jsonl")
-    logger = logging.getLogger(__name__)
-    handler = logging.StreamHandler(sys.stdout)
-    handler.setFormatter(logging.Formatter("%(message)s"))
-    logger.propagate = False
-    logger.addHandler(handler)
-
-    def __init__(self):
-        self.cache = Cache("database.db", "googlescholar_serpapi")
+    plugin_name = "serpapi"
 
     def test(self):
         return SERPAPI_KEY is not None
@@ -33,17 +23,17 @@ class GoogleScholarSerpAPIPlugin(Plugin):
         """Compare returned links with target DOI"""
         for pdf_link in pdf_links:
             if pdf_link and target_doi.lower() in str(pdf_link).lower():
-                self.logger.info(f"[{plugin_name}] ✅ PDF link matches DOI {target_doi}")
+                print(f"[{plugin_name}] ✅ PDF link matches DOI {target_doi}")
                 return True
         if publisher_link and target_doi.lower() in str(publisher_link).lower():
-            self.logger.info(f"[{plugin_name}] ✅ publisher link matches DOI {target_doi}")
+            print(f"[{plugin_name}] ✅ publisher link matches DOI {target_doi}")
             return True
         return False
 
     def verify_link_by_html(self, target_doi, text, plugin_name):
         """Compare content of returned links (html) with target DOI"""
         if target_doi.lower() in str(text).lower():
-            self.logger.info(f"[{plugin_name}] ✅ Found DOI {target_doi} in html")
+            print(f"[{plugin_name}] ✅ Found DOI {target_doi} in html")
             return True
         return False
 
@@ -72,13 +62,8 @@ class GoogleScholarSerpAPIPlugin(Plugin):
 
         if robot_access_allowed(publisher_link):
             try:
-                response = get_page_with_requests(publisher_link, plugin_name="serpapi")
+                response = get_page_with_requests(publisher_link, plugin_name=plugin_name)
                 response.raise_for_status()
-                publisher_pdf_link = get_pdf_url_from_html_text(response.text, plugin_name="serpapi")
-                if not links_verified and publisher_link:
-                    links_verified = self.verify_link_by_html(doi, response.text, plugin_name)
-                if publisher_pdf_link and publisher_pdf_link not in pdf_links and not links_verified:
-                    links_verified = self.verify_links_by_url(doi, publisher_link, [publisher_pdf_link], plugin_name)
             except HTTPError:
                 print(f"[{plugin_name}] access error for publisher page")
             except ConnectionError:
@@ -87,28 +72,28 @@ class GoogleScholarSerpAPIPlugin(Plugin):
                 print(f"[{plugin_name}] timeout accessing publisher page")
             except TooManyRedirects:
                 print(f"[{plugin_name}] too many redirects acccessing publisher page")
+            publisher_pdf_link = get_pdf_url_from_html_text(response.text, plugin_name=plugin_name)
+            if not links_verified and publisher_link:
+                links_verified = self.verify_link_by_html(doi, response.text, plugin_name)
+            if publisher_pdf_link and publisher_pdf_link not in pdf_links and not links_verified:
+                links_verified = self.verify_links_by_url(doi, publisher_link, [publisher_pdf_link], plugin_name)
 
         return self.make_data_object(top_result, doi, publisher_link, pdf_links, links_verified)
 
-    def fetch_metadata(self, doi, plugin_name=""):
+    def fetch_metadata(self, doi, plugin_name=None):
         """Fetch metadata for doi from Serpapi API"""
+        plugin_name = plugin_name if plugin_name else self.plugin_name
         if not SERPAPI_KEY:
-            raise EnvironmentError("[serpapi] Please set SERPAPI_KEY environment variable.")
+            raise EnvironmentError("[plugin_name] Please set SERPAPI_KEY environment variable.")
 
         empty_data_object = self.make_data_object({}, doi, None, [], False)
         try:
             response = get_page_with_requests(SERPAPI_SEARCH_URL,
                                               params=PARAMS_BASE | {"q": f"doi:{doi}"},
                                               timeout=10,
-                                              plugin_name="serpapi")
+                                              plugin_name=plugin_name)
             response.raise_for_status()
             results = response.json().get("organic_results")
-
-            if not results or not isinstance(results, list):
-                self.logger.info(f"[serpapi] no search results for DOI {doi}")
-                return empty_data_object
-
-            return self.get_data_object(results, doi, plugin_name)
         except HTTPError:
             print(f"[{plugin_name}] access error while fetching data")
         except ConnectionError:
@@ -117,4 +102,11 @@ class GoogleScholarSerpAPIPlugin(Plugin):
             print(f"[{plugin_name}] timeout while fetching data")
         except TooManyRedirects:
             print(f"[{plugin_name}] too many redirects while fetching data")
+        except ValueError:
+            print(f"[{plugin_name}] error reading json data")
+        else:
+            if results and isinstance(results, list):
+                return self.get_data_object(results, doi, plugin_name)
+            print(f"[{plugin_name}] no search results for DOI {doi}")
+
         return empty_data_object

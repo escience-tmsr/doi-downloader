@@ -8,7 +8,7 @@ project:
   content_type: software
 ai_usage:
   used: true
-  summary: programming questions, advice, code reviews and occasionally code writing, checeked and marked like in tests/test_googlescholar.py
+  summary: programming questions, advice, code reviews and occasionally code writing, checked and marked as in tests/test_googlescholar.py
   level: minimal
   tools:
   - name: Claude Code, Claude.ai

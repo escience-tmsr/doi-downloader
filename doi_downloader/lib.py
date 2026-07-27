@@ -1,4 +1,5 @@
 import logging
+import pypdf
 import regex
 import requests
 import time
@@ -65,9 +66,8 @@ def get_page_with_requests(url, headers=BROWSER_PARAMS, params=None, timeout=10,
             url = urljoin(response.url, response.headers.get("Location"))
             if robot_access_allowed(url):
                 continue
-            else:
-                print(f"[{plugin_name}] robots.txt blocks {url}")
-                return response
+            print(f"[{plugin_name}] robots.txt blocks {url}")
+            return response
     raise Exception(f"[{plugin_name}] get_page_with_requests: too many hops: {max_hops}")
 
 
@@ -110,3 +110,15 @@ def get_pdf_url_from_html_text(html_text, plugin_name="", base_url=None):
     if (pdf_url := get_pdf_url_from_links(soup, base_url=base_url)):
         return pdf_url
     return None
+
+
+def verify_downloaded_pdf(filename, target_doi, plugin_name=None):
+    """verify_downloaded_pdf: find search_string in PDF file stored on disk"""
+    with open(filename, "rb") as infile:
+        reader = pypdf.PdfReader(infile)
+        for page_num, page in enumerate(reader.pages):
+            text = page.extract_text()
+            if target_doi.lower() in text.lower():
+                print(f"[{plugin_name}] ✅ Found DOI in PDF on page {page_num + 1}")
+                return True
+    return False

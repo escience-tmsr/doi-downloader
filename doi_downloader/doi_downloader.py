@@ -1,8 +1,10 @@
+import os
+import time
+from operator import itemgetter
+
 from doi_downloader import loader as ld
 from doi_downloader import pdf_download as pdf_dl
 from doi_downloader.benchmark import BenchmarkLogger
-import os
-import time
 
 plugins = ld.plugins
 
@@ -38,9 +40,8 @@ def download(doi, output_dir=".", force_download=False,
         return os.path.join(output_dir, f"{safe_filename}")
 
     downloaded_file = None
-    verified = False
 
-    for plugin_name, plugin in sorted(plugins.items(), key=lambda item: item[0]):
+    for plugin_name, plugin in sorted(plugins.items(), key=itemgetter(0)):
         # Create attempt record if benchmarking is enabled
         attempt = None
         start_time = None
@@ -60,7 +61,7 @@ def download(doi, output_dir=".", force_download=False,
                     attempt.resolved_url = urls[0]
                 
                 print(f"Plugin: {plugin_name},  doi:{doi},  url: {urls[0]}")
-                downloaded_file, verified = pdf_dl.download_pdf(urls[0], safe_filename, directory=output_dir, plugin_name=plugin_name)
+                downloaded_file = pdf_dl.download_pdf(urls[0], safe_filename, directory=output_dir, plugin_name=plugin_name)
                 
                 if downloaded_file:
                     # Mark download success
@@ -82,4 +83,4 @@ def download(doi, output_dir=".", force_download=False,
                 attempt.duration_ms = round((time.time() - start_time) * 1000, 2)
                 benchmark_logger.log_attempt(attempt)
 
-    return downloaded_file, verified
+    return downloaded_file

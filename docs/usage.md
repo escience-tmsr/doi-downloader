@@ -66,10 +66,10 @@ for doi in doi_list:
     pdf_urls = ld.plugins['CrossrefPlugin'].get_pdf_urls(doi, read_from_cache=True)
     if pdf_urls:
         safe_filename = doi.replace("/", "_").replace(".", "_") + ".pdf"
-        downloaded_files = pdf_dl.download_pdf(pdf_urls[0], safe_filename, "downloads")
-        if downloaded_files:
-            print(f"Downloaded {doi} to {downloaded_files}")
-    if not pdf_urls or not downloaded_files:
+        downloaded_file = pdf_dl.download_pdf(pdf_urls[0], safe_filename, "downloads")
+        if downloaded_file:
+            print(f"Downloaded {doi} to {downloaded_file}")
+    if not pdf_urls or not downloaded_file:
         print(f"Failed to download {doi} ({pdf_urls})")
 ```
 

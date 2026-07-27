@@ -17,7 +17,7 @@ UNMATCHED_PDF_LINK = "https://link.springer.com/content/pdf/other-paper.pdf"
 
 # checked
 @pytest.fixture(autouse=True)
-def test_wrapper_always_run(monkeypatch):
+def check_wrapper_always_run(monkeypatch):
     """Avoid needing a real SERPAPI_KEY, real sleeps, and robots.txt caching
     bleeding between tests (get_robots_txt is memoized with functools.cache)."""
     monkeypatch.setattr(googlescholar, "SERPAPI_KEY", "test-serpapi-key")
@@ -48,7 +48,6 @@ def make_unmatched_serpapi_response():
 
 
 # checked
-# @responses.activate is not necessary for helper functions
 def mock_robots_txt_allowed():
     responses.add(responses.GET, ROBOTS_TXT_URL, status=404)
 

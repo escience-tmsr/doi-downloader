@@ -151,17 +151,9 @@ class ArticleDataObject:
         """
         return self.data["links"][0] if self.data["links"] else None
 
-    def get_pdf_link(self):
-        """
-        Get the first PDF link from the Article data object.
-
-        :return: The first PDF link if available, otherwise None.
-        """
-        return self.data["pdf_links"][0] if self.data["pdf_links"] else None
-
     def get_pdf_links(self):
         """
-        Get all PDF link from the Article data object.
+        Get all PDF links from the Article data object.
 
         :return: All PDF links
         """

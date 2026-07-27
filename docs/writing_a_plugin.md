@@ -101,13 +101,13 @@ class MyPlugin(Plugin):
                 data_object = ado.ArticleDataObject.from_json(cached_data)
                 data_object.validate()
                 save_to_cache = False
-                return data_object.get_pdf_link()
+                return data_object.get_pdf_links()
 
         metadata = self.fetch_metadata(doi)
         if metadata:
             if save_to_cache:
                 self.cache.set_cache(doi, metadata.to_json())
-            return metadata.get_pdf_link()
+            return metadata.get_pdf_links()
         else:
             return None
 ```
