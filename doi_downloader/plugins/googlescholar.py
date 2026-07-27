@@ -67,16 +67,17 @@ class GoogleScholarSerpAPIPlugin(Plugin):
             except HTTPError:
                 print(f"[{plugin_name}] access error for publisher page")
             except ConnectionError:
-                print(f"[{plugin_name}i] connection error for publisher page")
+                print(f"[{plugin_name}] connection error for publisher page")
             except ReadTimeout:
                 print(f"[{plugin_name}] timeout accessing publisher page")
             except TooManyRedirects:
                 print(f"[{plugin_name}] too many redirects acccessing publisher page")
-            publisher_pdf_link = get_pdf_url_from_html_text(response.text, plugin_name=plugin_name)
-            if not links_verified and publisher_link:
-                links_verified = self.verify_link_by_html(doi, response.text, plugin_name)
-            if publisher_pdf_link and publisher_pdf_link not in pdf_links and not links_verified:
-                links_verified = self.verify_links_by_url(doi, publisher_link, [publisher_pdf_link], plugin_name)
+            else:
+                publisher_pdf_link = get_pdf_url_from_html_text(response.text, plugin_name=plugin_name)
+                if not links_verified and publisher_link:
+                    links_verified = self.verify_link_by_html(doi, response.text, plugin_name)
+                if publisher_pdf_link and publisher_pdf_link not in pdf_links and not links_verified:
+                    links_verified = self.verify_links_by_url(doi, publisher_link, [publisher_pdf_link], plugin_name)
 
         return self.make_data_object(top_result, doi, publisher_link, pdf_links, links_verified)
 
