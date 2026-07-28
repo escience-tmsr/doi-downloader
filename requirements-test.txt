@@ -1,11 +1,12 @@
 # These requirements are for development and testing only, not for production.
-pytest
+black
 coverage
 flake8
-black
-isort
-pytest-cov
-mypy
 gitchangelog
+isort
 mkdocs
+mypy
+pre-commit
+pytest
+pytest-cov
 pytest-dotenv
