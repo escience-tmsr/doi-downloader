@@ -1,5 +1,6 @@
 import responses
 import os
+import pytest
 
 from doi_downloader.plugins import unpaywall as unpaywall
 from doi_downloader.plugins import CacheMode
@@ -7,6 +8,12 @@ from doi_downloader.plugins import CacheMode
 TEST_DOI="10.1007/s10207-021-00566-3"
 TEST_FILE="10.1007_s10207-021-00566-3.pdf"
 UNPAYWALL_API_URL = "https://api.unpaywall.org/v2/{doi}?email={email}"
+
+
+@pytest.fixture(autouse=True)
+def set_test_email(monkeypatch):
+    """Avoid needing a real UNPAYWALL_EMAIL / .env file in CI."""
+    monkeypatch.setattr(unpaywall, "UNPAYWALL_EMAIL", "test@example.com")
 
 
 @responses.activate
