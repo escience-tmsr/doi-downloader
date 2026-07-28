@@ -46,7 +46,7 @@ import os
 
 doi_list = csv.load_dois_from_file(os.path.abspath("doi_examples.csv"), "doi")
 for doi in doi_list:
-    pdf_urls = ld.plugins['CrossrefPlugin'].get_pdf_urls(doi, read_from_cache=True)
+    pdf_urls = ld.plugins['CrossrefPlugin'].get_pdf_urls(doi)
     print(f'{doi}: {pdf_urls}')
 ```
 
@@ -63,7 +63,7 @@ import os
 
 doi_list = csv.load_dois_from_file(os.path.abspath("doi_examples.csv"), "doi")
 for doi in doi_list:
-    pdf_urls = ld.plugins['CrossrefPlugin'].get_pdf_urls(doi, read_from_cache=True)
+    pdf_urls = ld.plugins['CrossrefPlugin'].get_pdf_urls(doi)
     if pdf_urls:
         safe_filename = doi.replace("/", "_").replace(".", "_") + ".pdf"
         downloaded_file = pdf_dl.download_pdf(pdf_urls[0], safe_filename, "downloads")

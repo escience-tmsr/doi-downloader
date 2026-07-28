@@ -16,25 +16,24 @@ class UnpaywallPlugin(Plugin):
     def test(self):
         return True
 
-    def fetch_metadata(self, doi, plugin_name=None):
+    def fetch_metadata(self, doi):
         if not UNPAYWALL_EMAIL:
             raise EnvironmentError("Please make sure email is set using set_email().")
         url = UNPAYWALL_API_URL.format(doi=doi, email=UNPAYWALL_EMAIL)
-        plugin_name = plugin_name if plugin_name else self.plugin_name
         try:
-            response = get_page_with_requests(url, params={}, plugin_name=plugin_name)
+            response = get_page_with_requests(url, params={}, plugin_name=self.plugin_name)
             response.raise_for_status()  # Raise an HTTPError for bad responses (4xx and 5xx)
             data = response.json()
             dataObj = ado.ArticleDataObject.from_unpaywall_json(data)
             return dataObj
         except HTTPError:
-            print(f"[{plugin_name}] access error while fetching data")
+            print(f"[{self.plugin_name}] access error while fetching data")
         except (ConnectTimeout, ReadTimeout):
-            print(f"[{plugin_name}] timeout while fetching data")
+            print(f"[{self.plugin_name}] timeout while fetching data")
         except ConnectionError:
-            print(f"[{plugin_name}] connection error while fetching data")
+            print(f"[{self.plugin_name}] connection error while fetching data")
         except TooManyRedirects:
-            print(f"[{plugin_name}] too many redirects while fetching data")
+            print(f"[{self.plugin_name}] too many redirects while fetching data")
         except ValueError:
-            print(f"[{plugin_name}] error processing JSON data")
+            print(f"[{self.plugin_name}] error processing JSON data")
         return None

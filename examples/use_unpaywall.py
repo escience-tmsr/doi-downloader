@@ -1,7 +1,9 @@
-from doi_downloader import loader as ld
-from doi_downloader import csv
 import os
 import argparse
+
+from doi_downloader import loader as ld
+from doi_downloader import csv
+from doi_downloader.plugins import CacheMode
 
 # Set up argument parser
 parser = argparse.ArgumentParser(description="Process a CSV file.")
@@ -28,7 +30,7 @@ def main():
     upw = plugins['UnpaywallPlugin']
 
     for doi in unique_dois:
-        pdf_urls = upw.get_pdf_urls(doi, read_from_cache=False)
+        pdf_urls = upw.get_pdf_urls(doi, cache_mode=CacheMode.REFRESH)
         print(f'{doi}: {pdf_urls}')
         
 main()

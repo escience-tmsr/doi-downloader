@@ -12,8 +12,7 @@ class CrossrefPlugin(Plugin):
     def test(self):
         return True
 
-    def fetch_metadata(self, doi, plugin_name=None):
-        plugin_name = plugin_name if plugin_name else self.plugin_name
+    def fetch_metadata(self, doi):
         url = CROSSREF_API_URL.format(doi=doi)
         try:
             response = get_page_with_requests(url, params={}, plugin_name=self.plugin_name)
@@ -26,13 +25,13 @@ class CrossrefPlugin(Plugin):
             return dataObj
 
         except HTTPError:
-            print(f"[{plugin_name}] access error while fetching data")
+            print(f"[{self.plugin_name}] access error while fetching data")
         except ConnectionError:
-            print(f"[{plugin_name}] connection error while fetching data")
+            print(f"[{self.plugin_name}] connection error while fetching data")
         except ReadTimeout:
-            print(f"[{plugin_name}] timeout while fetching data")
+            print(f"[{self.plugin_name}] timeout while fetching data")
         except TooManyRedirects:
-            print(f"[{plugin_name}] too many redirects while fetching data")
+            print(f"[{self.plugin_name}] too many redirects while fetching data")
         except ValueError:
-            print(f"[{plugin_name}] error processing JSON data")
+            print(f"[{self.plugin_name}] error processing JSON data")
         return None

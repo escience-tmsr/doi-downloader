@@ -68,7 +68,7 @@ Tests load `.env` via `pytest.ini`'s `env_files` (pytest-dotenv), and `tests/con
 
 `doi_downloader.doi_downloader.download(doi, ...)` is the main entry point. It iterates all loaded plugins in alphabetical order by class name, and for each one:
 1. calls `plugin.get_pdf_urls(doi)` to resolve candidate PDF URLs,
-2. passes the first URL to `pdf_download.download_pdf()`, which checks `robots.txt` (`lib.robot_access_allowed`), fetches the file, verifies it's a real PDF (`is_valid_pdf` on the `%PDF` magic bytes), and checks the DOI string appears in the extracted text (`verify_pdf`),
+2. passes the first URL to `pdf_download.download_pdf()`, which checks `robots.txt` (`lib.robot_access_allowed`), fetches the file and verifies it's a real PDF (`is_valid_pdf` on the `%PDF` magic bytes)
 3. stops at the first plugin that produces a verified download.
 
 Every attempt (success or failure) should be recorded via `BenchmarkLogger` (`doi_downloader/benchmark.py`) to a JSONL log under `benchmark/logs/`; `BenchmarkAnalyzer` turns those logs into per-plugin/per-journal success-rate reports. This is separate from the `benchmark/` top-level directory, which holds the batch-evaluation CLI (`python -m benchmark.batch_download <csv>` and `python -m benchmark.get_top_performers`) used to score plugins against a labeled DOI list — see README.md's "Benchmarking plugin performance" section.

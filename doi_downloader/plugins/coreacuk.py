@@ -19,7 +19,7 @@ class CoreacukPlugin(Plugin):
     def test(self):
         return True
 
-    def fetch_metadata(self, doi, plugin_name=None):
+    def fetch_metadata(self, doi):
         """
         Retrieve metadata for a paper using its DOI from CORE API.
 
@@ -29,7 +29,6 @@ class CoreacukPlugin(Plugin):
         Returns:
             Metadata dictionary or an error message
         """
-        plugin_name = plugin_name if plugin_name else self.plugin_name
         base_url = CORE_API_URL
         api_key = CORE_API_KEY
         
@@ -60,17 +59,17 @@ class CoreacukPlugin(Plugin):
                     if "pdf" in source:
                         data_object.add_pdf_link(source) 
 
-                print(f"[{plugin_name}] Title: {title} has download url: {download_link} and full text sources: {full_text_sources}")
+                print(f"[{self.plugin_name}] Title: {title} has download url: {download_link} and full text sources: {full_text_sources}")
                 return data_object
 
         except HTTPError:
-            print(f"[{plugin_name}] access error while fetching data, authorization problem?")
+            print(f"[{self.plugin_name}] access error while fetching data, authorization problem?")
         except ReadTimeout:
-            print(f"[{plugin_name}] timeout while fetching data")
+            print(f"[{self.plugin_name}] timeout while fetching data")
         except ConnectionError:
-            print(f"[{plugin_name}] connection error while fetching data")
+            print(f"[{self.plugin_name}] connection error while fetching data")
         except TooManyRedirects:
-            print(f"[{plugin_name}] too many redirects while fetching data")
+            print(f"[{self.plugin_name}] too many redirects while fetching data")
         except ValueError:
-            print(f"[{plugin_name}] error processing JSON data")
+            print(f"[{self.plugin_name}] error processing JSON data")
         return None

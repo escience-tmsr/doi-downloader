@@ -1,6 +1,8 @@
-from doi_downloader.plugins import unpaywall as unpaywall
 import responses
 import os
+
+from doi_downloader.plugins import unpaywall as unpaywall
+from doi_downloader.plugins import CacheMode
 
 TEST_DOI="10.1007/s10207-021-00566-3"
 TEST_FILE="10.1007_s10207-021-00566-3.pdf"
@@ -18,5 +20,5 @@ def test_get_url(tmp_path):
                   status=200)
 
 
-    urls = upw.get_pdf_urls(TEST_DOI, read_from_cache=False)
+    urls = upw.get_pdf_urls(TEST_DOI, cache_mode=CacheMode.REFRESH)
     assert urls == ['https://link.springer.com/content/pdf/10.1007/s10207-021-00566-3.pdf']

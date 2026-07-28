@@ -1,5 +1,6 @@
-from doi_downloader.plugins import coreacuk
 import responses
+
+from doi_downloader.plugins import coreacuk
 
 TEST_DOI="10.1007/s10207-021-00566-3"
 TEST_FILE="10.1007_s10207-021-00566-3.pdf"
@@ -15,6 +16,6 @@ def test_get_url():
                   status=200)
 
 
-    urls = core.get_pdf_urls(TEST_DOI, read_from_cache=False)
+    urls = core.get_pdf_urls(TEST_DOI)
     assert urls[0] == 'https://core.ac.uk/download/543085677.pdf'
 

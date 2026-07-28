@@ -3,6 +3,8 @@ from doi_downloader import csv
 import argparse
 from dotenv import load_dotenv
 
+from doi_downloader.plugins import CacheMode
+
 # Load environment variables from .env file
 load_dotenv()
 
@@ -31,7 +33,7 @@ def main():
     coreacuk = plugins['CoreacukPlugin']
 
     for doi in unique_dois:
-        urls = coreacuk.get_pdf_urls(doi, read_from_cache=False)
+        urls = coreacuk.get_pdf_urls(doi, cache_mode=CacheMode.REFRESH)
         print(f'{doi} {urls}')
 
 

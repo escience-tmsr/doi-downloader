@@ -1,10 +1,11 @@
 # claude code
 import pytest
 import responses
+
 from doi_downloader import lib
 from doi_downloader.plugins import googlescholar
+from doi_downloader.plugins import CacheMode
 
-PLUGIN_NAME = "serpapi"
 TEST_DOI = "10.1007/s10207-021-00566-3"
 
 PUBLISHER_LINK = f"https://link.springer.com/article/{TEST_DOI}"
@@ -63,7 +64,7 @@ def test_get_pdf_urls_uses_cache(monkeypatch):
     print("### test_get_pdf_urls_uses_cache", type(cached_object), cached_object, cached_object.to_json())
     monkeypatch.setattr(plugin.cache, "get_cache", lambda doi, ttl=0: cached_object.to_json())
 
-    urls = plugin.get_pdf_urls(TEST_DOI, read_from_cache=True)
+    urls = plugin.get_pdf_urls(TEST_DOI, cache_mode=CacheMode.CACHE_ONLY)
 
     assert urls == [PDF_LINK]
 
@@ -79,7 +80,7 @@ def test_get_pdf_urls_verified_by_url():
     responses.add(responses.GET, PUBLISHER_LINK,
                   body="<html><body>No PDF markers here</body></html>", status=200)
 
-    urls = plugin.get_pdf_urls(TEST_DOI, read_from_cache=False)
+    urls = plugin.get_pdf_urls(TEST_DOI, cache_mode=CacheMode.REFRESH)
 
     assert urls == [PDF_LINK]
 
@@ -91,7 +92,7 @@ def test_get_pdf_urls_no_organic_results():
     responses.add(responses.GET, googlescholar.SERPAPI_SEARCH_URL,
                   json={"organic_results": []}, status=200)
 
-    urls = plugin.get_pdf_urls(TEST_DOI, read_from_cache=False)
+    urls = plugin.get_pdf_urls(TEST_DOI, cache_mode=CacheMode.REFRESH)
 
     assert urls == []
 
@@ -145,27 +146,27 @@ def test_fetch_metadata_missing_api_key(monkeypatch):
 # checked
 def test_verify_links_by_url_matches_pdf_link():
     plugin = googlescholar.GoogleScholarSerpAPIPlugin()
-    assert plugin.verify_links_by_url(TEST_DOI, UNMATCHED_PUBLISHER_LINK, [PDF_LINK], PLUGIN_NAME) is True
+    assert plugin.verify_links_by_url(TEST_DOI, UNMATCHED_PUBLISHER_LINK, [PDF_LINK]) is True
 
 
 # checked
 def test_verify_links_by_url_matches_publisher_link():
     plugin = googlescholar.GoogleScholarSerpAPIPlugin()
-    assert plugin.verify_links_by_url(TEST_DOI, PUBLISHER_LINK, [], PLUGIN_NAME) is True
+    assert plugin.verify_links_by_url(TEST_DOI, PUBLISHER_LINK, []) is True
 
 
 # checked
 def test_verify_links_by_url_no_match():
     plugin = googlescholar.GoogleScholarSerpAPIPlugin()
     assert plugin.verify_links_by_url(
-        TEST_DOI, UNMATCHED_PUBLISHER_LINK, [UNMATCHED_PDF_LINK], PLUGIN_NAME) is False
+        TEST_DOI, UNMATCHED_PUBLISHER_LINK, [UNMATCHED_PDF_LINK]) is False
 
 
 # checked
 def test_verify_link_by_html_match():
     plugin = googlescholar.GoogleScholarSerpAPIPlugin()
 
-    assert plugin.verify_link_by_html(TEST_DOI, f"<html>DOI: {TEST_DOI}</html>", PLUGIN_NAME) is True
+    assert plugin.verify_link_by_html(TEST_DOI, f"<html>DOI: {TEST_DOI}</html>") is True
 
 
 # checked
@@ -173,4 +174,4 @@ def test_verify_link_by_html_match():
 def test_verify_link_by_html_no_match():
     plugin = googlescholar.GoogleScholarSerpAPIPlugin()
 
-    assert plugin.verify_link_by_html(TEST_DOI, "<html> unrelated </html>", PLUGIN_NAME) is False
+    assert plugin.verify_link_by_html(TEST_DOI, "<html> unrelated </html>") is False

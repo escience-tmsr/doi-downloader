@@ -1,5 +1,4 @@
 import os
-import pypdf
 from doi_downloader import config
 from doi_downloader.lib import robot_access_allowed, get_page_with_requests
 from requests.exceptions import ConnectionError, ConnectTimeout, HTTPError, TooManyRedirects
@@ -15,7 +14,7 @@ def is_valid_pdf(filename):
 
 
 # Function to download PDF
-def download_pdf(pdf_url, filename, directory=".", plugin_name=None, doi="not_a_doi_value"):
+def download_pdf(pdf_url, filename, directory=".", plugin_name=None):
     """
     Download PDF file from url to filename.
     Returns: file_path: path to the downloaded file (or False if download failed).

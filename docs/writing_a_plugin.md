@@ -23,10 +23,6 @@ from doi_downloader import article_dataobject as ado
 MY_API_URL = "https://example.com/{doi}"
 
 class MyPlugin(Plugin):
-    def __new__(self):
-        instance = super(Plugin, self).__new__(self)
-        return instance
-
     def test(self):
         return True
 
@@ -48,11 +44,6 @@ class MyPlugin(Plugin):
         except requests.exceptions.RequestException as e:
             print(f"An error occurred: {e}")
             return None
-
-
-    def get_pdf_url(self, doi, read_from_cache=True, ttl=0):
-        metadata = self.fetch_metadata(doi)
-        return metadata.get_pdf_url() if metadata else None
 ```
 
 The plugin needs to implement two functions: `fetch_metadata` and `get_pdf_url`. The `fetch_metadata` function should return an `ArticleDataObject` containing the metadata of the article, while the `get_pdf_url` function should return the URL of the PDF file.

@@ -1,5 +1,6 @@
-from doi_downloader.plugins import crossref
 import responses
+
+from doi_downloader.plugins import crossref
 
 TEST_DOI="10.1007/s10207-021-00566-3"
 TEST_FILE="10.1007_s10207-021-00566-3.pdf"
@@ -15,6 +16,6 @@ def test_get_url():
                   status=200)
 
 
-    urls = crf.get_pdf_urls(TEST_DOI,  read_from_cache=False)
+    urls = crf.get_pdf_urls(TEST_DOI)
     assert urls == ['https://link.springer.com/content/pdf/10.1007/s10207-021-00566-3.pdf']
 #

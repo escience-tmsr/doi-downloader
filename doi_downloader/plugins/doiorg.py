@@ -15,9 +15,8 @@ class DoiorgPlugin(Plugin):
     def test(self):
         return True
 
-    def fetch_metadata(self, doi, plugin_name=None):
+    def fetch_metadata(self, doi):
         """Get publisher web page related to DOI from doi.org and extract url pointing to PDF from page"""
-        plugin_name = plugin_name if plugin_name else self.plugin_name
         try:
             url = DOIORG_URL.format(doi=doi)
             response = get_page_with_requests(url, plugin_name=self.plugin_name)
@@ -29,13 +28,13 @@ class DoiorgPlugin(Plugin):
                 data_object.add_pdf_link(pdf_url)
                 return data_object
         except HTTPError:
-            print(f"[{plugin_name}] access error while fetching data")
+            print(f"[{self.plugin_name}] access error while fetching data")
         except ConnectionError:
-            print(f"[{plugin_name}] connection error while fetching data")
+            print(f"[{self.plugin_name}] connection error while fetching data")
         except ReadTimeout:
-            print(f"[{plugin_name}] timeout while fetching data")
+            print(f"[{self.plugin_name}] timeout while fetching data")
         except TooManyRedirects:
-            print(f"[{plugin_name}] too many redirects while fetching data")
+            print(f"[{self.plugin_name}] too many redirects while fetching data")
         except ValueError:
-            print(f"[{plugin_name}] error processing JSON data")
+            print(f"[{self.plugin_name}] error processing JSON data")
         return None
