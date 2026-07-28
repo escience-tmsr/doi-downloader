@@ -21,17 +21,17 @@ class GoogleScholarSerpAPIPlugin(Plugin):
         """Compare returned links with target DOI"""
         for pdf_link in pdf_links:
             if pdf_link and target_doi.lower() in str(pdf_link).lower():
-                print(f"[{self.plugin_name}] ✅ PDF link matches DOI {target_doi}")
+                print(f"[{self.plugin_name}] PDF link matches DOI {target_doi}")
                 return True
         if publisher_link and target_doi.lower() in str(publisher_link).lower():
-            print(f"[{self.plugin_name}] ✅ publisher link matches DOI {target_doi}")
+            print(f"[{self.plugin_name}] publisher link matches DOI {target_doi}")
             return True
         return False
 
     def verify_link_by_html(self, target_doi, text):
         """Compare content of returned links (html) with target DOI"""
         if target_doi.lower() in str(text).lower():
-            print(f"[{self.plugin_name}] ✅ Found DOI {target_doi} in html")
+            print(f"[{self.plugin_name}] Found DOI {target_doi} in html")
             return True
         return False
 

@@ -119,6 +119,6 @@ def verify_downloaded_pdf(filename, target_doi, plugin_name=None):
         for page_num, page in enumerate(reader.pages):
             text = page.extract_text()
             if target_doi.lower() in text.lower():
-                print(f"[{plugin_name}] ✅ Found DOI in PDF on page {page_num + 1}")
+                print(f"[{plugin_name}] Found DOI in PDF on page {page_num + 1}")
                 return True
     return False
