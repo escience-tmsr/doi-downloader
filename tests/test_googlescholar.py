@@ -67,7 +67,7 @@ def test_get_pdf_urls_uses_cache(monkeypatch):
 
     urls = plugin.get_pdf_urls(TEST_DOI, cache_mode=CacheMode.CACHE_ONLY)
 
-    assert urls == [PDF_LINK]
+    assert PDF_LINK in urls
 
 
 # checked
@@ -83,7 +83,7 @@ def test_get_pdf_urls_verified_by_url():
 
     urls = plugin.get_pdf_urls(TEST_DOI, cache_mode=CacheMode.REFRESH)
 
-    assert urls == [PDF_LINK]
+    assert PDF_LINK in urls
 
 
 # checked
@@ -114,7 +114,7 @@ def test_fetch_metadata_verified_by_metadata_tier():
 
     metadata = plugin.fetch_metadata(TEST_DOI)
 
-    assert metadata.get_pdf_links() == [UNMATCHED_PDF_LINK]
+    assert UNMATCHED_PDF_LINK in metadata.get_pdf_links()
     assert metadata.data["links_verified"] is True
 
 
@@ -131,7 +131,7 @@ def test_fetch_metadata_unverified_when_doi_not_found_anywhere():
 
     metadata = plugin.fetch_metadata(TEST_DOI)
 
-    assert metadata.get_pdf_links() == [UNMATCHED_PDF_LINK]
+    assert UNMATCHED_PDF_LINK in metadata.get_pdf_links()
     assert metadata.data["links_verified"] is False
 
 

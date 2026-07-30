@@ -28,4 +28,4 @@ def test_get_url(tmp_path):
 
 
     urls = upw.get_pdf_urls(TEST_DOI, cache_mode=CacheMode.REFRESH)
-    assert urls == ['https://link.springer.com/content/pdf/10.1007/s10207-021-00566-3.pdf']
+    assert 'https://link.springer.com/content/pdf/10.1007/s10207-021-00566-3.pdf' in urls

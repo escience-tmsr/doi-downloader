@@ -36,8 +36,8 @@ class Plugin:
     def get_pdf_urls(self, doi, cache_mode=CacheMode.CACHE_FIRST, ttl=10):
         """
         Args:
-            doi: DOI identifier
-            cache_mode: how the cache and its contents
+            doi: DOI of the article
+            cache_mode: how the cache and its contents should be used
             ttl: Cache time-to-live in seconds
             
         Returns:

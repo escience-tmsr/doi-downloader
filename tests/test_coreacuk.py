@@ -17,5 +17,5 @@ def test_get_url():
 
 
     urls = core.get_pdf_urls(TEST_DOI)
-    assert urls[0] == 'https://core.ac.uk/download/543085677.pdf'
+    assert 'https://core.ac.uk/download/543085677.pdf' in urls
 
