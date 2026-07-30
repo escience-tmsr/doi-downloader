@@ -1,5 +1,5 @@
 from doi_downloader.plugins import Plugin
-from doi_downloader import article_dataobject as ado # import ArticleDataObject
+from doi_downloader.article_dataobject import ArticleDataObject
 from doi_downloader.lib import get_page_with_requests
 from requests.exceptions import ConnectionError, HTTPError, ReadTimeout, TooManyRedirects
 
@@ -20,7 +20,7 @@ class CrossrefPlugin(Plugin):
             data = response.json()
             if "message" not in data:
                 raise ValueError
-            dataObj = ado.ArticleDataObject.from_crossref_json(data)
+            dataObj = ArticleDataObject.from_crossref_json(data)
             dataObj.validate()
             return dataObj
 

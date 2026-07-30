@@ -2,7 +2,7 @@ from requests.exceptions import ConnectionError, HTTPError, ReadTimeout, TooMany
 
 from doi_downloader.plugins import Plugin
 from doi_downloader.lib import get_pdf_url_from_html_text, get_page_with_requests
-from doi_downloader import article_dataobject as ado
+from doi_downloader.article_dataobject import ArticleDataObject
 
 DOIORG_URL = "https://doi.org/{doi}"
 
@@ -22,7 +22,7 @@ class DoiorgPlugin(Plugin):
             response = get_page_with_requests(url, plugin_name=self.plugin_name)
             response.raise_for_status()
             pdf_url = get_pdf_url_from_html_text(response.text, plugin_name=self.plugin_name, base_url=response.url)
-            data_object = ado.ArticleDataObject(None)
+            data_object = ArticleDataObject(None)
             data_object.set_doi(doi)
             if pdf_url:
                 data_object.add_pdf_link(pdf_url)
