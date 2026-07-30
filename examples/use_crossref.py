@@ -1,7 +1,9 @@
-from doi_downloader import loader as ld
-from doi_downloader import csv
 import argparse
 from dotenv import load_dotenv
+
+from doi_downloader import loader as ld
+from doi_downloader import csv
+from doi_downloader.plugins import CacheMode
 
 # Load environment variables from .env file
 load_dotenv()
@@ -31,8 +33,8 @@ def main():
     crf = plugins['CrossrefPlugin']
 
     for doi in unique_dois:
-        url = crf.get_pdf_url(doi)
-        print(f'{doi} {url}')
+        urls = crf.get_pdf_urls(doi, cache_mode=CacheMode.REFRESH)
+        print(f'{doi} {urls}')
 
 
 main()

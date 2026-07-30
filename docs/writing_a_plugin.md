@@ -23,10 +23,6 @@ from doi_downloader import article_dataobject as ado
 MY_API_URL = "https://example.com/{doi}"
 
 class MyPlugin(Plugin):
-    def __new__(self):
-        instance = super(Plugin, self).__new__(self)
-        return instance
-
     def test(self):
         return True
 
@@ -48,11 +44,6 @@ class MyPlugin(Plugin):
         except requests.exceptions.RequestException as e:
             print(f"An error occurred: {e}")
             return None
-
-
-    def get_pdf_url(self, doi, use_cache=True, ttl=0):
-        metadata = self.fetch_metadata(doi)
-        return metadata.get_pdf_url() if metadata else None
 ```
 
 The plugin needs to implement two functions: `fetch_metadata` and `get_pdf_url`. The `fetch_metadata` function should return an `ArticleDataObject` containing the metadata of the article, while the `get_pdf_url` function should return the URL of the PDF file.
@@ -67,47 +58,28 @@ from doi_downloader import loader as ld
 
 doi = "10.1000/xyz123"
 metadata = ld.plugins["MyPlugin"].fetch_metadata(doi)
-pdf_url = ld.plugins["MyPlugin"].get_pdf_url(doi)
+pdf_urls = ld.plugins["MyPlugin"].get_pdf_urls(doi)
 ```
 
 ### Step 4: Caching API results
 
-It is advantageous to cache the results of the plugin to avoid making repeated API calls for the same DOI. This feature needs to be implemented as part of the plugin.
-`doi_downloader` implements a cache object that can be used to store the results of the plugin. The following example shows how to make use of it:
+Caching is handled centrally by the `Plugin` base class, so a new plugin does not need to implement it. `Plugin.__init__` already
+sets up `self.cache = Cache("database.db", self.plugin_name)`, and the inherited `get_pdf_urls(doi, cache_mode=CacheMode.CACHE_FIRST, ttl=10)`
+method reads from and writes to that cache around your `fetch_metadata` call. You only need to implement `fetch_metadata`; `get_pdf_urls`
+is inherited as-is.
+
+`cache_mode` (from `doi_downloader.plugins.CacheMode`) controls how the cache is used:
+
+- `CacheMode.REFRESH`: skip the cache, call `fetch_metadata`, and store the result.
+- `CacheMode.CACHE_ONLY`: read from the cache only; return an empty list if there is no cached data.
+- `CacheMode.CACHE_FIRST` (default): try the cache first, falling back to `REFRESH` behavior if there is no cached data.
 
 ```python
-from doi_downloader.plugins import Plugin
-from doi_downloader.cache_duckdb import Cache
-from doi_downloader import article_dataobject as ado
+from doi_downloader import loader as ld
+from doi_downloader.plugins import CacheMode
 
-
-class MyPlugin(Plugin):
-    def __new__(self):
-        instance = super(Plugin, self).__new__(self)
-        self.cache = Cache("database.db", "myplugin")
-        return instance
-
-    def test(self):
-        return True
-
-    def fetch_metadata(self, doi):
-        return None
-
-    def get_pdf_url(self, doi, use_cache=True, ttl=0):
-        if use_cache:
-            cached_data = self.cache.get_cache(doi, ttl=ttl)
-            if cached_data:
-                data_object = ado.ArticleDataObject.from_json(cached_data)
-                data_object.validate()
-                return data_object.get_pdf_link()
-
-        metadata = self.fetch_metadata(doi)
-        if metadata:
-            if use_cache:
-                self.cache.set_cache(doi, metadata.to_json())
-            return metadata.get_pdf_link()
-        else:
-            return None
+doi = "10.1000/xyz123"
+pdf_urls = ld.plugins["MyPlugin"].get_pdf_urls(doi, cache_mode=CacheMode.CACHE_FIRST)
 ```
 
 The available plugins in the [doi_downloader/plugins](https://github.com/escience-tmsr/doi-downloader/tree/main/doi_downloader/plugins) directory can be inspected for more example plugins code. 

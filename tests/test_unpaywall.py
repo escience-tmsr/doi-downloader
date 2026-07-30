@@ -1,10 +1,19 @@
-from doi_downloader.plugins import unpaywall as unpaywall
 import responses
 import os
+import pytest
+
+from doi_downloader.plugins import unpaywall
+from doi_downloader.plugins import CacheMode
 
 TEST_DOI="10.1007/s10207-021-00566-3"
 TEST_FILE="10.1007_s10207-021-00566-3.pdf"
 UNPAYWALL_API_URL = "https://api.unpaywall.org/v2/{doi}?email={email}"
+
+
+@pytest.fixture(autouse=True)
+def set_test_email(monkeypatch):
+    """Avoid needing a real UNPAYWALL_EMAIL / .env file in CI."""
+    monkeypatch.setattr(unpaywall, "UNPAYWALL_EMAIL", "test@example.com")
 
 
 @responses.activate
@@ -18,5 +27,5 @@ def test_get_url(tmp_path):
                   status=200)
 
 
-    url = upw.get_pdf_url(TEST_DOI, use_cache=False)
-    assert url =='https://link.springer.com/content/pdf/10.1007/s10207-021-00566-3.pdf'
+    urls = upw.get_pdf_urls(TEST_DOI, cache_mode=CacheMode.REFRESH)
+    assert 'https://link.springer.com/content/pdf/10.1007/s10207-021-00566-3.pdf' in urls

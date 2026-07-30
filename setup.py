@@ -33,6 +33,7 @@ setup(
     name="doi_downloader",
     version="0.1.0",
     packages=find_packages(exclude=["tests", ".github"]),
+    python_requires=">=3.11",
     # version=read("doi_downloader", "VERSION"),
     description="Awesome doi_downloader created by escience-cosmas",
     # url="https://github.com/escience-cosmas/doi-downloader/",

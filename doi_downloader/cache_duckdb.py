@@ -1,6 +1,6 @@
 import duckdb
 import json
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, UTC
 
 class Cache:
     def __init__(self, db_name, table_name):
@@ -38,7 +38,7 @@ class Cache:
 
         value, timestamp_str = row
         timestamp = datetime.fromisoformat(timestamp_str)
-        current_time = datetime.utcnow()
+        current_time = datetime.now(UTC)
 
         if (timestamp + timedelta(seconds=ttl)) >= current_time:
             return json.loads(value)
@@ -48,7 +48,7 @@ class Cache:
     def set_cache(self, key, value):
         conn = duckdb.connect(self.db_name)
         # Saving UTC timestamp
-        timestamp = datetime.utcnow().isoformat()
+        timestamp = datetime.now(UTC).isoformat()
         conn.execute(f'''INSERT OR REPLACE INTO {self.table_name} (key, value, timestamp) VALUES (?, ?, ?)''',
                      (key, json.dumps(value), timestamp))
         conn.close()
@@ -65,7 +65,7 @@ class Cache:
 
     def delete_expired_cache(self, ttl=3600):
         conn = duckdb.connect(self.db_name)
-        current_time = datetime.utcnow()
+        current_time = datetime.now(UTC)
         rows = conn.execute(f'''SELECT key, timestamp FROM {self.table_name}''').fetchall()
 
         for key, timestamp_str in rows:

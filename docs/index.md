@@ -8,8 +8,9 @@ and developers who are looking for PDFs of research papers related to DOIs.
 Current plugins include:
 
 - **Crossref**: A widely used service for retrieving metadata and content associated with DOIs.
-- **Unpaywall**: A service that provides access to open access versions of scholarly articles.
 - **CORE**: A service that aggregates open access research outputs from repositories and journals worldwide
   (requires API key)
+- **Doi.org**: A service that translates a DOI to the publisher web page of the paper
 - **SerpApi**: A service that provides access to search engine results, including scholarly articles 
   (requires API key).
+- **Unpaywall**: A service that provides access to open access versions of scholarly articles.
