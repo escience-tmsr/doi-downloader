@@ -1,5 +1,6 @@
-from dotenv import load_dotenv
 from enum import Enum
+
+from dotenv import load_dotenv
 
 from doi_downloader.article_dataobject import ArticleDataObject
 from doi_downloader.benchmark import BenchmarkLogger

@@ -61,7 +61,9 @@ def download(doi, output_dir=".", force_download=False,
                     attempt.resolved_url = urls[0]
                 
                 print(f"Plugin: {plugin_name},  doi:{doi},  url: {urls[0]}")
-                downloaded_file = pdf_dl.download_pdf(urls[0], safe_filename, directory=output_dir, plugin_name=plugin_name)
+                downloaded_file = pdf_dl.download_pdf(
+                    urls[0], safe_filename, directory=output_dir, plugin_name=plugin_name
+                )
                 
                 if downloaded_file:
                     # Mark download success

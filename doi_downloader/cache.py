@@ -1,7 +1,8 @@
-import sqlite3
 import json
-import time
 import os
+import sqlite3
+import time
+
 
 class Cache:
     def __init__(self, db_name):

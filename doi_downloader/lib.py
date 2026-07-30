@@ -1,15 +1,14 @@
 import logging
+import time
+from functools import cache
+from urllib.parse import urljoin, urlsplit
+from urllib.robotparser import RobotFileParser
+
 import pypdf
 import regex
 import requests
-import time
-from functools import cache
-from urllib.parse import urljoin
-from playwright.async_api import async_playwright
-from urllib.robotparser import RobotFileParser
-from urllib.parse import urlsplit
 from bs4 import BeautifulSoup
-
+from playwright.async_api import async_playwright
 
 logger = logging.getLogger(__name__)
 

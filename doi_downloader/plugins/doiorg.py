@@ -1,8 +1,8 @@
 from requests.exceptions import ConnectionError, HTTPError, ReadTimeout, TooManyRedirects
 
-from doi_downloader.plugins import Plugin
-from doi_downloader.lib import get_pdf_url_from_html_text, get_page_with_requests
 from doi_downloader.article_dataobject import ArticleDataObject
+from doi_downloader.lib import get_page_with_requests, get_pdf_url_from_html_text
+from doi_downloader.plugins import Plugin
 
 DOIORG_URL = "https://doi.org/{doi}"
 

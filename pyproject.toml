@@ -112,6 +112,10 @@ ignore = [
     "D104", # Missing public package docstring
     "D105", # Missing docstring in magic method
     "D107", # Missing docstring in `__init__`
+    # TODO: These ignores are temporary and should be resolved in code
+    "BLE001",  # Catching bare Exceptions
+    "PLW0602", # Not assigning to global variable
+    "TRY002",  # Creating own exception
 ]
 pydocstyle.convention = "google"
 

@@ -1,6 +1,7 @@
-import os
 import importlib.util
 import inspect
+import os
+
 from doi_downloader.plugins import Plugin
 
 PLUGIN_FOLDER = os.path.join(os.path.dirname(__file__), "plugins")

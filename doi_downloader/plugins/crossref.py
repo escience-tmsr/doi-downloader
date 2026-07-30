@@ -1,7 +1,8 @@
-from doi_downloader.plugins import Plugin
+from requests.exceptions import ConnectionError, HTTPError, ReadTimeout, TooManyRedirects
+
 from doi_downloader.article_dataobject import ArticleDataObject
 from doi_downloader.lib import get_page_with_requests
-from requests.exceptions import ConnectionError, HTTPError, ReadTimeout, TooManyRedirects
+from doi_downloader.plugins import Plugin
 
 # Read API keys and other sensitive data from environment variables
 CROSSREF_API_URL = "https://api.crossref.org/works/{doi}"

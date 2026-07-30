@@ -1,10 +1,11 @@
 import os
-from doi_downloader.plugins import Plugin
-from doi_downloader.article_dataobject import ArticleDataObject
+
 from dotenv import load_dotenv
-from doi_downloader.lib import get_page_with_requests
 from requests.exceptions import ConnectionError, HTTPError, ReadTimeout, TooManyRedirects
 
+from doi_downloader.article_dataobject import ArticleDataObject
+from doi_downloader.lib import get_page_with_requests
+from doi_downloader.plugins import Plugin
 
 # Load environment variables from .env file
 load_dotenv()
@@ -58,7 +59,9 @@ class CoreacukPlugin(Plugin):
                     data_object.add_pdf_link(source)
 
             print(
-                f"[{self.plugin_name}] Title: {title} has download url: {download_link} and full text sources: {full_text_sources}")
+                f"[{self.plugin_name}] Title: {title} has download url:"
+                f" {download_link} and full text sources: {full_text_sources}"
+            )
             return data_object
 
         except HTTPError:

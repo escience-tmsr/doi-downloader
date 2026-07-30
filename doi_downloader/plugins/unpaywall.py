@@ -1,9 +1,10 @@
 import os
-from doi_downloader.plugins import Plugin
-from doi_downloader.article_dataobject import ArticleDataObject
-from doi_downloader.lib import get_page_with_requests
+
 from requests.exceptions import ConnectionError, ConnectTimeout, HTTPError, ReadTimeout, TooManyRedirects
 
+from doi_downloader.article_dataobject import ArticleDataObject
+from doi_downloader.lib import get_page_with_requests
+from doi_downloader.plugins import Plugin
 
 # Read API keys and other sensitive data from environment variables
 # UNPAYWALL_EMAIL = None
@@ -18,7 +19,7 @@ class UnpaywallPlugin(Plugin):
 
     def fetch_metadata(self, doi):
         if not UNPAYWALL_EMAIL:
-            raise EnvironmentError("Please make sure email is set using set_email().")
+            raise OSError("Please make sure email is set using set_email().")
         url = UNPAYWALL_API_URL.format(doi=doi, email=UNPAYWALL_EMAIL)
         try:
             response = get_page_with_requests(url, params={}, plugin_name=self.plugin_name)
