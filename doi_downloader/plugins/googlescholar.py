@@ -2,7 +2,7 @@ import os
 
 from requests.exceptions import ConnectionError, HTTPError, ReadTimeout, TooManyRedirects
 
-from doi_downloader import article_dataobject as ado
+from doi_downloader.article_dataobject import ArticleDataObject
 from doi_downloader.lib import get_pdf_url_from_html_text, get_page_with_requests, robot_access_allowed
 from doi_downloader.plugins import Plugin
 
@@ -37,7 +37,7 @@ class GoogleScholarSerpAPIPlugin(Plugin):
 
     def make_data_object(self, top_result, doi, publisher_link, pdf_links, links_verified):
         """Store paper data in data object"""
-        data_object = ado.ArticleDataObject(None)
+        data_object = ArticleDataObject(None)
         data_object.set_title(top_result.get("title"))
         data_object.set_doi(doi)
         data_object.add_link(publisher_link)
@@ -71,10 +71,10 @@ class GoogleScholarSerpAPIPlugin(Plugin):
             except TooManyRedirects:
                 print(f"[{self.plugin_name}] too many redirects acccessing publisher page")
             else:
-                publisher_pdf_link = get_pdf_url_from_html_text(response.text, plugin_name=self.plugin_name)
                 if not links_verified and publisher_link:
                     links_verified = self.verify_link_by_html(doi, response.text)
-                if publisher_pdf_link and publisher_pdf_link not in pdf_links and not links_verified:
+                publisher_pdf_link = get_pdf_url_from_html_text(response.text, plugin_name=self.plugin_name)
+                if not links_verified and publisher_pdf_link not in pdf_links:
                     links_verified = self.verify_links_by_url(doi, publisher_link, [publisher_pdf_link])
 
         return self.make_data_object(top_result, doi, publisher_link, pdf_links, links_verified)
@@ -84,7 +84,6 @@ class GoogleScholarSerpAPIPlugin(Plugin):
         if not SERPAPI_KEY:
             raise EnvironmentError("[self.plugin_name] Please set SERPAPI_KEY environment variable.")
 
-        empty_data_object = self.make_data_object({}, doi, None, [], False)
         try:
             response = get_page_with_requests(SERPAPI_SEARCH_URL,
                                               params=PARAMS_BASE | {"q": f"doi:{doi}"},
@@ -107,4 +106,4 @@ class GoogleScholarSerpAPIPlugin(Plugin):
                 return self.get_data_object(results, doi)
             print(f"[{self.plugin_name}] no search results for DOI {doi}")
 
-        return empty_data_object
+        return self.make_data_object({}, doi, None, [], False)

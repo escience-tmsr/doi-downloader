@@ -2,7 +2,7 @@ import responses
 import os
 import pytest
 
-from doi_downloader.plugins import unpaywall as unpaywall
+from doi_downloader.plugins import unpaywall
 from doi_downloader.plugins import CacheMode
 
 TEST_DOI="10.1007/s10207-021-00566-3"

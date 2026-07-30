@@ -1,6 +1,6 @@
 import os
 from doi_downloader.plugins import Plugin
-from doi_downloader import article_dataobject as ado
+from doi_downloader.article_dataobject import ArticleDataObject
 from dotenv import load_dotenv
 from doi_downloader.lib import get_page_with_requests
 from requests.exceptions import ConnectionError, HTTPError, ReadTimeout, TooManyRedirects
@@ -40,27 +40,26 @@ class CoreacukPlugin(Plugin):
         full_url = f"{base_url}/{doi}"
 
         try:
-            retries = 1
-            for i in range(retries):
-                response = get_page_with_requests(full_url, headers=headers, plugin_name=self.plugin_name)
-                response.raise_for_status()  # Raise an HTTPError for bad responses (4xx and 5xx)
+            response = get_page_with_requests(full_url, headers=headers, plugin_name=self.plugin_name)
+            response.raise_for_status()  # Raise an HTTPError for bad responses (4xx and 5xx)
 
-                paper = response.json()
-                title = paper.get("title", "N/A")
-                download_link = paper.get("downloadUrl", "N/A")
-                full_text_sources = paper.get("sourceFulltextUrls", [])
-                data_object = ado.ArticleDataObject(None)
-                data_object.set_title(title)
-                data_object.set_doi(doi)
-                
-                if download_link:
-                    data_object.add_pdf_link(download_link)
-                for source in full_text_sources:
-                    if "pdf" in source:
-                        data_object.add_pdf_link(source) 
+            paper = response.json()
+            title = paper.get("title", "N/A")
+            download_link = paper.get("downloadUrl", "N/A")
+            full_text_sources = paper.get("sourceFulltextUrls", [])
+            data_object = ArticleDataObject(None)
+            data_object.set_title(title)
+            data_object.set_doi(doi)
 
-                print(f"[{self.plugin_name}] Title: {title} has download url: {download_link} and full text sources: {full_text_sources}")
-                return data_object
+            if download_link:
+                data_object.add_pdf_link(download_link)
+            for source in full_text_sources:
+                if "pdf" in source:
+                    data_object.add_pdf_link(source)
+
+            print(
+                f"[{self.plugin_name}] Title: {title} has download url: {download_link} and full text sources: {full_text_sources}")
+            return data_object
 
         except HTTPError:
             print(f"[{self.plugin_name}] access error while fetching data, authorization problem?")

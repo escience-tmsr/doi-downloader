@@ -34,18 +34,15 @@ def robot_access_allowed(url, plugin_name=""):
     try:
         response = get_robots_txt(robots_txt_url)
     except requests.RequestException:
-        # website access problem for robots.txt
+        # If no robots.txt exists, we assume access is allowed
         return True
     if response.status_code != 200:
-        # webpage access problem for robots.txt: "
+        # If we cannot access robots.txt, we assume access of the original url is allowed
         return True
     robot_parsed = RobotFileParser()
     robot_parsed.set_url(robots_txt_url)
     robot_parsed.parse(response.text.splitlines())
-    if not robot_parsed.can_fetch("*", url):
-        return False
-    else:
-        return True
+    return robot_parsed.can_fetch("*", url)
 
 
 BROWSER_PARAMS = { "User-Agent": ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
@@ -62,12 +59,12 @@ def get_page_with_requests(url, headers=BROWSER_PARAMS, params=None, timeout=10,
         time.sleep(1)
         if response.status_code not in [301, 302, 303]:
             return response
-        else:
-            url = urljoin(response.url, response.headers.get("Location"))
-            if robot_access_allowed(url):
-                continue
-            print(f"[{plugin_name}] robots.txt blocks {url}")
-            return response
+
+        url = urljoin(response.url, response.headers.get("Location"))
+        if robot_access_allowed(url):
+            continue
+        print(f"[{plugin_name}] robots.txt blocks {url}")
+        return response
     raise Exception(f"[{plugin_name}] get_page_with_requests: too many hops: {max_hops}")
 
 
@@ -116,9 +113,9 @@ def verify_downloaded_pdf(filename, target_doi, plugin_name=None):
     """verify_downloaded_pdf: find search_string in PDF file stored on disk"""
     with open(filename, "rb") as infile:
         reader = pypdf.PdfReader(infile)
-        for page_num, page in enumerate(reader.pages):
-            text = page.extract_text()
-            if target_doi.lower() in text.lower():
-                print(f"[{plugin_name}] Found DOI in PDF on page {page_num + 1}")
-                return True
+    for page_num, page in enumerate(reader.pages, start=1):
+        text = page.extract_text()
+        if target_doi.lower() in text.lower():
+            print(f"[{plugin_name}] Found DOI in PDF on page {page_num}")
+            return True
     return False

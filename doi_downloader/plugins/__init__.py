@@ -11,8 +11,11 @@ load_dotenv()
 
 class CacheMode(Enum):
     REFRESH = "refresh"
+    """Skip the cache, call `fetch_metadata`, and store the result."""
     CACHE_ONLY = "cache_only"
+    """Read from the cache only; return an empty list if there is no cached data."""
     CACHE_FIRST = "cache_first"
+    """Try the cache first, falling back to `REFRESH` behavior if there is no cached data."""
 
 
 class Plugin:

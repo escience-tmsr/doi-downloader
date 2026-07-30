@@ -35,9 +35,9 @@ def download(doi, output_dir=".", force_download=False,
     os.makedirs(output_dir, exist_ok=True)
     
     safe_filename = sanitize_doi(doi) + ".pdf"
-    if not force_download and os.path.exists(os.path.join(output_dir, f"{safe_filename}")):
-        print(f"File already exists: {os.path.join(output_dir, f'{safe_filename}')}")
-        return os.path.join(output_dir, f"{safe_filename}")
+    if not force_download and os.path.exists(os.path.join(output_dir, safe_filename)):
+        print(f"File already exists: {os.path.join(output_dir, safe_filename)}")
+        return os.path.join(output_dir, safe_filename)
 
     downloaded_file = None
 

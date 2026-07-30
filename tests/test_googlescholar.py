@@ -3,6 +3,7 @@ import pytest
 import responses
 
 from doi_downloader import lib
+from doi_downloader.article_dataobject import ArticleDataObject
 from doi_downloader.plugins import googlescholar
 from doi_downloader.plugins import CacheMode
 
@@ -18,7 +19,7 @@ UNMATCHED_PDF_LINK = "https://link.springer.com/content/pdf/other-paper.pdf"
 
 # checked
 @pytest.fixture(autouse=True)
-def check_wrapper_always_run(monkeypatch):
+def prepare_patched_googlescholar_plugin(monkeypatch):
     """Avoid needing a real SERPAPI_KEY, real sleeps, and robots.txt caching
     bleeding between tests (get_robots_txt is memoized with functools.cache)."""
     monkeypatch.setattr(googlescholar, "SERPAPI_KEY", "test-serpapi-key")
@@ -57,7 +58,7 @@ def mock_robots_txt_allowed():
 @responses.activate
 def test_get_pdf_urls_uses_cache(monkeypatch):
     plugin = googlescholar.GoogleScholarSerpAPIPlugin()
-    cached_object = googlescholar.ado.ArticleDataObject(None)
+    cached_object = ArticleDataObject(None)
     cached_object.set_title("Cached title")
     cached_object.set_doi(TEST_DOI)
     cached_object.add_pdf_link(PDF_LINK)
