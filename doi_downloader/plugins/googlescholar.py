@@ -17,15 +17,12 @@ class GoogleScholarSerpAPIPlugin(Plugin):
     def test(self):
         return SERPAPI_KEY is not None
 
-    def verify_links_by_url(self, target_doi, publisher_link, pdf_links):
+    def verify_links_by_url(self, target_doi, links):
         """Compare returned links with target DOI"""
-        for pdf_link in pdf_links:
+        for pdf_link in links:
             if pdf_link and target_doi.lower() in str(pdf_link).lower():
                 print(f"[{self.plugin_name}] PDF link matches DOI {target_doi}")
                 return True
-        if publisher_link and target_doi.lower() in str(publisher_link).lower():
-            print(f"[{self.plugin_name}] publisher link matches DOI {target_doi}")
-            return True
         return False
 
     def verify_link_by_html(self, target_doi, text):
@@ -56,7 +53,7 @@ class GoogleScholarSerpAPIPlugin(Plugin):
         top_result = results[0]
         publisher_link = top_result.get("link")
         pdf_links = [record["link"] for record in top_result.get("resources", []) if record.get("link")]
-        links_verified = self.verify_links_by_url(doi, publisher_link, pdf_links)
+        links_verified = self.verify_links_by_url(doi, [*pdf_links, publisher_link])
 
         if robot_access_allowed(publisher_link):
             try:
@@ -75,7 +72,7 @@ class GoogleScholarSerpAPIPlugin(Plugin):
                     links_verified = self.verify_link_by_html(doi, response.text)
                 publisher_pdf_link = get_pdf_url_from_html_text(response.text, plugin_name=self.plugin_name)
                 if not links_verified and publisher_pdf_link not in pdf_links:
-                    links_verified = self.verify_links_by_url(doi, publisher_link, [publisher_pdf_link])
+                    links_verified = self.verify_links_by_url(doi, [publisher_pdf_link, publisher_link])
 
         return self.make_data_object(top_result, doi, publisher_link, pdf_links, links_verified)
 

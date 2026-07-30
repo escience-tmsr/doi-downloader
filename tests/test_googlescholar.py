@@ -147,20 +147,20 @@ def test_fetch_metadata_missing_api_key(monkeypatch):
 # checked
 def test_verify_links_by_url_matches_pdf_link():
     plugin = googlescholar.GoogleScholarSerpAPIPlugin()
-    assert plugin.verify_links_by_url(TEST_DOI, UNMATCHED_PUBLISHER_LINK, [PDF_LINK]) is True
+    assert plugin.verify_links_by_url(TEST_DOI, [PDF_LINK, UNMATCHED_PUBLISHER_LINK]) is True
 
 
 # checked
 def test_verify_links_by_url_matches_publisher_link():
     plugin = googlescholar.GoogleScholarSerpAPIPlugin()
-    assert plugin.verify_links_by_url(TEST_DOI, PUBLISHER_LINK, []) is True
+    assert plugin.verify_links_by_url(TEST_DOI, [PUBLISHER_LINK]) is True
 
 
 # checked
 def test_verify_links_by_url_no_match():
     plugin = googlescholar.GoogleScholarSerpAPIPlugin()
     assert plugin.verify_links_by_url(
-        TEST_DOI, UNMATCHED_PUBLISHER_LINK, [UNMATCHED_PDF_LINK]) is False
+        TEST_DOI, [UNMATCHED_PDF_LINK, UNMATCHED_PUBLISHER_LINK]) is False
 
 
 # checked
