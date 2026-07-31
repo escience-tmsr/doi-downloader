@@ -1,6 +1,8 @@
-import duckdb
 import json
-from datetime import datetime, timedelta, UTC
+from datetime import UTC, datetime, timedelta
+
+import duckdb
+
 
 class Cache:
     def __init__(self, db_name, table_name):

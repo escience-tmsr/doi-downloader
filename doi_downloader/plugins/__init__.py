@@ -1,7 +1,8 @@
-from dotenv import load_dotenv
 from enum import Enum
 
-from doi_downloader import article_dataobject as ado
+from dotenv import load_dotenv
+
+from doi_downloader.article_dataobject import ArticleDataObject
 from doi_downloader.benchmark import BenchmarkLogger
 from doi_downloader.cache_duckdb import Cache
 
@@ -46,7 +47,7 @@ class Plugin:
         if cache_mode in (CacheMode.CACHE_ONLY, CacheMode.CACHE_FIRST):
             try:
                 cached_data = self.cache.get_cache(doi, ttl=ttl)
-                data_object = ado.ArticleDataObject.from_json(cached_data)
+                data_object = ArticleDataObject.from_json(cached_data)
                 data_object.validate()
                 pdf_urls = data_object.get_pdf_links()
                 print(f"[{self.plugin_name}] using cached data for {doi}.")

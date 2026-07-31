@@ -15,10 +15,8 @@ source env/bin/activate
 python -m pip install --upgrade pip setuptools
 
 # (from the project root directory)
-# install doi-downloader as an editable package
-python -m pip install --no-cache-dir --editable .
-# install development dependencies
-python -m pip install -r requirements-test.txt
+# install doi-downloader as an editable package with development dependencies
+python -m pip install --no-cache-dir --editable . --group dev
 ```
 
 ## Running the tests
@@ -47,7 +45,7 @@ Several checks will only run if relevant files have been changed.
 You can install it as follows:
 
 ```shell
-python -m pip install pre-commit  # only needed if you didn't already install requirements-test.txt
+python -m pip install pre-commit  # only needed if you didn't already install with `--group dev`.
 pre-commit install
 ```
 

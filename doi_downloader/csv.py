@@ -1,5 +1,5 @@
-import os
 import csv
+import os
 
 
 def load_dois_from_file(file_path, column_name="doi", unique=False):

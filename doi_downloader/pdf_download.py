@@ -1,7 +1,10 @@
 import os
-from doi_downloader import config
-from doi_downloader.lib import robot_access_allowed, get_page_with_requests
+
 from requests.exceptions import ConnectionError, ConnectTimeout, HTTPError, TooManyRedirects
+
+from doi_downloader import config
+from doi_downloader.lib import get_page_with_requests, robot_access_allowed
+
 
 # Function to check if file is a PDF file
 def is_valid_pdf(filename):

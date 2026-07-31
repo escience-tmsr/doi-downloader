@@ -8,13 +8,12 @@ Architecture:
 3. Integration points in existing code
 """
 
-import json
-from datetime import datetime
-from pathlib import Path
-from collections import defaultdict
-from dataclasses import dataclass, asdict
-from typing import Optional, Dict, List
 import csv
+import json
+from collections import defaultdict
+from dataclasses import asdict, dataclass
+from datetime import UTC, datetime
+from pathlib import Path
 
 # =============================================================================
 # 1. DATA MODEL
@@ -26,18 +25,18 @@ class DownloadAttempt:
     doi: str                                # DOI on which the download attempt was made     
     timestamp: str                          # When the download attempt was made
     plugin_name: str                        # Which plugin was used to make the download attempt
-    resolved_url: Optional[str] = None      # DOI resolves to a URL
-    journal_domain: Optional[str] = None    # Resolved URL contains the journal name (domain of the URL)
+    resolved_url: str | None = None      # DOI resolves to a URL
+    journal_domain: str | None = None    # Resolved URL contains the journal name (domain of the URL)
     
     # Success metrics
     url_resolved: bool = False              # Was the DOI successfully resolved to a URL?
     pdf_downloaded: bool = False            # Was the PDF successfully downloaded?
     
     # Additional metadata
-    duration_ms: Optional[float] = None     # How long did the download attempt take?
-    file_size_bytes: Optional[int] = None   # How large was the PDF file, if downloaded?
-    error_message: Optional[str] = None     # What was the error message if download failed?
-    http_status: Optional[int] = None       # HTTP response code
+    duration_ms: float | None = None     # How long did the download attempt take?
+    file_size_bytes: int | None = None   # How large was the PDF file, if downloaded?
+    error_message: str | None = None     # What was the error message if download failed?
+    http_status: int | None = None       # HTTP response code
         
     def to_dict(self):
         return asdict(self)
@@ -61,16 +60,16 @@ class BenchmarkLogger:
             f.write('\n')
     
     def create_attempt(self, doi: str, plugin_name: str, 
-                      journal_domain: Optional[str] = None) -> DownloadAttempt:
+                      journal_domain: str | None = None) -> DownloadAttempt:
         """Factory method to create a new attempt"""
         return DownloadAttempt(
             doi=doi,
-            timestamp=datetime.now().isoformat(),
+            timestamp=datetime.now(UTC).isoformat(),
             plugin_name=plugin_name,
             journal_domain=journal_domain
         )
     
-    def read_attempts(self) -> List[DownloadAttempt]:
+    def read_attempts(self) -> list[DownloadAttempt]:
         """Read all attempts from log file"""
         if not self.log_file.exists():
             return []
@@ -94,7 +93,7 @@ class BenchmarkAnalyzer:
         self.logger = logger
         self.attempts = logger.read_attempts()
     
-    def overall_success_rate(self) -> Dict:
+    def overall_success_rate(self) -> dict:
         """Calculate overall success rates"""
         if not self.attempts:
             return {"error": "No data available"}
@@ -109,7 +108,7 @@ class BenchmarkAnalyzer:
             "pdf_download_rate": round(pdf_downloaded / total * 100, 2)
         }
     
-    def per_plugin_performance(self) -> Dict:
+    def per_plugin_performance(self) -> dict:
         """Calculate success rates per plugin"""
         plugin_stats = defaultdict(lambda: {"total": 0, "url_resolved": 0, "pdf_downloaded": 0})
         
@@ -133,7 +132,7 @@ class BenchmarkAnalyzer:
         
         return results
     
-    def per_journal_performance(self) -> Dict:
+    def per_journal_performance(self) -> dict:
         """Calculate success rates per journal/domain"""
         journal_stats = defaultdict(lambda: {"total": 0, "url_resolved": 0, "pdf_downloaded": 0})
         
@@ -160,7 +159,7 @@ class BenchmarkAnalyzer:
         
         return results
     
-    def plugin_journal_matrix(self) -> Dict:
+    def plugin_journal_matrix(self) -> dict:
         """Analyze performance for each plugin-journal combination"""
         matrix = defaultdict(lambda: defaultdict(lambda: {
             "total": 0, "url_resolved": 0, "pdf_downloaded": 0
@@ -197,15 +196,14 @@ class BenchmarkAnalyzer:
         with open(output_file, 'w', encoding='utf-8') as f:
             f.write("=" * 80 + "\n")
             f.write("DOI DOWNLOADER PERFORMANCE REPORT\n")
-            f.write(f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+            f.write(f"Generated: {datetime.now(UTC).strftime('%Y-%m-%d %H:%M:%S')}\n")
             f.write("=" * 80 + "\n\n")
             
             # Overall stats
             f.write("OVERALL PERFORMANCE\n")
             f.write("-" * 80 + "\n")
             overall = self.overall_success_rate()
-            for key, value in overall.items():
-                f.write(f"{key}: {value}\n")
+            f.writelines(f"{key}: {value}\n" for key, value in overall.items())
             f.write("\n")
             
             # Per-plugin stats
@@ -214,8 +212,7 @@ class BenchmarkAnalyzer:
             per_plugin = self.per_plugin_performance()
             for plugin, stats in sorted(per_plugin.items()):
                 f.write(f"\n{plugin}:\n")
-                for key, value in stats.items():
-                    f.write(f"  {key}: {value}\n")
+                f.writelines(f"  {key}: {value}\n" for key, value in stats.items())
             f.write("\n")
             
             # Per-journal stats
@@ -224,8 +221,7 @@ class BenchmarkAnalyzer:
             per_journal = self.per_journal_performance()
             for journal, stats in sorted(per_journal.items()):
                 f.write(f"\n{journal}:\n")
-                for key, value in stats.items():
-                    f.write(f"  {key}: {value}\n")
+                f.writelines(f"  {key}: {value}\n" for key, value in stats.items())
             f.write("\n")
             
             # Plugin-journal matrix
@@ -236,8 +232,7 @@ class BenchmarkAnalyzer:
                 f.write(f"\n{plugin}:\n")
                 for journal, stats in sorted(journals.items()):
                     f.write(f"  {journal}:\n")
-                    for key, value in stats.items():
-                        f.write(f"    {key}: {value}\n")
+                    f.writelines(f"    {key}: {value}\n" for key, value in stats.items())
             
         print(f"Report generated: {output_file}")
     

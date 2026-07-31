@@ -3,7 +3,7 @@ import os
 from requests.exceptions import ConnectionError, HTTPError, ReadTimeout, TooManyRedirects
 
 from doi_downloader.article_dataobject import ArticleDataObject
-from doi_downloader.lib import get_pdf_url_from_html_text, get_page_with_requests, robot_access_allowed
+from doi_downloader.lib import get_page_with_requests, get_pdf_url_from_html_text, robot_access_allowed
 from doi_downloader.plugins import Plugin
 
 SERPAPI_KEY = os.getenv("SERPAPI_KEY")
@@ -79,7 +79,7 @@ class GoogleScholarSerpAPIPlugin(Plugin):
     def fetch_metadata(self, doi):
         """Fetch metadata for doi from Serpapi API"""
         if not SERPAPI_KEY:
-            raise EnvironmentError("[self.plugin_name] Please set SERPAPI_KEY environment variable.")
+            raise OSError("[self.plugin_name] Please set SERPAPI_KEY environment variable.")
 
         try:
             response = get_page_with_requests(SERPAPI_SEARCH_URL,

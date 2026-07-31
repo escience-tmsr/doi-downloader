@@ -1,8 +1,14 @@
 # doi-downloader
 
+[![github license badge](https://img.shields.io/github/license/escience-tmsr/doi-downloader)](https://github.com/escience-tmsr/doi-downloader)
+[![CI](https://github.com/escience-tmsr/doi-downloader/actions/workflows/main.yml/badge.svg)](https://github.com/escience-tmsr/doi-downloader/actions/workflows/main.yml)
+
+
 ## Install
 
 ```bash
+git clone git@github.com:escience-tmsr/doi_downloader.git
+cd doi_downloader
 make virtualenv
 source .venv/bin/activate
 make install
@@ -31,7 +37,7 @@ Check [examples](./examples) for examples of how to use.
 
 Create a new file in the `plugins` directory, and implement the `Plugin` class. The class should implement the following methods:
 
-- `get_pdf_url`: This method should return the PDF URL for the given DOI.
+- `get_pdf_urls`: This method should return the PDF URL for the given DOI.
 - `fetch_metadata`: This method should return the metadata for the given DOI.
 
 ## Benchmarking plugin performance

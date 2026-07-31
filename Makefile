@@ -26,7 +26,7 @@ show:             ## Show the current environment.
 install:          ## Install the project in dev mode.
 	@if [ "$(USING_POETRY)" ]; then poetry install && exit; fi
 	@echo "Don't forget to run 'make virtualenv' if you got errors."
-	$(ENV_PREFIX)pip install -e .[test]
+	$(ENV_PREFIX)pip install -e .[examples] --group dev --group docs --group publishing
 
 .PHONY: fmt
 fmt:              ## Format code using black & isort.
@@ -69,14 +69,14 @@ virtualenv:       ## Create a virtual environment.
 	@echo "creating virtualenv ..."
 	@rm -rf .venv
 	@python -m venv .venv
-	@./.venv/bin/pip install -U pip
-	@./.venv/bin/pip install -e .[test]
+	@./.venv/bin/python -m pip install -U pip setuptools
+	@./.venv/bin/pip install -e .[examples] --group dev --group docs --group publishing
 	@echo
 	@echo "!!! Please run 'source .venv/bin/activate' to enable the environment !!!"
 
 .PHONY: release
 release:          ## Create a new tag for release.
-	@echo "WARNING: This operation will create s version tag and push to github"
+	@echo "WARNING: This operation will create a version tag and push to github"
 	@read -p "Version? (provide the next x.y.z semver) : " TAG
 	@echo "$${TAG}" > doi_downloader/VERSION
 	@$(ENV_PREFIX)gitchangelog > HISTORY.md

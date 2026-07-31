@@ -1,4 +1,5 @@
 import json
+
 import jsonschema
 from jsonschema import validate
 
@@ -207,7 +208,7 @@ class ArticleDataObject:
                 if author is not None
         ]
         def extract_pdf_link(data):
-            if "best_oa_location" in data and data["best_oa_location"]:
+            if data.get("best_oa_location"):
                 return data["best_oa_location"]["url_for_pdf"]
             return None
 
