@@ -1,9 +1,9 @@
-import responses
 from unittest.mock import patch
 
+import responses
+
 from doi_downloader import article_dataobject as ado
-from doi_downloader.plugins import doiorg
-from doi_downloader.plugins import CacheMode
+from doi_downloader.plugins import CacheMode, doiorg
 
 TEST_DOI = "10.1007/s10207-021-00566-3"
 

@@ -1,9 +1,8 @@
-import responses
-import os
-import pytest
 
-from doi_downloader.plugins import unpaywall
-from doi_downloader.plugins import CacheMode
+import pytest
+import responses
+
+from doi_downloader.plugins import CacheMode, unpaywall
 
 TEST_DOI = "10.1007/s10207-021-00566-3"
 TEST_FILE = "10.1007_s10207-021-00566-3.pdf"

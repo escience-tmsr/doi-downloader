@@ -1,10 +1,11 @@
-from doi_downloader import unpaywall as upw
+import argparse
+import os
+
+from dotenv import load_dotenv
+
 from doi_downloader import crossref as crf
 from doi_downloader import csv
-from doi_downloader import article_dataobject as ado
-import os
-import argparse
-from dotenv import load_dotenv
+from doi_downloader import unpaywall as upw
 
 # Load environment variables from .env file
 load_dotenv()
@@ -26,7 +27,7 @@ dois_file_path = args.file
 
 # Check if necessary variables are loaded
 if not UNPAYWALL_EMAIL:
-    raise EnvironmentError("Please make sure UNPAYWALL_EMAIL are set in the .env file.")
+    raise OSError("Please make sure UNPAYWALL_EMAIL are set in the .env file.")
 
 
 # Main function

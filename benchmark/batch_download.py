@@ -4,8 +4,9 @@ batch_download.py - Process CSV with benchmarking
 
 import csv
 import sys
+
+from doi_downloader.benchmark import BenchmarkAnalyzer, BenchmarkLogger
 from doi_downloader.doi_downloader import download
-from doi_downloader.benchmark import BenchmarkLogger, BenchmarkAnalyzer
 
 MAX_DOI = 20
 

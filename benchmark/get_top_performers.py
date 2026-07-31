@@ -2,9 +2,10 @@
 analyze_performance.py - Generate reports from benchmark data
 """
 
-import sys
 import os
-from doi_downloader.benchmark import BenchmarkLogger, BenchmarkAnalyzer
+import sys
+
+from doi_downloader.benchmark import BenchmarkAnalyzer, BenchmarkLogger
 
 
 def main(log_file="benchmark/logs/benchmark_log.jsonl"):

@@ -4,8 +4,7 @@ import responses
 
 from doi_downloader import lib
 from doi_downloader.article_dataobject import ArticleDataObject
-from doi_downloader.plugins import googlescholar
-from doi_downloader.plugins import CacheMode
+from doi_downloader.plugins import CacheMode, googlescholar
 
 TEST_DOI = "10.1007/s10207-021-00566-3"
 

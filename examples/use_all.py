@@ -1,6 +1,7 @@
-from doi_downloader import loader as ld
-from doi_downloader import csv
 import argparse
+
+from doi_downloader import csv
+from doi_downloader import loader as ld
 
 # Set up argument parser
 parser = argparse.ArgumentParser(description="Process a CSV file.")

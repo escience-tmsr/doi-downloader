@@ -1,4 +1,5 @@
 import jsonschema
+
 from doi_downloader import article_dataobject as ado
 
 # Example usage

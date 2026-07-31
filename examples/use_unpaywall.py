@@ -1,8 +1,7 @@
-import os
 import argparse
 
-from doi_downloader import loader as ld
 from doi_downloader import csv
+from doi_downloader import loader as ld
 from doi_downloader.plugins import CacheMode
 
 # Set up argument parser
