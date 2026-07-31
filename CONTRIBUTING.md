@@ -78,6 +78,8 @@ Usage: make <target>
 
 Targets:
 help:             ## Show the help.
+run:              ## Run the application.
+show:             ## Show the current environment.
 install:          ## Install the project in dev mode.
 fmt:              ## Format code using black & isort.
 lint:             ## Run pep8, black, mypy linters.
@@ -87,8 +89,8 @@ clean:            ## Clean unused files.
 virtualenv:       ## Create a virtual environment.
 release:          ## Create a new tag for release.
 docs:             ## Build the documentation.
-switch-to-poetry: ## Switch to poetry package manager.
-init:             ## Initialize the project based on an application template.
+docs-serve: docs  ## Serve the documentation locally.
+docs-deploy: docs ## Deploy the documentation to gh-pages branch.
 ```
 
 ## Making a new release

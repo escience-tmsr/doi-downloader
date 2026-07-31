@@ -20,7 +20,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ```bash
 make virtualenv          # create .venv and install project + test deps
 source .venv/bin/activate
-make install              # pip install -e .[test] (rerun after changing requirements*.txt)
+make install              # pip install -e .[examples] --group dev --group docs --group publishing (rerun after changing pyproject.toml deps)
 
 make fmt                  # format doi_downloader/ with ruff
 make lint                 # ruff check doi_downloader/
@@ -38,7 +38,7 @@ pytest tests/test_crossref.py::test_get_pdf_urls_uses_cache -v
 
 CI (`.github/workflows/main.yml`) runs `make lint` then `make test` on Linux/macOS/Windows for Python 3.12, and requires the linter job to pass first. CONTRIBUTING.md states the project targets 100% coverage on new code.
 
-There is no `pyproject.toml`; dependencies are pinned in `requirements.txt` (runtime) and installed via `setup.py`'s `install_requires`. `make switch-to-poetry` exists but switches the whole project to Poetry and is not the current setup — don't assume Poetry is in use.
+There is no `setup.py` or `requirements.txt`; project metadata and dependencies live in `pyproject.toml` (`[project]`/`dependencies`, `[project.optional-dependencies]` for `examples`, `[dependency-groups]` for `dev`/`docs`/`publishing`), and the package is installed via setuptools (`[build-system]`/`[tool.setuptools...]`). Tool config (`ruff`, `mypy`, `pytest`, `coverage`, `bumpversion`) also lives in `pyproject.toml` rather than separate `pytest.ini`/`.coveragerc` files. Don't assume Poetry is in use — the Makefile still has harmless `USING_POETRY` no-op guards in `show`/`install`/`virtualenv` (they check for a `[tool.poetry]` section in `pyproject.toml`, which isn't there), but the `switch-to-poetry` target itself was removed since it referenced `requirements*.txt`/`setup.py` files that no longer exist.
 
 For testing the syntax of CITATION.cff (requires installation of `cffconvert` with `pipx`):
 
@@ -62,7 +62,7 @@ Plugins that need credentials read them from a `.env` file in the repo root (loa
 - `SERPAPI_KEY` — required by the Google Scholar plugin
 - `CORE_API_KEY` — required by the CORE plugin
 
-Tests load `.env` via `pytest.ini`'s `env_files` (pytest-dotenv), and `tests/conftest.py` runs every test inside a temp cwd, so tests never touch the real `database.db` or `downloads/` in the repo root.
+Tests load `.env` via `pyproject.toml`'s `[tool.pytest.ini_options]` `env_files` setting (pytest-dotenv), and `tests/conftest.py` runs every test inside a temp cwd, so tests never touch the real `database.db` or `downloads/` in the repo root.
 
 ## Architecture
 
