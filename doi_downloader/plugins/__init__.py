@@ -2,6 +2,7 @@ from enum import Enum
 
 from dotenv import load_dotenv
 
+from doi_downloader import progress
 from doi_downloader.article_dataobject import ArticleDataObject
 from doi_downloader.benchmark import BenchmarkLogger
 from doi_downloader.cache_duckdb import Cache
@@ -47,17 +48,36 @@ class Plugin:
         if cache_mode in (CacheMode.CACHE_ONLY, CacheMode.CACHE_FIRST):
             try:
                 cached_data = self.cache.get_cache(doi, ttl=ttl)
-                data_object = ArticleDataObject.from_json(cached_data)
-                data_object.validate()
-                pdf_urls = data_object.get_pdf_links()
-                print(f"[{self.plugin_name}] using cached data for {doi}.")
-                return(pdf_urls)
-            except Exception:
-                print(f"[{self.plugin_name}] error reading from cache")
+            except Exception as e:
+                progress.record_cache(f"{progress.STATUS_ACCESS_ERROR}: {e}", [])
+                cached_data = None
+            else:
+                if cached_data is None:
+                    progress.record_cache(progress.STATUS_NOT_FOUND, [])
+                else:
+                    try:
+                        data_object = ArticleDataObject.from_json(cached_data)
+                        data_object.validate()
+                        pdf_urls = data_object.get_pdf_links()
+                    except Exception:
+                        print(f"[{self.plugin_name}] error reading from cache")
+                        progress.record_cache(f"{progress.STATUS_ACCESS_ERROR}: invalid cached data", [])
+                    else:
+                        print(f"[{self.plugin_name}] using cached data for {doi}.")
+                        progress.record_cache(progress.STATUS_SUCCESS, pdf_urls)
+                        return(pdf_urls)
             if cache_mode is CacheMode.CACHE_ONLY:
                 return []
+        else:
+            progress.record_cache(progress.STATUS_SKIPPED, [])
 
-        metadata = self.fetch_metadata(doi)
+        with progress.fetch_scope():
+            try:
+                metadata = self.fetch_metadata(doi)
+            except Exception as e:
+                progress.record_fetch(f"{progress.STATUS_ACCESS_ERROR}: {e}", None)
+                raise
+
         if metadata:
             self.cache.set_cache(doi, metadata.to_json())
             return metadata.get_pdf_links()
