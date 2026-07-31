@@ -11,6 +11,7 @@ from doi_downloader.plugins import Plugin
 UNPAYWALL_API_URL = "https://api.unpaywall.org/v2/{doi}?email={email}"
 UNPAYWALL_EMAIL = os.getenv("UNPAYWALL_EMAIL")
 
+
 class UnpaywallPlugin(Plugin):
     plugin_name = "unpaywall"
 

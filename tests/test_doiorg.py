@@ -5,7 +5,7 @@ from doi_downloader import article_dataobject as ado
 from doi_downloader.plugins import doiorg
 from doi_downloader.plugins import CacheMode
 
-TEST_DOI ="10.1007/s10207-021-00566-3"
+TEST_DOI = "10.1007/s10207-021-00566-3"
 
 
 @responses.activate

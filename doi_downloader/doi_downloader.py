@@ -17,11 +17,10 @@ def sanitize_doi(doi):
     return doi.replace("/", "_").replace(".", "_")
 
 
-def download(doi, output_dir=".", force_download=False, 
-             journal_domain=None, enable_benchmark=True):
+def download(doi, output_dir=".", force_download=False, journal_domain=None, enable_benchmark=True):
     """
     Download PDF with optional benchmarking
-    
+
     Args:
         doi: DOI identifier
         output_dir: Output directory for PDF
@@ -31,9 +30,9 @@ def download(doi, output_dir=".", force_download=False,
     """
     if not doi:
         raise ValueError("DOI cannot be empty.")
-    
+
     os.makedirs(output_dir, exist_ok=True)
-    
+
     safe_filename = sanitize_doi(doi) + ".pdf"
     if not force_download and os.path.exists(os.path.join(output_dir, safe_filename)):
         print(f"File already exists: {os.path.join(output_dir, safe_filename)}")
@@ -45,40 +44,41 @@ def download(doi, output_dir=".", force_download=False,
         # Create attempt record if benchmarking is enabled
         attempt = None
         start_time = None
-        
+
         if enable_benchmark:
             attempt = benchmark_logger.create_attempt(doi, plugin_name, journal_domain)
             start_time = time.time()
-        
+
         try:
             # Call plugin with original signature (no ctx parameter)
             urls = plugin.get_pdf_urls(doi)
-            
+
             if urls:
                 # Mark URL resolution success
                 if attempt:
                     attempt.url_resolved = True
                     attempt.resolved_url = urls[0]
-                
+
                 print(f"Plugin: {plugin_name},  doi:{doi},  url: {urls[0]}")
                 downloaded_file = pdf_dl.download_pdf(
                     urls[0], safe_filename, directory=output_dir, plugin_name=plugin_name
                 )
-                
+
                 if downloaded_file:
                     # Mark download success
                     if attempt:
                         attempt.pdf_downloaded = True
                         from pathlib import Path
+
                         if Path(downloaded_file).exists():
                             attempt.file_size_bytes = Path(downloaded_file).stat().st_size
                     break
-        
+
         except Exception as e:
             # Log error if benchmarking
             if attempt:
                 attempt.error_message = str(e)
-        
+
         finally:
             # Log the attempt with duration
             if attempt:

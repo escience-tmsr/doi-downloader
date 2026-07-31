@@ -9,9 +9,9 @@ from doi_downloader.lib import get_page_with_requests, robot_access_allowed
 # Function to check if file is a PDF file
 def is_valid_pdf(filename):
     try:
-        with open(filename, 'rb') as f:
+        with open(filename, "rb") as f:
             header = f.read(4)
-            return header == b'%PDF'
+            return header == b"%PDF"
     except Exception:
         return False
 

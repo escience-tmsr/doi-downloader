@@ -14,7 +14,7 @@ UNPAYWALL_EMAIL = os.getenv("UNPAYWALL_EMAIL")
 
 # Set up argument parser
 parser = argparse.ArgumentParser(description="Process a CSV file.")
-parser.add_argument('-f', '--file', type=str, required=True, help="Path to the CSV file")
+parser.add_argument("-f", "--file", type=str, required=True, help="Path to the CSV file")
 args = parser.parse_args()
 
 # Check if file argument is provided
@@ -35,11 +35,11 @@ def main():
     upw.set_email(UNPAYWALL_EMAIL)
 
     dois = csv.load_dois_from_file(dois_file_path, "doi")
-    print(f'Number of DOIs: {len(dois)}')
+    print(f"Number of DOIs: {len(dois)}")
     unique_dois = csv.load_dois_from_file(dois_file_path, "doi", unique=True)
-    print(f'Number of unique DOIs: {len(unique_dois)}')
+    print(f"Number of unique DOIs: {len(unique_dois)}")
     # Print difference
-    print(f'Number of duplicates: {len(dois) - len(unique_dois)}')
+    print(f"Number of duplicates: {len(dois) - len(unique_dois)}")
     for doi in unique_dois:
         try:
             metadata_upw = upw.fetch_metadata(doi)

@@ -9,7 +9,6 @@ from doi_downloader.cache_duckdb import Cache
 load_dotenv()
 
 
-
 class CacheMode(Enum):
     REFRESH = "refresh"
     """Skip the cache, call `fetch_metadata`, and store the result."""
@@ -40,7 +39,7 @@ class Plugin:
             doi: DOI of the article
             cache_mode: how the cache and its contents should be used
             ttl: Cache time-to-live in seconds
-            
+
         Returns:
             PDF URLs: list, could be empty
         """
@@ -51,7 +50,7 @@ class Plugin:
                 data_object.validate()
                 pdf_urls = data_object.get_pdf_links()
                 print(f"[{self.plugin_name}] using cached data for {doi}.")
-                return(pdf_urls)
+                return pdf_urls
             except Exception:
                 print(f"[{self.plugin_name}] error reading from cache")
             if cache_mode is CacheMode.CACHE_ONLY:
@@ -63,4 +62,3 @@ class Plugin:
             return metadata.get_pdf_links()
         else:
             return []
-

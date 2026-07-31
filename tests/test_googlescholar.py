@@ -27,26 +27,34 @@ def prepare_patched_googlescholar_plugin(monkeypatch):
     lib.get_robots_txt.cache_clear()
 
     yield
-    
+
     lib.get_robots_txt.cache_clear()
 
 
 # checked
 def make_matched_serpapi_response():
-    return {"organic_results": [{
-        "title": "Example title",
-        "link": PUBLISHER_LINK,
-        "resources": [{"link": PDF_LINK}],
-    }]}
+    return {
+        "organic_results": [
+            {
+                "title": "Example title",
+                "link": PUBLISHER_LINK,
+                "resources": [{"link": PDF_LINK}],
+            }
+        ]
+    }
 
 
 # checked
 def make_unmatched_serpapi_response():
-    return {"organic_results": [{
-        "title": "Example title",
-        "link": UNMATCHED_PUBLISHER_LINK,
-        "resources": [{"link": UNMATCHED_PDF_LINK}],
-    }]}
+    return {
+        "organic_results": [
+            {
+                "title": "Example title",
+                "link": UNMATCHED_PUBLISHER_LINK,
+                "resources": [{"link": UNMATCHED_PDF_LINK}],
+            }
+        ]
+    }
 
 
 # checked
@@ -74,12 +82,9 @@ def test_get_pdf_urls_uses_cache(monkeypatch):
 @responses.activate
 def test_get_pdf_urls_verified_by_url():
     plugin = googlescholar.GoogleScholarSerpAPIPlugin()
-    responses.add(responses.GET, googlescholar.SERPAPI_SEARCH_URL,
-                  json=make_matched_serpapi_response(),
-                  status=200)
+    responses.add(responses.GET, googlescholar.SERPAPI_SEARCH_URL, json=make_matched_serpapi_response(), status=200)
     mock_robots_txt_allowed()
-    responses.add(responses.GET, PUBLISHER_LINK,
-                  body="<html><body>No PDF markers here</body></html>", status=200)
+    responses.add(responses.GET, PUBLISHER_LINK, body="<html><body>No PDF markers here</body></html>", status=200)
 
     urls = plugin.get_pdf_urls(TEST_DOI, cache_mode=CacheMode.REFRESH)
 
@@ -90,8 +95,7 @@ def test_get_pdf_urls_verified_by_url():
 @responses.activate
 def test_get_pdf_urls_no_organic_results():
     plugin = googlescholar.GoogleScholarSerpAPIPlugin()
-    responses.add(responses.GET, googlescholar.SERPAPI_SEARCH_URL,
-                  json={"organic_results": []}, status=200)
+    responses.add(responses.GET, googlescholar.SERPAPI_SEARCH_URL, json={"organic_results": []}, status=200)
 
     urls = plugin.get_pdf_urls(TEST_DOI, cache_mode=CacheMode.REFRESH)
 
@@ -102,15 +106,16 @@ def test_get_pdf_urls_no_organic_results():
 @responses.activate
 def test_fetch_metadata_verified_by_metadata_tier():
     plugin = googlescholar.GoogleScholarSerpAPIPlugin()
-    responses.add(responses.GET, googlescholar.SERPAPI_SEARCH_URL,
-                  json=make_unmatched_serpapi_response(),
-                  status=200)
+    responses.add(responses.GET, googlescholar.SERPAPI_SEARCH_URL, json=make_unmatched_serpapi_response(), status=200)
     mock_robots_txt_allowed()
     # the publisher page itself mentions the DOI, even though the SerpAPI
     # links did not, so verification should succeed on the metadata tier
-    responses.add(responses.GET, UNMATCHED_PUBLISHER_LINK,
-                  body=f"<html><body>Published version of DOI {TEST_DOI}</body></html>",
-                  status=200)
+    responses.add(
+        responses.GET,
+        UNMATCHED_PUBLISHER_LINK,
+        body=f"<html><body>Published version of DOI {TEST_DOI}</body></html>",
+        status=200,
+    )
 
     metadata = plugin.fetch_metadata(TEST_DOI)
 
@@ -122,12 +127,11 @@ def test_fetch_metadata_verified_by_metadata_tier():
 @responses.activate
 def test_fetch_metadata_unverified_when_doi_not_found_anywhere():
     plugin = googlescholar.GoogleScholarSerpAPIPlugin()
-    responses.add(responses.GET, googlescholar.SERPAPI_SEARCH_URL,
-                  json=make_unmatched_serpapi_response(),
-                  status=200)
+    responses.add(responses.GET, googlescholar.SERPAPI_SEARCH_URL, json=make_unmatched_serpapi_response(), status=200)
     mock_robots_txt_allowed()
-    responses.add(responses.GET, UNMATCHED_PUBLISHER_LINK,
-                  body="<html><body>Unrelated article content</body></html>", status=200)
+    responses.add(
+        responses.GET, UNMATCHED_PUBLISHER_LINK, body="<html><body>Unrelated article content</body></html>", status=200
+    )
 
     metadata = plugin.fetch_metadata(TEST_DOI)
 
@@ -159,8 +163,7 @@ def test_verify_links_by_url_matches_publisher_link():
 # checked
 def test_verify_links_by_url_no_match():
     plugin = googlescholar.GoogleScholarSerpAPIPlugin()
-    assert plugin.verify_links_by_url(
-        TEST_DOI, [UNMATCHED_PDF_LINK, UNMATCHED_PUBLISHER_LINK]) is False
+    assert plugin.verify_links_by_url(TEST_DOI, [UNMATCHED_PDF_LINK, UNMATCHED_PUBLISHER_LINK]) is False
 
 
 # checked

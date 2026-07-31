@@ -14,9 +14,11 @@ logger = logging.getLogger(__name__)
 
 
 HTTP_HEADERS = {
-   "User-Agent": ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-   "AppleWebKit/537.36 (KHTML, like Gecko) "
-   "Chrome/120.0.0.0 Safari/537.36"),
+    "User-Agent": (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) "
+        "Chrome/120.0.0.0 Safari/537.36"
+    ),
 }
 
 
@@ -44,9 +46,14 @@ def robot_access_allowed(url, plugin_name=""):
     return robot_parsed.can_fetch("*", url)
 
 
-BROWSER_PARAMS = { "User-Agent": ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                                  "AppleWebKit/537.36 (KHTML, like Gecko) "
-                                  "Chrome/120.0.0.0 Safari/537.36") }
+BROWSER_PARAMS = {
+    "User-Agent": (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) "
+        "Chrome/120.0.0.0 Safari/537.36"
+    )
+}
+
 
 def get_page_with_requests(url, headers=BROWSER_PARAMS, params=None, timeout=10, plugin_name=""):
     """Get web page with requests library; check return statr=us and robots.txt"""
@@ -91,19 +98,16 @@ def get_pdf_url_from_meta(soup):
 
 def get_pdf_url_from_links(soup, base_url):
     """Get url pointing to PDF related to DOI from links in web page"""
-    link = soup.find("a", href=lambda h: h and 
-                                         regex.search("download|pdf",
-                                                      h,
-                                                      flags=regex.IGNORECASE))
+    link = soup.find("a", href=lambda h: h and regex.search("download|pdf", h, flags=regex.IGNORECASE))
     return urljoin(base_url, link["href"]) if link and base_url else None
 
 
 def get_pdf_url_from_html_text(html_text, plugin_name="", base_url=None):
     """Extract pdf url from html text, returns link to PDF"""
     soup = BeautifulSoup(html_text, "html.parser")
-    if (pdf_url := get_pdf_url_from_meta(soup)):
+    if pdf_url := get_pdf_url_from_meta(soup):
         return pdf_url
-    if (pdf_url := get_pdf_url_from_links(soup, base_url=base_url)):
+    if pdf_url := get_pdf_url_from_links(soup, base_url=base_url):
         return pdf_url
     return None
 
