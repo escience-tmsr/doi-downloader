@@ -94,8 +94,8 @@ class Cache:
 
         # Execute query to search inside JSON
         query = f"""
-            SELECT key, value, timestamp 
-            FROM {self.table_name} 
+            SELECT key, value, timestamp
+            FROM {self.table_name}
             WHERE json_extract(value, ?) = ?
         """
 

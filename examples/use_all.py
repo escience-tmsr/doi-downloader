@@ -18,7 +18,6 @@ dois_file_path = args.file
 
 # Main function
 def main():
-
     dois = csv.load_dois_from_file(dois_file_path, "doi")
     print(f"Number of DOIs: {len(dois)}")
     unique_dois = csv.load_dois_from_file(dois_file_path, "doi", unique=True)

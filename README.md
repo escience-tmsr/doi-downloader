@@ -47,7 +47,7 @@ This repository has code to measure, benchmark and analyse the coverage or perfo
 
 1. Install the required libraries of this repo by following the instructions under the "Install" section above.
 2. Ensure you have procured the relevant API keys of the plugins you use.
-3. Add the API keys as environment variables to your operating system. [Here](https://www3.ntu.edu.sg/home/ehchua/programming/howto/Environment_Variables.html) is a useful reference for how to do this on different operating systems. 
+3. Add the API keys as environment variables to your operating system. [Here](https://www3.ntu.edu.sg/home/ehchua/programming/howto/Environment_Variables.html) is a useful reference for how to do this on different operating systems.
 4. Ensure you have a CSV file with two (or more) columns. One column should have a header called "doi" and hold the DOI for a paper. The second column should have a header called "domain" which holds the journal name or domain of the journal website (not URL, just the domain name) where the paper metadata can be viewed. You can then run the benchmark code using this command:
 
 ``` python -m benchmark.batch_download path/to/csv/file.csv ```

@@ -64,5 +64,3 @@ def test_get_url():
 
     urls = crf.get_pdf_urls(TEST_DOI)
     assert "https://link.springer.com/content/pdf/10.1007/s10207-021-00566-3.pdf" in urls
-
-
