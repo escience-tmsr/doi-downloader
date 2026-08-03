@@ -38,6 +38,8 @@ pytest tests/test_crossref.py::test_get_pdf_urls_uses_cache -v
 
 CI (`.github/workflows/main.yml`) runs `make lint` then `make test` on Linux/macOS/Windows for Python 3.12, and requires the linter job to pass first. CONTRIBUTING.md states the project targets 100% coverage on new code.
 
+This repo also has a `.pre-commit-config.yaml` (not currently wired into CI, so it's a local-only safety net unless `pre-commit install` has been run): it blocks committing leftover Copier `.rej` files, validates JSON/TOML/YAML syntax, fixes end-of-file/line-ending/trailing-whitespace issues, blocks commits directly to certain branches (`no-commit-to-branch`), checks for merge-conflict markers, validates `CITATION.cff` (`cffconvert`), formats/lints YAML (`yamlfmt`/`yamllint`), and runs `ruff check --fix` + `ruff format`. Its `ruff-pre-commit` hook is pinned via `rev:` independently of `pyproject.toml`'s `dev` group `ruff` entry — the two can drift out of sync (as they currently do here), so `pre-commit run` locally isn't guaranteed to catch everything `make lint`/CI will flag, or vice versa; when bumping one, bump the other to match.
+
 There is no `setup.py` or `requirements.txt`; project metadata and dependencies live in `pyproject.toml` (`[project]`/`dependencies`, `[project.optional-dependencies]` for `examples`, `[dependency-groups]` for `dev`/`docs`/`publishing`), and the package is installed via setuptools (`[build-system]`/`[tool.setuptools...]`). Tool config (`ruff`, `mypy`, `pytest`, `coverage`, `bumpversion`) also lives in `pyproject.toml` rather than separate `pytest.ini`/`.coveragerc` files.
 
 For testing the syntax of CITATION.cff (requires installation of `cffconvert` with `pipx`):
