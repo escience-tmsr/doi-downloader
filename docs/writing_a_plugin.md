@@ -12,42 +12,44 @@ for example, `my_plugin.py`. Plugins stored in the `extra_plugins` directory, wi
 
 ### Step 2: Implement the Plugin interface
 
-In your new Python file, you need to implement the `Plugin` interface. This involves creating a class that inherits 
-from `Plugin` and implementing the required methods. Here is an example:
+In your new Python file, you need to implement the `Plugin` interface. Most plugins only make a single HTTP request,
+so rather than implementing `fetch_metadata` directly, implement two smaller methods instead: `make_url` (return the
+URL to fetch for a DOI) and `process_webpage` (parse a successful response into an `ArticleDataObject`). The base
+`Plugin.fetch_metadata` handles the request itself, all the common failure modes (HTTP errors, timeouts, connection
+errors, unparseable responses), and always returns an `ArticleDataObject` -- even when the request failed, so the
+attempted URL stays available for post-processing analysis instead of vanishing. Here is an example:
 
 ```python
-import requests
 from doi_downloader.plugins import Plugin
-from doi_downloader import article_dataobject as ado
 
 MY_API_URL = "https://example.com/{doi}"
 
 class MyPlugin(Plugin):
-    def test(self):
-        return True
+    def make_url(self, doi):
+        return MY_API_URL.format(doi=doi)
 
-    def fetch_metadata(self, doi):
-        url = MY_API_URL.format(doi=doi)
-        try:
-            response = requests.get(url, headers=headers, params=params)
-            if response.status_code == 200:
-                paper = response.json()
-                title = paper.get("title", "N/A")
-                download_link = paper.get("downloadUrl", "N/A")
-                data_object = ado.ArticleDataObject(None)
-                data_object.set_title(title)
-                data_object.set_doi(doi)
-                if download_link:
-                    data_object.add_pdf_link(download_link)
-                return data_object
-
-        except requests.exceptions.RequestException as e:
-            print(f"An error occurred: {e}")
-            return None
+    def process_webpage(self, response, doi, data_object):
+        paper = response.json()
+        title = paper.get("title", "N/A")
+        download_link = paper.get("downloadUrl", "N/A")
+        data_object.set_title(title)
+        if download_link:
+            data_object.add_pdf_link(response.url, download_link)
 ```
 
-The plugin needs to implement two functions: `fetch_metadata` and `get_pdf_url`. The `fetch_metadata` function should return an `ArticleDataObject` containing the metadata of the article, while the `get_pdf_url` function should return the URL of the PDF file.
-`fetch_metadata` should handle the API request and parse the response to extract the necessary information.
+`add_pdf_link(fetch_url, url)` ties every pdf link to the page it was found on (`fetch_url`, typically `response.url`),
+since a plugin can make more than one request and later analysis may need to know which page a link came from.
+
+Two more hooks are available if a plugin needs them:
+
+- `request_headers(self, doi)`: return a dict to replace the default browser-like request headers (e.g. for an
+  `Authorization` header), or `None` (the default) to use the default headers.
+- `request_params(self, doi)`: return a dict of query string parameters to include in the request, or `None`
+  (the default) for none.
+
+If a plugin's shape doesn't fit this (e.g. it needs to make more than one request, like `googlescholar.py` fetching
+both a search API and the publisher page it points to), override `fetch_metadata(self, doi)` directly instead of
+`make_url`/`process_webpage`. It should still always return an `ArticleDataObject`, never `None`, even on failure.
 
 ### Step 3: Loading and testing the plugin
 

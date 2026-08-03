@@ -1,38 +1,53 @@
-from requests.exceptions import ConnectionError, HTTPError, ReadTimeout, TooManyRedirects
-
-from doi_downloader.article_dataobject import ArticleDataObject
-from doi_downloader.lib import get_page_with_requests
 from doi_downloader.plugins import Plugin
 
 # Read API keys and other sensitive data from environment variables
 CROSSREF_API_URL = "https://api.crossref.org/works/{doi}"
 
+
 class CrossrefPlugin(Plugin):
     plugin_name = "crossref"
 
-    def test(self):
-        return True
+    def make_url(self, doi):
+        return CROSSREF_API_URL.format(doi=doi)
 
-    def fetch_metadata(self, doi):
-        url = CROSSREF_API_URL.format(doi=doi)
-        try:
-            response = get_page_with_requests(url, params={}, plugin_name=self.plugin_name)
-            response.raise_for_status()  # Raise an HTTPError for bad responses (4xx and 5xx)
-            data = response.json()
-            if "message" not in data:
-                raise ValueError
-            dataObj = ArticleDataObject.from_crossref_json(data)
-            dataObj.validate()
-            return dataObj
+    def process_webpage(self, response, doi, data_object):
+        data = response.json()
+        if "message" not in data:
+            raise ValueError
+        crossref_data = data["message"]
 
-        except HTTPError:
-            print(f"[{self.plugin_name}] access error while fetching data")
-        except ConnectionError:
-            print(f"[{self.plugin_name}] connection error while fetching data")
-        except ReadTimeout:
-            print(f"[{self.plugin_name}] timeout while fetching data")
-        except TooManyRedirects:
-            print(f"[{self.plugin_name}] too many redirects while fetching data")
-        except ValueError:
-            print(f"[{self.plugin_name}] error processing JSON data")
+        title = crossref_data.get("title", [])
+        data_object.set_title(title[0] if title else "")
+        for author in crossref_data.get("author", []):
+            if author.get("given") and author.get("family"):
+                data_object.add_author(author["given"], author["family"])
+        data_object.data["publisher"] = crossref_data.get("publisher", "")
+        data_object.data["published_date"] = self._convert_published_date(crossref_data.get("published", {}))
+
+        pdf_link = self._extract_pdf_link(crossref_data)
+        if pdf_link:
+            data_object.add_pdf_link(response.url, pdf_link)
+
+    @staticmethod
+    def _convert_published_date(published_date):
+        if published_date.get("date-parts"):
+            try:
+                return f'{published_date["date-parts"][0][0]}-{published_date["date-parts"][0][1]}'
+            except IndexError:
+                pass
+        return ""
+
+    @staticmethod
+    def _extract_pdf_link(data):
+        """
+        Get the PDF link from Crossref metadata.
+
+        Accepts a link if Crossref reports it as content-type "application/pdf",
+        or if "pdf" (case-insensitive) appears anywhere in the URL -- some
+        publishers (e.g. MDPI) deposit PDF links with content-type "unspecified".
+        """
+        for link in data.get("link", []):
+            url = link.get("URL") or ""
+            if link.get("content-type") == "application/pdf" or "pdf" in url.lower():
+                return url
         return None

@@ -61,7 +61,7 @@ def download_pdf(pdf_url, filename, directory=".", plugin_name=None):
         return False
 
     progress.record_pdf_access(progress.STATUS_SUCCESS, pdf_url)
-    progress.record_pdf_file(os.path.abspath(full_path))
+    progress.record_pdf_file(pdf_url, os.path.abspath(full_path))
     return full_path
 
 

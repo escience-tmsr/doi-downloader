@@ -44,7 +44,10 @@ class BrowserView:
     async def _start(self):
         self._playwright = await async_playwright().start()
         self._browser = await self._playwright.chromium.launch(headless=False)
-        self._page = await self._browser.new_page()
+        # no_viewport: track the real OS window size instead of Playwright's
+        # default fixed 1280x720 emulated viewport, so resizing the window
+        # actually reflows the page.
+        self._page = await self._browser.new_page(no_viewport=True)
 
     def update(self, html_content):
         self._ensure_started()

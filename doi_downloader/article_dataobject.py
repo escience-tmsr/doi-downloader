@@ -8,7 +8,7 @@ schema = {
     "$id": "https://example.com/crossref-schema",
     "title": "Crossref Metadata Schema",
     "type": "object",
-    "required": ["version", "title", "DOI", "source", "links", "pdf_links" ],
+    "required": ["version", "title", "DOI", "source", "pdf_links" ],
     "properties": {
                 "title": {"type": "string" },
                 "version": {"type": "string"},
@@ -29,18 +29,14 @@ schema = {
                     "pattern": "^10\\.\\d{4,9}/[-._;()/:a-zA-Z0-9]+$"
                 },
                 "published_date": {"type": "string"},
-                "links": {
-                    "type": "array",
-                    "items": {
-                        "type": "string",
-                        "format": "uri"
-                    }
-                },
                 "pdf_links": {
-                    "type": "array",
-                    "items": {
-                        "type": "string",
-                        "format": "uri"
+                    "type": "object",
+                    "additionalProperties": {
+                        "type": ["array", "null"],
+                        "items": {
+                            "type": "string",
+                            "format": "uri"
+                        }
                     }
                 }
             }
@@ -61,14 +57,13 @@ class ArticleDataObject:
         :param schema: The Article schema for validation (dictionary).
         """
         self.data = data or {
-            "title": [],
+            "title": "",
             "version": VERSION,
             "source": "",
             "author": [],
             "DOI": "",
             "published_date": "",
-            "links": [],
-            "pdf_links": [],
+            "pdf_links": {},
             "links_verified": False
 
         }
@@ -126,37 +121,63 @@ class ArticleDataObject:
         """
         self.data["links_verified"] = links_verified
 
-    def add_link(self, url):
+    def add_pdf_link(self, fetch_url, url):
         """
-        Add a link to the Article data object.
+        Add a pdf_link to the Article data object, tied to the webpage it was found on.
 
-        :param url: The URL of the link.
-        :param content_type: The content type of the link.
+        :param fetch_url: The URL of the webpage the pdf_link was found on.
+        :param url: The URL of the pdf link.
         """
-        self.data["links"].append(url)
+        self.data["pdf_links"].setdefault(fetch_url, []).append(url)
 
-    def add_pdf_link(self, url):
+    def mark_fetch_pending(self, fetch_url, replacing_url=None):
         """
-        Add a pdf_link to the Article data object.
+        Record that fetch_url is about to be processed, before its outcome is
+        known. Stays None (inaccessible) unless mark_fetch_reachable later
+        upgrades it to an empty list once its contents are actually checked.
 
-        :param url: The URL of the link.
-        :param content_type: The content type of the link.
-        """
-        self.data["pdf_links"].append(url)
+        This makes the url available for post-processing analysis even when
+        it turns out to be unreachable, instead of vanishing entirely.
 
-    def get_link(self):
+        :param fetch_url: The URL about to be requested.
+        :param replacing_url: An url previously marked pending that this one
+            supersedes (e.g. once the outcome revealed a more precise url,
+            such as requests appending query parameters) -- its now-stale
+            entry is removed in favor of fetch_url.
         """
-        Get the first link from the Article data object.
+        if replacing_url and replacing_url != fetch_url:
+            self.data["pdf_links"].pop(replacing_url, None)
+        self.data["pdf_links"][fetch_url] = None
 
-        :return: The first link if available, otherwise None.
+    def mark_fetch_reachable(self, fetch_url, pending_url=None):
         """
-        return self.data["links"][0] if self.data["links"] else None
+        Record that fetch_url's contents were fetched and are being searched
+        for pdf links now (even if none end up being found): upgrades its
+        entry from None (pending/inaccessible) to an empty list.
+
+        :param fetch_url: The URL that was actually reached (after redirects).
+        :param pending_url: The url originally marked pending via
+            mark_fetch_pending, if it differs from fetch_url -- its now-stale
+            pending entry is removed in favor of fetch_url's.
+        """
+        if pending_url and pending_url != fetch_url:
+            self.data["pdf_links"].pop(pending_url, None)
+        self.data["pdf_links"][fetch_url] = []
 
     def get_pdf_links(self):
         """
-        Get all PDF links from the Article data object.
+        Get all PDF links from the Article data object, flattened across fetch URLs.
 
-        :return: All PDF links
+        :return: All PDF links, as a flat list
+        """
+        return [url for urls in self.data["pdf_links"].values() if urls for url in urls]
+
+    def get_pdf_links_by_fetch_url(self):
+        """
+        Get all PDF links from the Article data object, grouped by the webpage
+        (fetch URL) each one was found on.
+
+        :return: dict mapping fetch URL to the list of pdf_links found there
         """
         return self.data["pdf_links"]
 
@@ -187,11 +208,12 @@ class ArticleDataObject:
         return json.dumps(self.data, indent=4)
 
     @classmethod
-    def from_unpaywall_json(cls, unpaywall_data):
+    def from_unpaywall_json(cls, unpaywall_data, fetch_url=None):
         """
         Create a ArticleDataObject instance from an Unpaywall JSON response.
 
         :param unpaywall_data: An Unpaywall JSON response representing the data.
+        :param fetch_url: The URL the response was fetched from, used to key pdf_links.
         :return: An instance of ArticleDataObject.
         """
         def extract_authors(data):
@@ -221,17 +243,23 @@ class ArticleDataObject:
             "DOI": unpaywall_data.get("doi", ""),
             "publisher": unpaywall_data.get("publisher", ""),
             "published_date": unpaywall_data.get("published_date", ""),
-            "links": [],
-            "pdf_links": [extract_pdf_link(unpaywall_data)] if extract_pdf_link(unpaywall_data) else []
+            "pdf_links": {}
         }
-        return cls(data)
+        obj = cls(data)
+        if fetch_url:
+            obj.mark_fetch_reachable(fetch_url)
+            pdf_link = extract_pdf_link(unpaywall_data)
+            if pdf_link:
+                obj.add_pdf_link(fetch_url, pdf_link)
+        return obj
 
     @classmethod
-    def from_crossref_json(cls, crossref_json):
+    def from_crossref_json(cls, crossref_json, fetch_url=None):
         """
         Create a ArticleDataObject instance from a Crossref JSON response.
 
         :param crossref_json: A Crossref JSON response representing the data.
+        :param fetch_url: The URL the response was fetched from, used to key pdf_links.
         :return: An instance of ArticleDataObject.
         """
         crossref_data = crossref_json.get("message", {})
@@ -259,11 +287,16 @@ class ArticleDataObject:
             """
             Get the PDF link from the Article data object.
 
+            Accepts a link if Crossref reports it as content-type "application/pdf",
+            or if "pdf" (case-insensitive) appears anywhere in the URL -- some
+            publishers (e.g. MDPI) deposit PDF links with content-type "unspecified".
+
             :return: The PDF link if available, otherwise None.
             """
             for link in data["link"]:
-                if link.get("content-type") == "application/pdf":
-                    return link.get("URL")
+                url = link.get("URL") or ""
+                if link.get("content-type") == "application/pdf" or "pdf" in url.lower():
+                    return url
             return None
 
         data = {
@@ -274,12 +307,15 @@ class ArticleDataObject:
             "DOI": crossref_data.get("DOI", ""),
             "publisher": crossref_data.get("publisher", ""),
             "published_date": convert_published_date(crossref_data.get("published", {})),
-            "links": [],
-            "pdf_links": [extract_pdf_link(crossref_data)] if extract_pdf_link(crossref_data) else []
+            "pdf_links": {}
         }
-
-
-        return cls(data)
+        obj = cls(data)
+        if fetch_url:
+            obj.mark_fetch_reachable(fetch_url)
+            pdf_link = extract_pdf_link(crossref_data)
+            if pdf_link:
+                obj.add_pdf_link(fetch_url, pdf_link)
+        return obj
 
     @classmethod
     def from_json(cls, json_string, schema = schema):
