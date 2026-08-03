@@ -38,7 +38,7 @@ pytest tests/test_crossref.py::test_get_pdf_urls_uses_cache -v
 
 CI (`.github/workflows/main.yml`) runs `make lint` then `make test` on Linux/macOS/Windows for Python 3.12, and requires the linter job to pass first. CONTRIBUTING.md states the project targets 100% coverage on new code.
 
-There is no `setup.py` or `requirements.txt`; project metadata and dependencies live in `pyproject.toml` (`[project]`/`dependencies`, `[project.optional-dependencies]` for `examples`, `[dependency-groups]` for `dev`/`docs`/`publishing`), and the package is installed via setuptools (`[build-system]`/`[tool.setuptools...]`). Tool config (`ruff`, `mypy`, `pytest`, `coverage`, `bumpversion`) also lives in `pyproject.toml` rather than separate `pytest.ini`/`.coveragerc` files. Don't assume Poetry is in use — the Makefile still has harmless `USING_POETRY` no-op guards in `show`/`install`/`virtualenv` (they check for a `[tool.poetry]` section in `pyproject.toml`, which isn't there), but the `switch-to-poetry` target itself was removed since it referenced `requirements*.txt`/`setup.py` files that no longer exist.
+There is no `setup.py` or `requirements.txt`; project metadata and dependencies live in `pyproject.toml` (`[project]`/`dependencies`, `[project.optional-dependencies]` for `examples`, `[dependency-groups]` for `dev`/`docs`/`publishing`), and the package is installed via setuptools (`[build-system]`/`[tool.setuptools...]`). Tool config (`ruff`, `mypy`, `pytest`, `coverage`, `bumpversion`) also lives in `pyproject.toml` rather than separate `pytest.ini`/`.coveragerc` files.
 
 For testing the syntax of CITATION.cff (requires installation of `cffconvert` with `pipx`):
 
