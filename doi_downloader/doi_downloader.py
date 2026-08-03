@@ -98,12 +98,11 @@ def download(doi, output_dir=".", force_download=False,
                         urls, safe_filename, directory=output_dir, plugin_name=plugin_name
                     )
 
-                    if downloaded_file:
+                    if downloaded_file and attempt:
                         # Mark download success
-                        if attempt:
-                            attempt.pdf_downloaded = True
-                            if Path(downloaded_file).exists():
-                                attempt.file_size_bytes = Path(downloaded_file).stat().st_size
+                        attempt.pdf_downloaded = True
+                        if Path(downloaded_file).exists():
+                            attempt.file_size_bytes = Path(downloaded_file).stat().st_size
 
         except Exception as e:
             # Log error if benchmarking

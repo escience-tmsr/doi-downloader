@@ -42,11 +42,11 @@ class Plugin:
 
     def request_headers(self, doi):
         """Optional HTTP headers to use instead of the default browser-like headers."""
-        return None
+        return
 
     def request_params(self, doi):
         """Optional query string parameters to include in the request."""
-        return None
+        return
 
     def process_webpage(self, response, doi, data_object):
         """

@@ -51,7 +51,7 @@ dev = [
     "pytest",
     "pytest-cov",
     "pytest-dotenv",
-    "ruff",
+    "ruff==0.16.1",
 ]
 docs = [
     "mkdocs",
