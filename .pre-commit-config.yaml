@@ -46,8 +46,9 @@ repos:
           - -d
           - "{extends: default, rules: {empty-lines: {max: 1}}}"
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    # Ruff version.
-    rev: v0.13.0
+    # Ruff version. Keep in sync with the "ruff" pin in pyproject.toml's dev
+    # dependency group, so pre-commit and CI enforce the exact same rules.
+    rev: v0.16.1
     hooks:
       # Run the linter.
       - id: ruff-check

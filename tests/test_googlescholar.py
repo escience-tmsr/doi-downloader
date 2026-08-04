@@ -61,7 +61,7 @@ def test_get_pdf_urls_uses_cache(monkeypatch):
     cached_object = ArticleDataObject(None)
     cached_object.set_title("Cached title")
     cached_object.set_doi(TEST_DOI)
-    cached_object.add_pdf_link(PDF_LINK)
+    cached_object.add_pdf_link(googlescholar.SERPAPI_SEARCH_URL, PDF_LINK)
     print("### test_get_pdf_urls_uses_cache", type(cached_object), cached_object, cached_object.to_json())
     monkeypatch.setattr(plugin.cache, "get_cache", lambda doi, ttl=0: cached_object.to_json())
 

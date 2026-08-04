@@ -10,6 +10,8 @@ import requests
 from bs4 import BeautifulSoup
 from playwright.async_api import async_playwright
 
+from doi_downloader import progress
+
 logger = logging.getLogger(__name__)
 
 
@@ -41,7 +43,10 @@ def robot_access_allowed(url, plugin_name=""):
     robot_parsed = RobotFileParser()
     robot_parsed.set_url(robots_txt_url)
     robot_parsed.parse(response.text.splitlines())
-    return robot_parsed.can_fetch("*", url)
+    allowed = robot_parsed.can_fetch("*", url)
+    if not allowed:
+        progress.record_fetch(f"{progress.STATUS_ACCESS_ERROR}: blocked by robots.txt", url)
+    return allowed
 
 
 BROWSER_PARAMS = { "User-Agent": ("Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
@@ -54,9 +59,20 @@ def get_page_with_requests(url, headers=BROWSER_PARAMS, params=None, timeout=10,
     session.headers.update(headers)
     max_hops = 10
     for hop in range(max_hops):
-        response = session.get(url, params=params, timeout=timeout, allow_redirects=False)
+        try:
+            response = session.get(url, params=params, timeout=timeout, allow_redirects=False)
+        except requests.RequestException as e:
+            progress.record_fetch(f"{progress.STATUS_ACCESS_ERROR}: {e}", url)
+            raise
         time.sleep(1)
         if response.status_code not in [301, 302, 303]:
+            if response.status_code == 404:
+                progress.record_fetch(progress.STATUS_NOT_FOUND, response.url)
+            elif response.ok:
+                progress.record_fetch(progress.STATUS_SUCCESS, response.url)
+            else:
+                status = f"{progress.STATUS_ACCESS_ERROR}: HTTP error {response.status_code}"
+                progress.record_fetch(status, response.url)
             return response
 
         url = urljoin(response.url, response.headers.get("Location"))
