@@ -20,7 +20,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ```bash
 make virtualenv          # create .venv and install project + test deps
 source .venv/bin/activate
-make install              # pip install -e .[test] (rerun after changing requirements*.txt)
+make install              # pip install -e .[examples] --group dev --group docs --group publishing (rerun after changing pyproject.toml deps)
 
 make fmt                  # format doi_downloader/ with ruff
 make lint                 # ruff check doi_downloader/
@@ -38,7 +38,9 @@ pytest tests/test_crossref.py::test_get_pdf_urls_uses_cache -v
 
 CI (`.github/workflows/main.yml`) runs `make lint` then `make test` on Linux/macOS/Windows for Python 3.12, and requires the linter job to pass first. CONTRIBUTING.md states the project targets 100% coverage on new code.
 
-There is no `pyproject.toml`; dependencies are pinned in `requirements.txt` (runtime) and installed via `setup.py`'s `install_requires`. `make switch-to-poetry` exists but switches the whole project to Poetry and is not the current setup — don't assume Poetry is in use.
+This repo also has a `.pre-commit-config.yaml` (not currently wired into CI, so it's a local-only safety net unless `pre-commit install` has been run): it blocks committing leftover Copier `.rej` files, validates JSON/TOML/YAML syntax, fixes end-of-file/line-ending/trailing-whitespace issues, blocks commits directly to certain branches (`no-commit-to-branch`), checks for merge-conflict markers, validates `CITATION.cff` (`cffconvert`), formats/lints YAML (`yamlfmt`/`yamllint`), and runs `ruff check --fix` + `ruff format`. Its `ruff-pre-commit` hook is pinned via `rev:` independently of `pyproject.toml`'s `dev` group `ruff` entry — the two can drift out of sync (as they currently do here), so `pre-commit run` locally isn't guaranteed to catch everything `make lint`/CI will flag, or vice versa; when bumping one, bump the other to match.
+
+There is no `setup.py` or `requirements.txt`; project metadata and dependencies live in `pyproject.toml` (`[project]`/`dependencies`, `[project.optional-dependencies]` for `examples`, `[dependency-groups]` for `dev`/`docs`/`publishing`), and the package is installed via setuptools (`[build-system]`/`[tool.setuptools...]`). Tool config (`ruff`, `mypy`, `pytest`, `coverage`, `bumpversion`) also lives in `pyproject.toml` rather than separate `pytest.ini`/`.coveragerc` files.
 
 For testing the syntax of CITATION.cff (requires installation of `cffconvert` with `pipx`):
 
@@ -62,7 +64,7 @@ Plugins that need credentials read them from a `.env` file in the repo root (loa
 - `SERPAPI_KEY` — required by the Google Scholar plugin
 - `CORE_API_KEY` — required by the CORE plugin
 
-Tests load `.env` via `pytest.ini`'s `env_files` (pytest-dotenv), and `tests/conftest.py` runs every test inside a temp cwd, so tests never touch the real `database.db` or `downloads/` in the repo root.
+Tests load `.env` via `pyproject.toml`'s `[tool.pytest.ini_options]` `env_files` setting (pytest-dotenv), and `tests/conftest.py` runs every test inside a temp cwd, so tests never touch the real `database.db` or `downloads/` in the repo root.
 
 ## Architecture
 
