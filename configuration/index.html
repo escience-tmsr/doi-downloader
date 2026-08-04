@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>Configuration - doi_downloader</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Configuration";
+        var mkdocs_page_input_path = "configuration.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href=".." class="icon icon-home"> doi_downloader
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../install/">Installation</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../usage/">Usage</a>
+                </li>
+              </ul>
+              <ul class="current">
+                <li class="toctree-l1 current"><a class="reference internal current" href="#">Configuration</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#accessing-the-env-variables-from-a-plugin">Accessing the .env variables from a plugin</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#accessing-the-env-variables-from-a-jupyter-notebook">Accessing the .env variables from a Jupyter notebook</a>
+    </li>
+    </ul>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../benchmarking/">Testing</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../writing_a_plugin/">Developing new plugins</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../contributing/">Contributing</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../license/">License</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">doi_downloader</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Configuration</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h2 id="configuration">Configuration</h2>
+<p>Some plugins require additional information to work properly. This information needs to be saved in a <code>.env</code> file 
+in the root directory of <code>doi_downloader</code>. The file <code>test.env</code> contains an example of <code>.env</code>. It can be updated and 
+copied to <code>.env</code>. For example, a parameter that needs to be set is the user's email address for the Unpaywall plugin. 
+Developing new plugins with API key access might also require API keys to be set in the <code>.env</code> file. The environment 
+variables are loaded automatically from the <code>Plugin</code> class interface in <code>doi_downloader/plugins/__init__.py</code>.</p>
+<p>Current plugins needing configuration are:</p>
+<ul>
+<li><strong>Unpaywall</strong>: requires the <code>UNPAYWALL_EMAIL</code> variable to be set to the user's email address.</li>
+<li><strong>Google Scholar</strong>: requires <code>SERPAPI_KEY</code> to be set to a Google Scholar API key 
+  (<a href="https://support.google.com/googleapi/answer/6158862?hl=en">more information</a>)</li>
+<li><strong>CORE</strong>: required <code>CORE_API_KEY</code> to be set in order to be used
+  (<a href="https://core.ac.uk/services/api">more information</a>)</li>
+</ul>
+<h3 id="accessing-the-env-variables-from-a-plugin">Accessing the .env variables from a plugin</h3>
+<p>To use a .env variable use <code>os</code>'s <code>environ</code> in the plugin code. For example, the environment variable 
+<code>UNPAYWALL_EMAIL</code>, can be accessed like this:</p>
+<pre><code class="language-python">import os
+
+unpaywall_email = os.environ['UNPAYWALL_EMAIL']
+</code></pre>
+<h3 id="accessing-the-env-variables-from-a-jupyter-notebook">Accessing the .env variables from a Jupyter notebook</h3>
+<p>In a Jupyter notebook, you first need to read the <code>.env</code> file with <code>dotenv</code>'s <code>load_dotenv()</code>. After this you can
+extract the variable values with <code>os</code>'s <code>environ</code>. The environment variable <code>UNPAYWALL_EMAIL</code> can be accessed 
+like this:</p>
+<pre><code class="language-python">from dotenv import load_dotenv
+import os
+
+load_dotenv()
+unpaywall_email = os.environ['UNPAYWALL_EMAIL']
+</code></pre>
+              
+            </div>
+          </div><footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="Footer Navigation">
+        <a href="../usage/" class="btn btn-neutral float-left" title="Usage"><span class="icon icon-circle-arrow-left"></span> Previous</a>
+        <a href="../benchmarking/" class="btn btn-neutral float-right" title="Testing">Next <span class="icon icon-circle-arrow-right"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+      <span><a href="../usage/" style="color: #fcfcfc">&laquo; Previous</a></span>
+    
+    
+      <span><a href="../benchmarking/" style="color: #fcfcfc">Next &raquo;</a></span>
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>
