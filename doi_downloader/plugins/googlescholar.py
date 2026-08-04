@@ -8,7 +8,7 @@ from doi_downloader.plugins import Plugin
 
 SERPAPI_KEY = os.getenv("SERPAPI_KEY")
 SERPAPI_SEARCH_URL = "https://serpapi.com/search.json"
-PARAMS_BASE =  { "engine": "google_scholar", "api_key": SERPAPI_KEY }
+PARAMS_BASE = {"engine": "google_scholar", "api_key": SERPAPI_KEY}
 
 
 class GoogleScholarSerpAPIPlugin(Plugin):
@@ -45,10 +45,10 @@ class GoogleScholarSerpAPIPlugin(Plugin):
 
     def get_data_object(self, results, doi):
         """Convert data object returned by Google Scholar to plugin format.
-           Serpapi returns one result (list data["organic_results"][0])
-           with links to the publisher (data["organic_results"][0]["link"])
-           and the PDFs (data["organic_results"][0]["resources"][*]["link"]).
-           Returns: publisher PDF link plus all PDF links from the first result
+        Serpapi returns one result (list data["organic_results"][0])
+        with links to the publisher (data["organic_results"][0]["link"])
+        and the PDFs (data["organic_results"][0]["resources"][*]["link"]).
+        Returns: publisher PDF link plus all PDF links from the first result
         """
         top_result = results[0]
         publisher_link = top_result.get("link")
@@ -82,10 +82,9 @@ class GoogleScholarSerpAPIPlugin(Plugin):
             raise OSError("[self.plugin_name] Please set SERPAPI_KEY environment variable.")
 
         try:
-            response = get_page_with_requests(SERPAPI_SEARCH_URL,
-                                              params=PARAMS_BASE | {"q": f"doi:{doi}"},
-                                              timeout=10,
-                                              plugin_name=self.plugin_name)
+            response = get_page_with_requests(
+                SERPAPI_SEARCH_URL, params=PARAMS_BASE | {"q": f"doi:{doi}"}, timeout=10, plugin_name=self.plugin_name
+            )
             response.raise_for_status()
             results = response.json().get("organic_results")
         except HTTPError:

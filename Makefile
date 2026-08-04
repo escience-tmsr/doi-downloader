@@ -93,7 +93,7 @@ docs:             ## Build the documentation.
 docs-serve: docs ## Serve the documentation locally.
 	@echo "serving documentation locally ..."
 	@echo "Open http://localhost:8000 in your browser"
-	python -m http.server 8000 --directory site/ 
+	python -m http.server 8000 --directory site/
 
 .PHONY: docs-deploy
 docs-deploy: docs ## Deploy the documentation to gh-pages branch.

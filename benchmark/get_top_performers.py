@@ -1,20 +1,23 @@
 """
 analyze_performance.py - Generate reports from benchmark data
 """
-import sys
+
 import os
-from doi_downloader.benchmark import BenchmarkLogger, BenchmarkAnalyzer
+import sys
+
+from doi_downloader.benchmark import BenchmarkAnalyzer, BenchmarkLogger
+
 
 def main(log_file="benchmark/logs/benchmark_log.jsonl"):
     logger = BenchmarkLogger(log_file)
     analyzer = BenchmarkAnalyzer(logger)
-    
-    output = ''
-    output += '='*60
+
+    output = ""
+    output += "=" * 60
     output += os.linesep
-    output += 'PERFORMANCE SUMMARY'
+    output += "PERFORMANCE SUMMARY"
     output += os.linesep
-    output += '='*60
+    output += "=" * 60
     output += os.linesep
 
     # Overall stats
@@ -27,18 +30,14 @@ def main(log_file="benchmark/logs/benchmark_log.jsonl"):
     output += os.linesep
 
     # Top performing plugins
-    output += "\n" + "="*60
+    output += "\n" + "=" * 60
     output += os.linesep
     output += "TOP PERFORMING PLUGINS"
     output += os.linesep
-    output += '='*60
+    output += "=" * 60
     output += os.linesep
     per_plugin = analyzer.per_plugin_performance()
-    sorted_plugins = sorted(
-        per_plugin.items(), 
-        key=lambda x: x[1]['pdf_download_rate'], 
-        reverse=True
-    )
+    sorted_plugins = sorted(per_plugin.items(), key=lambda x: x[1]["pdf_download_rate"], reverse=True)
     for plugin, stats in sorted_plugins[:5]:
         output += f"\n{plugin}:"
         output += os.linesep
@@ -46,21 +45,17 @@ def main(log_file="benchmark/logs/benchmark_log.jsonl"):
         output += os.linesep
         output += f"  Attempts: {stats['total_attempts']}"
         output += os.linesep
-    
+
     # Top performing journals
-    output += "\n" + "="*60
+    output += "\n" + "=" * 60
     output += os.linesep
     output += "TOP PERFORMING JOURNALS"
     output += os.linesep
-    output += '='*60
+    output += "=" * 60
     output += os.linesep
 
     per_journal = analyzer.per_journal_performance()
-    sorted_journals = sorted(
-        per_journal.items(), 
-        key=lambda x: x[1]['pdf_download_rate'], 
-        reverse=True
-    )
+    sorted_journals = sorted(per_journal.items(), key=lambda x: x[1]["pdf_download_rate"], reverse=True)
     for journal, stats in sorted_journals[:5]:
         output += f"\n{journal}:"
         output += os.linesep
@@ -68,14 +63,15 @@ def main(log_file="benchmark/logs/benchmark_log.jsonl"):
         output += os.linesep
         output += f"  Attempts: {stats['total_attempts']}"
         output += os.linesep
-    
+
     # Generate full reports
-    output += "\n" + "="*60
+    output += "\n" + "=" * 60
     print("Generating detailed reports...")
     print("✓ Reports saved to 'benchmark/reports/top_performers.txt'")
 
-    with open('benchmark/reports/top_performers.txt', 'w', encoding='utf-8') as f:
+    with open("benchmark/reports/top_performers.txt", "w", encoding="utf-8") as f:
         f.write(output)
+
 
 if __name__ == "__main__":
     log_file = sys.argv[1] if len(sys.argv) > 1 else "benchmark/logs/benchmark_log.jsonl"
