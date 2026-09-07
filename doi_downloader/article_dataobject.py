@@ -8,52 +8,35 @@ schema = {
     "$id": "https://example.com/crossref-schema",
     "title": "Crossref Metadata Schema",
     "type": "object",
-    "required": ["version", "title", "DOI", "source", "links", "pdf_links" ],
+    "required": ["version", "title", "DOI", "source", "links", "pdf_links"],
     "properties": {
-                "title": {"type": "string" },
-                "version": {"type": "string"},
-                "source": {"type": "string"},
-                "authors": {
-                    "type": "array",
-                    "items": {
-                        "type": "object",
-                        "required": ["given", "family"],
-                        "properties": {
-                            "given": {"type": "string"},
-                            "family": {"type": "string"}
-                        }
-                    }
-                },
-                "DOI": {
-                    "type": "string",
-                    "pattern": "^10\\.\\d{4,9}/[-._;()/:a-zA-Z0-9]+$"
-                },
-                "published_date": {"type": "string"},
-                "links": {
-                    "type": "array",
-                    "items": {
-                        "type": "string",
-                        "format": "uri"
-                    }
-                },
-                "pdf_links": {
-                    "type": "array",
-                    "items": {
-                        "type": "string",
-                        "format": "uri"
-                    }
-                }
-            }
-        }
+        "title": {"type": "string"},
+        "version": {"type": "string"},
+        "source": {"type": "string"},
+        "authors": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "required": ["given", "family"],
+                "properties": {"given": {"type": "string"}, "family": {"type": "string"}},
+            },
+        },
+        "DOI": {"type": "string", "pattern": "^10\\.\\d{4,9}/[-._;()/:a-zA-Z0-9]+$"},
+        "published_date": {"type": "string"},
+        "links": {"type": "array", "items": {"type": "string", "format": "uri"}},
+        "pdf_links": {"type": "array", "items": {"type": "string", "format": "uri"}},
+    },
+}
 
 VERSION = "0.1.0"
+
 
 class ArticleDataObject:
     """
     A class for handling Article data objects and validating them against a Article schema.
     """
 
-    def __init__(self, data, schema = schema):
+    def __init__(self, data, schema=schema):
         """
         Initialize the ArticleDataObject with data and schema.
 
@@ -69,8 +52,7 @@ class ArticleDataObject:
             "published_date": "",
             "links": [],
             "pdf_links": [],
-            "links_verified": False
-
+            "links_verified": False,
         }
         self.schema = schema
 
@@ -106,7 +88,6 @@ class ArticleDataObject:
         :param doi: The DOI of the Article.
         """
         self.data["DOI"] = doi
-
 
     def set_published_date(self, year, month, day):
         """
@@ -194,19 +175,15 @@ class ArticleDataObject:
         :param unpaywall_data: An Unpaywall JSON response representing the data.
         :return: An instance of ArticleDataObject.
         """
+
         def extract_authors(data):
             def filter_author(author):
                 if author.get("given") and author.get("family"):
-                    return {
-                        "given": author.get("given"),
-                        "family": author.get("family")
-                    }
+                    return {"given": author.get("given"), "family": author.get("family")}
                 return None
 
-            return [
-                author for author in map(filter_author, data.get("z_authors", [])) 
-                if author is not None
-        ]
+            return [author for author in map(filter_author, data.get("z_authors", [])) if author is not None]
+
         def extract_pdf_link(data):
             if data.get("best_oa_location"):
                 return data["best_oa_location"]["url_for_pdf"]
@@ -222,7 +199,7 @@ class ArticleDataObject:
             "publisher": unpaywall_data.get("publisher", ""),
             "published_date": unpaywall_data.get("published_date", ""),
             "links": [],
-            "pdf_links": [extract_pdf_link(unpaywall_data)] if extract_pdf_link(unpaywall_data) else []
+            "pdf_links": [extract_pdf_link(unpaywall_data)] if extract_pdf_link(unpaywall_data) else [],
         }
         return cls(data)
 
@@ -235,26 +212,23 @@ class ArticleDataObject:
         :return: An instance of ArticleDataObject.
         """
         crossref_data = crossref_json.get("message", {})
+
         def extract_authors(data):
             def filter_author(author):
                 if author.get("given") and author.get("family"):
-                    return {
-                        "given": author.get("given"),
-                        "family": author.get("family")
-                    }
+                    return {"given": author.get("given"), "family": author.get("family")}
                 return None
 
-            return [
-                author for author in map(filter_author, data.get("author", [])) 
-                if author is not None
-        ]
+            return [author for author in map(filter_author, data.get("author", [])) if author is not None]
+
         def convert_published_date(published_date):
             if published_date.get("date-parts"):
                 try:
-                    return f'{published_date["date-parts"][0][0]}-{published_date["date-parts"][0][1]}'
+                    return f"{published_date['date-parts'][0][0]}-{published_date['date-parts'][0][1]}"
                 except IndexError:
                     pass
             return ""
+
         def extract_pdf_link(data):
             """
             Get the PDF link from the Article data object.
@@ -275,14 +249,13 @@ class ArticleDataObject:
             "publisher": crossref_data.get("publisher", ""),
             "published_date": convert_published_date(crossref_data.get("published", {})),
             "links": [],
-            "pdf_links": [extract_pdf_link(crossref_data)] if extract_pdf_link(crossref_data) else []
+            "pdf_links": [extract_pdf_link(crossref_data)] if extract_pdf_link(crossref_data) else [],
         }
-
 
         return cls(data)
 
     @classmethod
-    def from_json(cls, json_string, schema = schema):
+    def from_json(cls, json_string, schema=schema):
         """
         Create a ArticleDataObject instance from a Article string.
 
@@ -292,4 +265,3 @@ class ArticleDataObject:
         """
         data = json.loads(json_string)
         return cls(data, schema)
-

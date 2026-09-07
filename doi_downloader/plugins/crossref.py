@@ -7,6 +7,7 @@ from doi_downloader.plugins import Plugin
 # Read API keys and other sensitive data from environment variables
 CROSSREF_API_URL = "https://api.crossref.org/works/{doi}"
 
+
 class CrossrefPlugin(Plugin):
     plugin_name = "crossref"
 

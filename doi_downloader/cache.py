@@ -16,15 +16,15 @@ class Cache:
     def create_cache_table(self, db_name):
         conn = sqlite3.connect(db_name)
         c = conn.cursor()
-        c.execute('''CREATE TABLE IF NOT EXISTS cache
-                    (key TEXT PRIMARY KEY, value TEXT, expiry INTEGER)''')
+        c.execute("""CREATE TABLE IF NOT EXISTS cache
+                    (key TEXT PRIMARY KEY, value TEXT, expiry INTEGER)""")
         conn.commit()
         conn.close()
 
     def get_all_cache(self):
         conn = sqlite3.connect(self.db_name)
         c = conn.cursor()
-        c.execute('SELECT * FROM cache')
+        c.execute("SELECT * FROM cache")
         rows = c.fetchall()
         conn.close()
         return rows
@@ -33,7 +33,7 @@ class Cache:
         conn = sqlite3.connect(self.db_name)
         c = conn.cursor()
         current_time = int(time.time())
-        c.execute('SELECT value, expiry FROM cache WHERE key = ?', (key,))
+        c.execute("SELECT value, expiry FROM cache WHERE key = ?", (key,))
         row = c.fetchone()
         conn.close()
         if row is not None:
@@ -49,22 +49,23 @@ class Cache:
         conn = sqlite3.connect(self.db_name)
         c = conn.cursor()
         expiry = int(time.time() + ttl)
-        c.execute('INSERT OR REPLACE INTO cache (key, value, expiry) VALUES (?, ?, ?)',
-                (key, json.dumps(value), expiry))
+        c.execute(
+            "INSERT OR REPLACE INTO cache (key, value, expiry) VALUES (?, ?, ?)", (key, json.dumps(value), expiry)
+        )
         conn.commit()
         conn.close()
 
     def delete_cache(self, key):
         conn = sqlite3.connect(self.db_name)
         c = conn.cursor()
-        c.execute('DELETE FROM cache WHERE key = ?', (key,))
+        c.execute("DELETE FROM cache WHERE key = ?", (key,))
         conn.commit()
         conn.close()
 
     def clear_cache(self):
         conn = sqlite3.connect(self.db_name)
         c = conn.cursor()
-        c.execute('DELETE FROM cache')
+        c.execute("DELETE FROM cache")
         conn.commit()
         conn.close()
 
@@ -72,7 +73,7 @@ class Cache:
         conn = sqlite3.connect(self.db_name)
         c = conn.cursor()
         current_time = int(time.time())
-        c.execute('DELETE FROM cache WHERE expiry IS NOT NULL AND expiry <= ?', (current_time,))
+        c.execute("DELETE FROM cache WHERE expiry IS NOT NULL AND expiry <= ?", (current_time,))
         conn.commit()
         conn.close()
 
@@ -80,7 +81,7 @@ class Cache:
         conn = sqlite3.connect(self.db_name)
         c = conn.cursor()
         json_dump = json.dumps(value)
-        c.execute('SELECT COUNT(*) FROM cache WHERE value = ?', (json_dump,))
+        c.execute("SELECT COUNT(*) FROM cache WHERE value = ?", (json_dump,))
         row = c.fetchone()
         conn.close()
         return row[0]
@@ -88,7 +89,7 @@ class Cache:
     def get_count_all(self):
         conn = sqlite3.connect(self.db_name)
         c = conn.cursor()
-        c.execute('SELECT COUNT(*) FROM cache')
+        c.execute("SELECT COUNT(*) FROM cache")
         row = c.fetchone()
         conn.close()
         return row[0]

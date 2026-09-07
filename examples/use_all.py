@@ -1,10 +1,11 @@
-from doi_downloader import loader as ld
-from doi_downloader import csv
 import argparse
+
+from doi_downloader import csv
+from doi_downloader import loader as ld
 
 # Set up argument parser
 parser = argparse.ArgumentParser(description="Process a CSV file.")
-parser.add_argument('-f', '--file', type=str, required=True, help="Path to the CSV file")
+parser.add_argument("-f", "--file", type=str, required=True, help="Path to the CSV file")
 args = parser.parse_args()
 
 # Check if file argument is provided
@@ -17,16 +18,15 @@ dois_file_path = args.file
 
 # Main function
 def main():
-
     dois = csv.load_dois_from_file(dois_file_path, "doi")
-    print(f'Number of DOIs: {len(dois)}')
+    print(f"Number of DOIs: {len(dois)}")
     unique_dois = csv.load_dois_from_file(dois_file_path, "doi", unique=True)
-    print(f'Number of unique DOIs: {len(unique_dois)}')
+    print(f"Number of unique DOIs: {len(unique_dois)}")
     # Print difference
-    print(f'Number of duplicates: {len(dois) - len(unique_dois)}')
-    
+    print(f"Number of duplicates: {len(dois) - len(unique_dois)}")
+
     # Load plugins
-    plugins = ld.plugins 
+    plugins = ld.plugins
 
     for doi in unique_dois:
         for name, plugin in plugins.items():
@@ -34,5 +34,6 @@ def main():
             if urls:
                 print(f"Plugin: {name},  doi:{doi},  url: {urls}")
                 continue
+
 
 main()

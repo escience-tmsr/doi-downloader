@@ -14,6 +14,7 @@ load_dotenv()
 CORE_API_URL = "https://api.core.ac.uk/v3/works"
 CORE_API_KEY = os.getenv("CORE_API_KEY")
 
+
 class CoreacukPlugin(Plugin):
     plugin_name = "coreacuk"
 
@@ -26,17 +27,14 @@ class CoreacukPlugin(Plugin):
 
         Args:
             doi: The DOI of the research paper
-        
+
         Returns:
             Metadata dictionary or an error message
         """
         base_url = CORE_API_URL
         api_key = CORE_API_KEY
-        
-        headers = {
-            "Authorization": f"Bearer {api_key}",
-            "Content-Type": "application/json"
-        }
+
+        headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
 
         full_url = f"{base_url}/{doi}"
 

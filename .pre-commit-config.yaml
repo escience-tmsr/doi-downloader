@@ -44,7 +44,15 @@ repos:
       - id: yamllint
         args:
           - -d
-          - "{extends: default, rules: {empty-lines: {max: 1}}}"
+          - |
+            {
+              extends: default,
+              rules: {
+                empty-lines: {max: 1},
+                document-start: disable,
+                line-length: {max: 120},
+              }
+            }
   - repo: https://github.com/astral-sh/ruff-pre-commit
     # Ruff version.
     rev: v0.13.0

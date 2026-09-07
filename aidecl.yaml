@@ -8,14 +8,16 @@ project:
   content_type: software
 ai_usage:
   used: true
-  summary: programming questions, advice, code reviews and occasionally code writing, checked and marked as in tests/test_googlescholar.py
+  summary: |
+    programming questions, advice, code reviews and occasionally code writing,
+    checked and marked as in tests/test_googlescholar.py
   level: minimal
   tools:
-  - name: Claude Code, Claude.ai
-    vendor: Anthropic
-    type: assistant
-    purpose:
-    - as above
+    - name: Claude Code, Claude.ai
+      vendor: Anthropic
+      type: assistant
+      purpose:
+        - as above
   scope:
     code_completion: true
 declaration:
