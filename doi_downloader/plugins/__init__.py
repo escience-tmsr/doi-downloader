@@ -12,7 +12,6 @@ from doi_downloader.lib import get_page_with_requests
 load_dotenv()
 
 
-
 class CacheMode(Enum):
     REFRESH = "refresh"
     """Skip the cache, call `fetch_metadata`, and store the result."""
@@ -105,7 +104,7 @@ class Plugin:
             doi: DOI of the article
             cache_mode: how the cache and its contents should be used
             ttl: Cache time-to-live in seconds
-            
+
         Returns:
             PDF URLs: list, could be empty
         """
@@ -160,4 +159,3 @@ class Plugin:
             return metadata.get_pdf_links()
         else:
             return []
-

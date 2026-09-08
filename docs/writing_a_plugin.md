@@ -1,13 +1,13 @@
 ## Creating a new plugin
 
-To extend the functionality of `doi_downloader`, you can create a new plugin for retrieving PDFs related to DOI from 
-a specific website. A plugin is a Python module that implements the `Plugin` interface. Below is a step-by-step guide 
+To extend the functionality of `doi_downloader`, you can create a new plugin for retrieving PDFs related to DOI from
+a specific website. A plugin is a Python module that implements the `Plugin` interface. Below is a step-by-step guide
 to creating a new plugin.
 
 ### Step 1: Create a new Python file
 
-Create a new Python file in the `doi_downloader/plugins` directory or (for testing only) in the directory 
-`doi_downloader/extra_plugins`. The name of the file should be descriptive of the plugin's functionality, 
+Create a new Python file in the `doi_downloader/plugins` directory or (for testing only) in the directory
+`doi_downloader/extra_plugins`. The name of the file should be descriptive of the plugin's functionality,
 for example, `my_plugin.py`. Plugins stored in the `extra_plugins` directory, will not be stored on Github.
 
 ### Step 2: Implement the Plugin interface
@@ -84,4 +84,4 @@ doi = "10.1000/xyz123"
 pdf_urls = ld.plugins["MyPlugin"].get_pdf_urls(doi, cache_mode=CacheMode.CACHE_FIRST)
 ```
 
-The available plugins in the [doi_downloader/plugins](https://github.com/escience-tmsr/doi-downloader/tree/main/doi_downloader/plugins) directory can be inspected for more example plugins code. 
+The available plugins in the [doi_downloader/plugins](https://github.com/escience-tmsr/doi-downloader/tree/main/doi_downloader/plugins) directory can be inspected for more example plugins code.

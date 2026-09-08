@@ -9,6 +9,7 @@ EXTRA_PLUGIN_FOLDER = os.path.join(os.path.dirname(__file__), "extra_plugins")
 
 plugins = {}
 
+
 def _load_plugins(folder):
     global plugins
 
@@ -27,6 +28,7 @@ def _load_plugins(folder):
                     plugins[obj.__name__] = obj()
 
     return plugins
+
 
 _load_plugins(PLUGIN_FOLDER)
 _load_plugins(EXTRA_PLUGIN_FOLDER)

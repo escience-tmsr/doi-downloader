@@ -1,6 +1,5 @@
 .ONESHELL:
 ENV_PREFIX=$(shell python -c "if __import__('pathlib').Path('.venv/bin/pip').exists(): print('.venv/bin/')")
-USING_POETRY=$(shell grep "tool.poetry" pyproject.toml && echo "yes")
 
 .PHONY: help
 help:             ## Show the help.
@@ -17,14 +16,12 @@ run:              ## Run the application.
 .PHONY: show
 show:             ## Show the current environment.
 	@echo "Current environment:"
-	@if [ "$(USING_POETRY)" ]; then poetry env info && exit; fi
 	@echo "Running using $(ENV_PREFIX)"
 	@$(ENV_PREFIX)python -V
 	@$(ENV_PREFIX)python -m site
 
 .PHONY: install
 install:          ## Install the project in dev mode.
-	@if [ "$(USING_POETRY)" ]; then poetry install && exit; fi
 	@echo "Don't forget to run 'make virtualenv' if you got errors."
 	$(ENV_PREFIX)pip install -e .[examples] --group dev --group docs --group publishing
 
@@ -65,7 +62,6 @@ clean:            ## Clean unused files.
 
 .PHONY: virtualenv
 virtualenv:       ## Create a virtual environment.
-	@if [ "$(USING_POETRY)" ]; then poetry install && exit; fi
 	@echo "creating virtualenv ..."
 	@rm -rf .venv
 	@python -m venv .venv
@@ -97,7 +93,7 @@ docs:             ## Build the documentation.
 docs-serve: docs ## Serve the documentation locally.
 	@echo "serving documentation locally ..."
 	@echo "Open http://localhost:8000 in your browser"
-	python -m http.server 8000 --directory site/ 
+	python -m http.server 8000 --directory site/
 
 .PHONY: docs-deploy
 docs-deploy: docs ## Deploy the documentation to gh-pages branch.

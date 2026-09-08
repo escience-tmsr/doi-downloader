@@ -7,7 +7,7 @@ from doi_downloader.plugins import Plugin
 
 SERPAPI_KEY = os.getenv("SERPAPI_KEY")
 SERPAPI_SEARCH_URL = "https://serpapi.com/search.json"
-PARAMS_BASE =  { "engine": "google_scholar", "api_key": SERPAPI_KEY }
+PARAMS_BASE = {"engine": "google_scholar", "api_key": SERPAPI_KEY}
 
 
 class GoogleScholarSerpAPIPlugin(Plugin):

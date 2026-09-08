@@ -1,12 +1,10 @@
-import responses
-import os
 import pytest
+import responses
 
-from doi_downloader.plugins import unpaywall
-from doi_downloader.plugins import CacheMode
+from doi_downloader.plugins import CacheMode, unpaywall
 
-TEST_DOI="10.1007/s10207-021-00566-3"
-TEST_FILE="10.1007_s10207-021-00566-3.pdf"
+TEST_DOI = "10.1007/s10207-021-00566-3"
+TEST_FILE = "10.1007_s10207-021-00566-3.pdf"
 UNPAYWALL_API_URL = "https://api.unpaywall.org/v2/{doi}?email={email}"
 
 
@@ -22,10 +20,14 @@ def test_get_url(tmp_path):
 
     # Mock the response from the Unpaywall API
     unpaywall_url = UNPAYWALL_API_URL.format(doi=TEST_DOI, email=unpaywall.UNPAYWALL_EMAIL)
-    responses.add(responses.GET, unpaywall_url,
-                  json={"best_oa_location": {"url_for_pdf": "https://link.springer.com/content/pdf/10.1007/s10207-021-00566-3.pdf"}},
-                  status=200)
-
+    responses.add(
+        responses.GET,
+        unpaywall_url,
+        json={
+            "best_oa_location": {"url_for_pdf": "https://link.springer.com/content/pdf/10.1007/s10207-021-00566-3.pdf"}
+        },
+        status=200,
+    )
 
     urls = upw.get_pdf_urls(TEST_DOI, cache_mode=CacheMode.REFRESH)
-    assert 'https://link.springer.com/content/pdf/10.1007/s10207-021-00566-3.pdf' in urls
+    assert "https://link.springer.com/content/pdf/10.1007/s10207-021-00566-3.pdf" in urls

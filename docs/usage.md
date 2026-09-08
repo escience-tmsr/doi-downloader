@@ -5,8 +5,8 @@ This text contains five examples of how `doi_downloader` can be used from a Pyth
 ### 1. Download a PDF file given a DOI
 
 In this example, we try to download a PDF file given a DOI, from a Python program or a Jupyter notebook. We call the
-download function, which will iterate through all the available plugins and try to find a PDF URL for the given 
-DOI. If a plugin finds a URL related to the DOI, an attempt will be made to download the PDF file and save it to 
+download function, which will iterate through all the available plugins and try to find a PDF URL for the given
+DOI. If a plugin finds a URL related to the DOI, an attempt will be made to download the PDF file and save it to
 the specified output directory:
 
 ```python
@@ -16,13 +16,13 @@ doi = "10.1038/s41586-020-2649-2"
 ddl.download(doi, output_dir="downloads")
 ```
 
-The download function will return the location of the downloaded PDF file, if the download was successful. In other 
+The download function will return the location of the downloaded PDF file, if the download was successful. In other
 cases, the download will return `False`.
 
 ### 2. Using a single plugin for retrieving the PDF URL related to a DOI
 
-This example uses the Crossref plugin to fetch a PDF URL for a DOI. Note that the plugin call only tries to retrieve an URL. 
-It does not try to fetch a PDF. 
+This example uses the Crossref plugin to fetch a PDF URL for a DOI. Note that the plugin call only tries to retrieve an URL.
+It does not try to fetch a PDF.
 
 ```python
 from doi_downloader import loader as ld
@@ -54,7 +54,7 @@ The example file contains two DOIs. The plugin finds a URL for one of them but n
 
 ### 4. Reading DOIs from a CSV file and retrieving the PDFs
 
-This example reads DOIs from a CSV file, uses the Crossref plugin to fetch a URL and tries to download the 
+This example reads DOIs from a CSV file, uses the Crossref plugin to fetch a URL and tries to download the
 associated PDF.
 
 ```python
@@ -73,7 +73,7 @@ for doi in doi_list:
         print(f"Failed to download {doi} ({pdf_urls})")
 ```
 
-The example file contains two DOIs. The plugin finds a URL for one of them and manages to download a PDF from the URL. 
+The example file contains two DOIs. The plugin finds a URL for one of them and manages to download a PDF from the URL.
 For the other DOI, no URL was found.
 
 ### 5. Using multiple plugins for retrieving the PDFs
