@@ -2,6 +2,7 @@
 
 [![github license badge](https://img.shields.io/github/license/escience-tmsr/doi-downloader)](https://github.com/escience-tmsr/doi-downloader)
 [![CI](https://github.com/escience-tmsr/doi-downloader/actions/workflows/main.yml/badge.svg)](https://github.com/escience-tmsr/doi-downloader/actions/workflows/main.yml)
+[![pre-commit.ci status](https://results.pre-commit.ci/badge/github/escience-tmsr/doi-downloader/main.svg)](https://results.pre-commit.ci/latest/github/escience-tmsr/doi-downloader/main)
 
 
 ## Install
