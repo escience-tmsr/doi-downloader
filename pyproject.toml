@@ -29,7 +29,7 @@ description = "Utility to download PDF files for scientific articles based on th
 keywords = ["doi","download","articles"]
 license = "Apache-2.0"
 license-files = ["LICENSE", "NOTICE"]
-name = "doi_downloader"
+name = "tmsr-doi-downloader"
 readme = {file = "README.md", content-type = "text/markdown"}
 requires-python = ">=3.11"
 dynamic = ["version"]
