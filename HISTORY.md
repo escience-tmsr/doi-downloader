@@ -4,6 +4,43 @@ Changelog
 
 (unreleased)
 ------------
+- Merge pull request #72 from escience-tmsr/fix-pypi-packaging. [Erik
+  Tjong Kim Sang]
+
+  fix package discovery so the wheel actually ships doi_downloader
+- [pre-commit.ci] auto fixes from pre-commit.com hooks. [pre-commit-
+  ci[bot]]
+
+  for more information, see https://pre-commit.ci
+- Fix package discovery so the wheel actually ships doi_downloader.
+  [eriktks]
+
+  where = ["doi_downloader"] told setuptools the source root was inside
+  doi_downloader/, so the built wheel only contained the plugins/ and
+  extra_plugins/ subdirectories and never the doi_downloader package itself
+  (confirmed by inspecting the built wheel: top_level.txt listed only
+  extra_plugins and plugins). Verified the fix locally: the wheel now
+  contains doi_downloader/__init__.py and every submodule.
+
+  Also add --verbose to the twine upload step in release.yml, since the
+  Upload Python Package workflow has failed on every tag push so far with
+  a bare 'HTTPError: 400 Bad Request from https://upload.pypi.org/legacy/'
+  and no further detail; twine only prints PyPI's actual rejection reason
+  in verbose mode.
+- Release: stage version-bump files and create the tag in make release.
+  [eriktks]
+
+  Fixes two bugs found while debugging a failed 1.1.0 release: the bump-my-version
+  changes to doi_downloader/VERSION and pyproject.toml were never staged (only
+  HISTORY.md was), so the release commit never actually contained the version
+  bump; and no local tag was ever created before git push origin $(cat VERSION),
+  so that push failed with 'src refspec ... does not match any'.
+
+
+1.1.0 (2026-09-22)
+------------------
+- Release: bump version to 1.1.0 (files omitted from df3a82b) [eriktks]
+- Release: version 1.1.0 🚀 [eriktks]
 - Updated Makefile for releases. [eriktks]
 - Updated Makefile for releases. [eriktks]
 - Updated Makefile for releases. [eriktks]
@@ -706,3 +743,5 @@ Changelog
   ...
 - ✅ Ready to clone and code. [recap]
 - Initial commit. [recap]
+
+
