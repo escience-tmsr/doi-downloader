@@ -38,8 +38,11 @@ def download_pdf(pdf_url, filename, directory=".", plugin_name=None):
         return False
     except HTTPError:
         print(f"[{plugin_name}] access error for pdf download")
-        status = progress.STATUS_NOT_FOUND if response.status_code == 404 else \
-            f"{progress.STATUS_ACCESS_ERROR}: HTTP error {response.status_code}"
+        status = (
+            progress.STATUS_NOT_FOUND
+            if response.status_code == 404
+            else f"{progress.STATUS_ACCESS_ERROR}: HTTP error {response.status_code}"
+        )
         progress.record_pdf_access(status, pdf_url)
         return False
     except (ConnectionError, TooManyRedirects) as e:

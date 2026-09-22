@@ -134,7 +134,7 @@ class Plugin:
                             print(f"[{self.plugin_name}] using cached data for {doi}.")
                             progress.record_cache(progress.STATUS_SUCCESS, pdf_urls)
                             progress.record_pdf_url_map(data_object.get_pdf_links_by_fetch_url())
-                            return(pdf_urls)
+                            return pdf_urls
                         # A cached entry with no usable pdf urls (e.g. a previous
                         # attempt failed entirely) is treated as a cache miss, so
                         # CACHE_FIRST retries the fetch instead of getting stuck

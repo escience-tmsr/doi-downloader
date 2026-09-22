@@ -21,11 +21,17 @@ STATUS_ACCESS_ERROR = "ACCESS_ERROR"
 STATUS_SKIPPED = "SKIPPED"
 
 _COLUMNS = [
-    "DOI", "plugin",
-    "disk status", "disk result",
-    "cache status", "cache result",
-    "fetch status", "fetch result",
-    "pdf access status", "pdf access urls", "pdf access files",
+    "DOI",
+    "plugin",
+    "disk status",
+    "disk result",
+    "cache status",
+    "cache result",
+    "fetch status",
+    "fetch result",
+    "pdf access status",
+    "pdf access urls",
+    "pdf access files",
 ]
 
 
@@ -187,14 +193,21 @@ td.multi span {{ display: block; padding: 4px 8px; }}
                 # leave blank rather than repeating the failure pdf access status shows.
                 files_value, files_status = None, None
 
-        cells = "".join([
-            self._cell(row.doi), self._cell(row.plugin_name),
-            self._status_cell(row.disk_status), self._result_cell(row.disk_result, row.disk_status),
-            self._status_cell(row.cache_status), self._result_cell(row.cache_result, row.cache_status),
-            self._status_cell(fetch_status), self._result_cell(fetch_result, fetch_status),
-            self._status_cell(pdf_access_status), self._result_cell(pdf_access_urls, pdf_access_status),
-            self._result_cell(files_value, files_status, as_list=False),
-        ])
+        cells = "".join(
+            [
+                self._cell(row.doi),
+                self._cell(row.plugin_name),
+                self._status_cell(row.disk_status),
+                self._result_cell(row.disk_result, row.disk_status),
+                self._status_cell(row.cache_status),
+                self._result_cell(row.cache_result, row.cache_status),
+                self._status_cell(fetch_status),
+                self._result_cell(fetch_result, fetch_status),
+                self._status_cell(pdf_access_status),
+                self._result_cell(pdf_access_urls, pdf_access_status),
+                self._result_cell(files_value, files_status, as_list=False),
+            ]
+        )
         return f"<tr>{cells}</tr>"
 
     @staticmethod

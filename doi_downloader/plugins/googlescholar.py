@@ -12,10 +12,10 @@ PARAMS_BASE = {"engine": "google_scholar", "api_key": SERPAPI_KEY}
 
 class GoogleScholarSerpAPIPlugin(Plugin):
     """Fetch metadata from SerpAPI's Google Scholar search, then additionally
-       fetch the publisher page it points to for link verification and its own
-       pdf link (if any). The second fetch has its own url/failure modes, so
-       it's handled directly in process_webpage rather than via make_url --
-       only the primary SerpAPI request goes through the base Plugin template.
+    fetch the publisher page it points to for link verification and its own
+    pdf link (if any). The second fetch has its own url/failure modes, so
+    it's handled directly in process_webpage rather than via make_url --
+    only the primary SerpAPI request goes through the base Plugin template.
     """
 
     plugin_name = "serpapi"
@@ -52,10 +52,10 @@ class GoogleScholarSerpAPIPlugin(Plugin):
 
     def add_publisher_page(self, data_object, doi, publisher_link, links_verified, existing_pdf_links):
         """Fetch the publisher page for additional link verification and its own
-           pdf link (if any), recorded under its own url -- separate from the
-           SerpAPI-derived pdf_links already added to data_object.
+        pdf link (if any), recorded under its own url -- separate from the
+        SerpAPI-derived pdf_links already added to data_object.
 
-           :return: the (possibly updated) links_verified flag
+        :return: the (possibly updated) links_verified flag
         """
         data_object.mark_fetch_pending(publisher_link)
         if not robot_access_allowed(publisher_link):
@@ -87,13 +87,13 @@ class GoogleScholarSerpAPIPlugin(Plugin):
 
     def add_serpapi_results(self, data_object, results, doi, fetch_url):
         """Populate data_object from a successful SerpAPI response's first result.
-           Serpapi returns one result (list data["organic_results"][0]) with
-           links to the publisher (data["organic_results"][0]["link"]) and the
-           PDFs (data["organic_results"][0]["resources"][*]["link"]).
+        Serpapi returns one result (list data["organic_results"][0]) with
+        links to the publisher (data["organic_results"][0]["link"]) and the
+        PDFs (data["organic_results"][0]["resources"][*]["link"]).
 
-           Note: most pdf_links come from the SerpAPI search result (fetch_url).
-           The publisher page fetched below is used for link verification, and
-           its own pdf link (if any) is recorded separately under its own url.
+        Note: most pdf_links come from the SerpAPI search result (fetch_url).
+        The publisher page fetched below is used for link verification, and
+        its own pdf link (if any) is recorded separately under its own url.
         """
         top_result = results[0]
         data_object.set_title(top_result.get("title"))

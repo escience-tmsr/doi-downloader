@@ -21,11 +21,13 @@ def sanitize_doi(doi):
 
 def _refresh_progress_view(recorder):
     from doi_downloader import progress_browser
+
     progress_browser.get_browser_view().update(recorder.to_html())
 
 
-def download(doi, output_dir=".", force_download=False,
-             journal_domain=None, enable_benchmark=True, show_progress=False):
+def download(
+    doi, output_dir=".", force_download=False, journal_domain=None, enable_benchmark=True, show_progress=False
+):
     """
     Download PDF with optional benchmarking and live progress reporting
 

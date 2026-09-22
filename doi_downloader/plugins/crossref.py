@@ -32,7 +32,7 @@ class CrossrefPlugin(Plugin):
     def _convert_published_date(published_date):
         if published_date.get("date-parts"):
             try:
-                return f'{published_date["date-parts"][0][0]}-{published_date["date-parts"][0][1]}'
+                return f"{published_date['date-parts'][0][0]}-{published_date['date-parts'][0][1]}"
             except IndexError:
                 pass
         return ""

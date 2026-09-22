@@ -8,39 +8,27 @@ schema = {
     "$id": "https://example.com/crossref-schema",
     "title": "Crossref Metadata Schema",
     "type": "object",
-    "required": ["version", "title", "DOI", "source", "pdf_links" ],
+    "required": ["version", "title", "DOI", "source", "pdf_links"],
     "properties": {
-                "title": {"type": "string" },
-                "version": {"type": "string"},
-                "source": {"type": "string"},
-                "authors": {
-                    "type": "array",
-                    "items": {
-                        "type": "object",
-                        "required": ["given", "family"],
-                        "properties": {
-                            "given": {"type": "string"},
-                            "family": {"type": "string"}
-                        }
-                    }
-                },
-                "DOI": {
-                    "type": "string",
-                    "pattern": "^10\\.\\d{4,9}/[-._;()/:a-zA-Z0-9]+$"
-                },
-                "published_date": {"type": "string"},
-                "pdf_links": {
-                    "type": "object",
-                    "additionalProperties": {
-                        "type": ["array", "null"],
-                        "items": {
-                            "type": "string",
-                            "format": "uri"
-                        }
-                    }
-                }
-            }
-        }
+        "title": {"type": "string"},
+        "version": {"type": "string"},
+        "source": {"type": "string"},
+        "authors": {
+            "type": "array",
+            "items": {
+                "type": "object",
+                "required": ["given", "family"],
+                "properties": {"given": {"type": "string"}, "family": {"type": "string"}},
+            },
+        },
+        "DOI": {"type": "string", "pattern": "^10\\.\\d{4,9}/[-._;()/:a-zA-Z0-9]+$"},
+        "published_date": {"type": "string"},
+        "pdf_links": {
+            "type": "object",
+            "additionalProperties": {"type": ["array", "null"], "items": {"type": "string", "format": "uri"}},
+        },
+    },
+}
 
 VERSION = "0.1.0"
 
@@ -65,8 +53,7 @@ class ArticleDataObject:
             "DOI": "",
             "published_date": "",
             "pdf_links": {},
-            "links_verified": False
-
+            "links_verified": False,
         }
         self.schema = schema
 
@@ -239,7 +226,7 @@ class ArticleDataObject:
             "DOI": unpaywall_data.get("doi", ""),
             "publisher": unpaywall_data.get("publisher", ""),
             "published_date": unpaywall_data.get("published_date", ""),
-            "pdf_links": {}
+            "pdf_links": {},
         }
         obj = cls(data)
         if fetch_url:
@@ -300,7 +287,7 @@ class ArticleDataObject:
             "DOI": crossref_data.get("DOI", ""),
             "publisher": crossref_data.get("publisher", ""),
             "published_date": convert_published_date(crossref_data.get("published", {})),
-            "pdf_links": {}
+            "pdf_links": {},
         }
         obj = cls(data)
         if fetch_url:

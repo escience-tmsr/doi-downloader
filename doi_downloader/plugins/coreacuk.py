@@ -19,10 +19,7 @@ class CoreacukPlugin(Plugin):
         return f"{CORE_API_URL}/{doi}"
 
     def request_headers(self, doi):
-        return {
-            "Authorization": f"Bearer {CORE_API_KEY}",
-            "Content-Type": "application/json"
-        }
+        return {"Authorization": f"Bearer {CORE_API_KEY}", "Content-Type": "application/json"}
 
     def process_webpage(self, response, doi, data_object):
         paper = response.json()
