@@ -133,7 +133,7 @@ no-lines-before = ["future", "local-folder"]
 
 
 [tool.bumpversion]
-current_version = "1.1.1"
+current_version = "1.1.2"
 
 [[tool.bumpversion.files]]
 filename = "doi_downloader/VERSION"

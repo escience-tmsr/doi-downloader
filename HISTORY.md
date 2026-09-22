@@ -4,6 +4,31 @@ Changelog
 
 (unreleased)
 ------------
+- Merge pull request #73 from escience-tmsr/rename-pypi-package. [Erik
+  Tjong Kim Sang]
+
+  publish to PyPI as tmsr-doi-downloader
+- [pre-commit.ci] auto fixes from pre-commit.com hooks. [pre-commit-
+  ci[bot]]
+
+  for more information, see https://pre-commit.ci
+- Publish to PyPI as tmsr-doi-downloader. [eriktks]
+
+  PyPI rejects doi_downloader/doi-downloader outright: 'The name is too
+  similar to an existing project' - an unrelated existing PyPI project,
+  doidownloader, is close enough (PyPI normalizes away - and _) to trip
+  this on every upload attempt, regardless of anything else in the repo.
+
+  Only the [project].name (the PyPI distribution name) changes; the
+  importable module stays doi_downloader, confirmed by rebuilding locally:
+  the wheel still ships doi_downloader/ with all its submodules, just
+  renamed to tmsr_doi_downloader-*.whl / tmsr_doi_downloader-*.tar.gz.
+  twine check passes on both artifacts.
+
+
+1.1.1 (2026-09-22)
+------------------
+- Release: version 1.1.1 🚀 [eriktks]
 - Merge pull request #72 from escience-tmsr/fix-pypi-packaging. [Erik
   Tjong Kim Sang]
 
@@ -743,3 +768,5 @@ Changelog
   ...
 - ✅ Ready to clone and code. [recap]
 - Initial commit. [recap]
+
+
