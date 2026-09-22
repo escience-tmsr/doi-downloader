@@ -79,8 +79,9 @@ release:          ## Create a new tag for release (via bump-my-version).
 	@read -p "Bump level? (patch / minor / major) : " LEVEL
 	@$(ENV_PREFIX)bump-my-version bump $${LEVEL}
 	@$(ENV_PREFIX)gitchangelog > HISTORY.md
-	@git add HISTORY.md
+	@git add doi_downloader/VERSION pyproject.toml HISTORY.md
 	@git commit -m "release: version $$(cat doi_downloader/VERSION) 🚀"
+	@git tag $$(cat doi_downloader/VERSION)
 	@git push origin main
 	@git push origin $$(cat doi_downloader/VERSION)
 	@echo "Github Actions will detect the new tag and release the new version."
