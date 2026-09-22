@@ -35,7 +35,7 @@ lint:             ## Run pep8, black, mypy linters.
 
 .PHONY: test
 test: lint        ## Run tests and generate coverage report.
-	set -e
+	@set -e
 	$(ENV_PREFIX)pytest -v --cov-config .coveragerc --cov=doi_downloader -l --tb=short --maxfail=1 tests/
 	$(ENV_PREFIX)coverage xml
 	$(ENV_PREFIX)coverage html
@@ -72,7 +72,7 @@ virtualenv:       ## Create a virtual environment.
 
 .PHONY: release
 release:          ## Create a new tag for release (via bump-my-version).
-	set -e
+	@set -e
 	@echo "WARNING: This operation will bump the version, commit, tag and push to github"
 	@test "$(shell git rev-parse --abbrev-ref HEAD)" = "main" || (echo "Not on main branch!" && exit 1)
 	@git diff --exit-code --quiet || (echo "Uncommitted changes! Commit or stash first." && exit 1)
