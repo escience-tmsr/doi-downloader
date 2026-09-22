@@ -72,6 +72,7 @@ virtualenv:       ## Create a virtual environment.
 
 .PHONY: release
 release:          ## Create a new tag for release (via bump-my-version).
+	set -e
 	@echo "WARNING: This operation will bump the version, commit, tag and push to github"
 	@test "$(shell git rev-parse --abbrev-ref HEAD)" = "main" || (echo "Not on main branch!" && exit 1)
 	@git diff --exit-code --quiet || (echo "Uncommitted changes! Commit or stash first." && exit 1)
