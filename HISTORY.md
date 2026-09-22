@@ -706,5 +706,3 @@ Changelog
   ...
 - ✅ Ready to clone and code. [recap]
 - Initial commit. [recap]
-
-
