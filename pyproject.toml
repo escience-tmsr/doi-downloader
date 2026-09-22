@@ -51,7 +51,7 @@ dev = [
     "pytest",
     "pytest-cov",
     "pytest-dotenv",
-    "ruff",
+    "ruff==0.16.1",
 ]
 docs = [
     "mkdocs",
@@ -70,7 +70,7 @@ Issues = "https://github.com/escience-tmsr/doi-downloader/issues"
 Documentation = "https://escience-tmsr.github.io/doi-downloader/"
 
 [tool.setuptools.packages.find]
-where = ["doi_downloader"]
+include = ["doi_downloader*"]
 
 [tool.mypy]
 disable_error_code = ["import-untyped"]
@@ -133,7 +133,7 @@ no-lines-before = ["future", "local-folder"]
 
 
 [tool.bumpversion]
-current_version = "0.1.0"
+current_version = "1.0.0"
 
 [[tool.bumpversion.files]]
 filename = "doi_downloader/VERSION"

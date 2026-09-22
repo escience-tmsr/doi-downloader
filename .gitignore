@@ -148,6 +148,11 @@ dmypy.json
 # templates
 .github/templates/*
 
+# Claude Code / agent working files
+.claude/
+.rseng-agent-skills-*
+.rseng-backup-*
+
 *.jsonl
 
 performance_report.txt
