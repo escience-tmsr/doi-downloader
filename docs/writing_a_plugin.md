@@ -40,7 +40,7 @@ class MyPlugin(Plugin):
 `add_pdf_link(fetch_url, url)` ties every pdf link to the page it was found on (`fetch_url`, typically `response.url`),
 since a plugin can make more than one request and later analysis may need to know which page a link came from.
 
-Two more hooks are available if a plugin needs them:
+Next to `make_url` and `process_webpage`, two more hooks are available if a plugin needs them:
 
 - `request_headers(self, doi)`: return a dict to replace the default browser-like request headers (e.g. for an
   `Authorization` header), or `None` (the default) to use the default headers.
