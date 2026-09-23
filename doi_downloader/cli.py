@@ -39,15 +39,19 @@ def build_parser():
     )
     parser.add_argument("dois", nargs="*", help="One or more DOIs to download.")
     parser.add_argument(
-        "-f", "--file",
+        "-f",
+        "--file",
         help="Path to a text file with one DOI per line (lines starting with # are ignored).",
     )
     parser.add_argument(
-        "-o", "--output-dir", default=".",
+        "-o",
+        "--output-dir",
+        default=".",
         help="Directory to save downloaded PDFs in (default: current directory).",
     )
     parser.add_argument(
-        "--force", action="store_true",
+        "--force",
+        action="store_true",
         help="Re-download even if a matching file already exists.",
     )
     parser.add_argument(
@@ -55,7 +59,8 @@ def build_parser():
         help="Journal/domain name to record for analytics, applied to every DOI given.",
     )
     parser.add_argument(
-        "--no-benchmark", action="store_true",
+        "--no-benchmark",
+        action="store_true",
         help="Disable performance tracking for this run.",
     )
     return parser
