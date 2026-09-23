@@ -96,14 +96,14 @@ def main(argv=None):
                 enable_benchmark=not args.no_benchmark,
             )
         except Exception as e:
-            print(f"✗ {doi}: {e}")
+            print(f"FAIL {doi}: {e}")
             failures += 1
             continue
 
         if result:
-            print(f"✓ {doi}: {result}")
+            print(f"OK {doi}: {result}")
         else:
-            print(f"✗ {doi}: no PDF found")
+            print(f"FAIL {doi}: no PDF found")
             failures += 1
 
     return 1 if failures else 0
