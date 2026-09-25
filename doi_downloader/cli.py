@@ -81,7 +81,10 @@ def main(argv=None):
 
     dois = list(args.dois)
     if args.file:
-        dois += read_doi_file(args.file)
+        try:
+            dois += read_doi_file(args.file)
+        except OSError as e:
+            parser.error(f"cannot read DOI file {args.file}: {e.strerror}")
     if not dois:
         parser.error("no DOIs given: pass one or more DOIs, or --file <path>")
 
