@@ -73,9 +73,8 @@ def test_main_defaults_match_download_defaults():
 
 def test_main_reports_missing_doi_file_without_traceback(tmp_path, capsys):
     missing = tmp_path / "missing.txt"
-    with patch.object(cli, "download") as mock_download:
-        with pytest.raises(SystemExit) as excinfo:
-            cli.main(["--file", str(missing)])
+    with patch.object(cli, "download") as mock_download, pytest.raises(SystemExit) as excinfo:
+        cli.main(["--file", str(missing)])
     assert excinfo.value.code == 2
     assert f"cannot read DOI file {missing}" in capsys.readouterr().err
     mock_download.assert_not_called()
