@@ -1,8 +1,36 @@
 ## Usage
 
-This text contains five examples of how `doi_downloader` can be used from a Python program or a Jupyter notebook.
+`doi_downloader` can be used from the command line or from a Python program or a Jupyter notebook.
 
-### 1. Download a PDF file given a DOI
+### Command line
+
+Installing the package provides the `doi-downloader` command. Pass one or more DOIs to download their PDF files to the specified directory:
+
+```bash
+doi-downloader 10.1038/s41586-020-2649-2 -o downloads
+```
+
+DOIs can also be read from a text file with one DOI per line. Blank lines and lines starting with `#` are ignored:
+
+```bash
+doi-downloader --file dois.txt -o downloads
+```
+
+For every DOI, the command prints `OK` followed by the location of the downloaded file, or `FAIL` followed by the
+reason. The exit code is 0 when all downloads succeeded and 1 when at least one failed. Other options:
+
+- `-o`, `--output-dir`: directory for the downloaded PDF files (default: the current directory)
+- `--force`: download again, even if the file already exists
+- `--domain`: journal or domain name to record in the benchmark logs for every DOI
+- `--no-benchmark`: do not record this run in the benchmark logs
+
+Run `doi-downloader --help` for the full list.
+
+### From Python
+
+The following five examples show how `doi_downloader` can be used from a Python program or a Jupyter notebook.
+
+#### 1. Download a PDF file given a DOI
 
 In this example, we try to download a PDF file given a DOI, from a Python program or a Jupyter notebook. We call the
 download function, which will iterate through all the available plugins and try to find a PDF URL for the given
@@ -19,7 +47,7 @@ ddl.download(doi, output_dir="downloads")
 The download function will return the location of the downloaded PDF file, if the download was successful. In other
 cases, the download will return `False`.
 
-### 2. Using a single plugin for retrieving the PDF URL related to a DOI
+#### 2. Using a single plugin for retrieving the PDF URL related to a DOI
 
 This example uses the Crossref plugin to fetch a PDF URL for a DOI. Note that the plugin call only tries to retrieve an URL.
 It does not try to fetch a PDF.
@@ -36,7 +64,7 @@ The names of the plugins in the code are: `CoreacukPlugin`, `CrossrefPlugin`, `G
 `UnpaywallPlugin`. Not all plugins are successful in recovering a URL for the example DOI. If a plugin cannot
 find a URL for the DOI, it will return `None`.
 
-### 3. Reading DOIs from a CSV file and retrieving the PDF URLs
+#### 3. Reading DOIs from a CSV file and retrieving the PDF URLs
 
 This example reads DOIs from a CSV file and uses the Crossref plugin to fetch a PDF URL for each DOI.
 
@@ -52,7 +80,7 @@ for doi in doi_list:
 
 The example file contains two DOIs. The plugin finds a URL for one of them but not for the other.
 
-### 4. Reading DOIs from a CSV file and retrieving the PDFs
+#### 4. Reading DOIs from a CSV file and retrieving the PDFs
 
 This example reads DOIs from a CSV file, uses the Crossref plugin to fetch a URL and tries to download the
 associated PDF.
@@ -76,7 +104,7 @@ for doi in doi_list:
 The example file contains two DOIs. The plugin finds a URL for one of them and manages to download a PDF from the URL.
 For the other DOI, no URL was found.
 
-### 5. Using multiple plugins for retrieving the PDFs
+#### 5. Using multiple plugins for retrieving the PDFs
 
 This example uses all plugins through a helper function `ddl.download` that attempts to download the PDFs.
 

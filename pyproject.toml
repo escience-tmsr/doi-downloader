@@ -43,6 +43,9 @@ examples = [
     "termcolor",
 ]
 
+[project.scripts]
+doi-downloader = "doi_downloader.cli:main"
+
 [dependency-groups]
 dev = [
     "coverage [toml]",
