@@ -24,7 +24,16 @@ make test
 
 ## Use
 
-### Simple example
+### Command line
+
+```bash
+doi-downloader 10.1038/s41586-020-2649-2 -o downloads
+doi-downloader --file dois.txt -o downloads   # one DOI per line
+```
+
+Run `doi-downloader --help` for all options, and see the [usage documentation](docs/usage.md) for details.
+
+### Python
 
 ```python
 from doi_downloader import doi_downloader as ddl

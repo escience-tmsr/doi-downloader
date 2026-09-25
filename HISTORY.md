@@ -4,6 +4,46 @@ Changelog
 
 (unreleased)
 ------------
+
+Fix
+~~~
+- Report unreadable DOI file as a usage error. [Claude Opus 5.5,
+  eriktks]
+
+  `doi-downloader -f missing.txt` crashed with a FileNotFoundError
+  traceback. Catch OSError when reading the DOI file and report it via
+  parser.error(), so a missing file, a directory or an unreadable file
+  gives a one-line message and exit code 2.
+- Use ASCII status markers in CLI output. [Claude Sonnet 5, eriktks]
+
+  Windows CI's default cp1252 console encoding can't encode the
+  ✓/✗ Unicode symbols, so print() raised UnicodeEncodeError and
+  failed 6 of the new CLI tests on tests_win. Swap them for plain
+  ASCII "OK"/"FAIL" markers, which work under any console encoding.
+
+Other
+~~~~~
+- [pre-commit.ci] auto fixes from pre-commit.com hooks. [pre-commit-
+  ci[bot]]
+
+  for more information, see https://pre-commit.ci
+- Feat: register doi-downloader as an installable console script.
+  [Claude Sonnet 5, eriktks]
+
+  Adds a [project.scripts] entry so `pip install .` (or -e .) puts
+  a doi-downloader command on PATH, wrapping doi_downloader.cli:main.
+- Feat: add CLI entry point for downloading PDFs by DOI. [Claude Sonnet
+  5, eriktks]
+
+  Adds an argparse-based `doi-downloader` command that wraps
+  download() for everyday single- or few-DOI use, accepting DOIs
+  directly or via a --file list, distinct from the benchmark CSV
+  batch runner.
+
+
+1.1.2 (2026-09-22)
+------------------
+- Release: version 1.1.2 🚀 [eriktks]
 - Merge pull request #73 from escience-tmsr/rename-pypi-package. [Erik
   Tjong Kim Sang]
 
