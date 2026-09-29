@@ -23,8 +23,29 @@ reason. The exit code is 0 when all downloads succeeded and 1 when at least one 
 - `--force`: download again, even if the file already exists
 - `--domain`: journal or domain name to record in the benchmark logs for every DOI
 - `--no-benchmark`: do not record this run in the benchmark logs
+- `--show-progress`: show a live progress table in a browser window, see below
 
 Run `doi-downloader --help` for the full list.
+
+#### Watching the progress
+
+With `--show-progress`, a browser window shows a table that is updated while the DOIs are processed: one row per
+DOI and plugin, with the result of each step. The window closes when the command ends; when the command runs in a
+terminal, it therefore waits for Enter first, so the final table can be read. In a script or pipeline it does not
+wait.
+
+```bash
+doi-downloader --file dois.txt -o downloads --show-progress
+```
+
+The window uses [Playwright](https://playwright.dev/python/)'s Chromium browser, which has to be installed once:
+
+```bash
+playwright install chromium
+```
+
+If the window cannot be opened, for example because Chromium is not installed, the command says so, with this
+hint, and stops with exit code 2 before downloading anything.
 
 ### From Python
 

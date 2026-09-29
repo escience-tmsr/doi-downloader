@@ -15,6 +15,14 @@ source .venv/bin/activate
 make install
 ```
 
+`make install` also installs the Chromium browser that [Playwright](https://playwright.dev/python/) uses for the live
+progress window (`--show-progress`). pip installs only Playwright's Python package, not its browsers, so when
+installing the package with pip in another way, install the browser once with:
+
+```bash
+playwright install chromium
+```
+
 ## Test
 
 ```bash
@@ -29,6 +37,7 @@ make test
 ```bash
 doi-downloader 10.1038/s41586-020-2649-2 -o downloads
 doi-downloader --file dois.txt -o downloads   # one DOI per line
+doi-downloader --file dois.txt -o downloads --show-progress   # live progress table in a browser window
 ```
 
 Run `doi-downloader --help` for all options, and see the [usage documentation](docs/usage.md) for details.

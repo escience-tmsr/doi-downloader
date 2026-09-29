@@ -11,6 +11,13 @@ import sys
 
 from doi_downloader.doi_downloader import download
 
+# Shown while the progress window waits for the first progress table.
+PROGRESS_WINDOW_START_HTML = "<p>doi-downloader is starting...</p>"
+PLAYWRIGHT_BROWSER_HINT = (
+    "The progress window needs Playwright's Chromium browser. If it is not installed, install it with:\n"
+    "    playwright install chromium"
+)
+
 
 def read_doi_file(path):
     """
@@ -24,6 +31,39 @@ def read_doi_file(path):
     """
     with open(path, "r", encoding="utf-8") as f:
         return [line.strip() for line in f if line.strip() and not line.startswith("#")]
+
+
+def open_progress_window():
+    """
+    Open the browser window with the live progress table before the first download, so
+    that a browser that cannot start is reported once, with a hint, instead of failing
+    every DOI.
+
+    Returns:
+        True if the window opened, False if it could not (the reason is printed).
+    """
+    from doi_downloader import progress_browser
+
+    try:
+        progress_browser.get_browser_view().update(PROGRESS_WINDOW_START_HTML)
+    except Exception as e:
+        print(f"Could not open the progress window: {e}", file=sys.stderr)
+        print(PLAYWRIGHT_BROWSER_HINT, file=sys.stderr)
+        return False
+    return True
+
+
+def wait_before_closing_progress_window():
+    """
+    Keep the progress window open until the user presses Enter, as it closes when the
+    command ends. Only in a terminal: a script or pipeline would wait forever.
+    """
+    if not sys.stdin.isatty():
+        return
+    try:
+        input("Press Enter to close the progress window...")
+    except (EOFError, KeyboardInterrupt):
+        pass
 
 
 def build_parser():
@@ -63,6 +103,11 @@ def build_parser():
         action="store_true",
         help="Disable performance tracking for this run.",
     )
+    parser.add_argument(
+        "--show-progress",
+        action="store_true",
+        help="Show a live progress table in a browser window (needs Playwright's Chromium browser).",
+    )
     return parser
 
 
@@ -74,7 +119,8 @@ def main(argv=None):
         argv: Argument list to parse (defaults to sys.argv[1:] via argparse).
 
     Returns:
-        0 if every DOI downloaded successfully, 1 if any DOI failed.
+        0 if every DOI downloaded successfully, 1 if any DOI failed, 2 if the progress
+        window could not be opened.
     """
     parser = build_parser()
     args = parser.parse_args(argv)
@@ -87,6 +133,8 @@ def main(argv=None):
             parser.error(f"cannot read DOI file {args.file}: {e.strerror}")
     if not dois:
         parser.error("no DOIs given: pass one or more DOIs, or --file <path>")
+    if args.show_progress and not open_progress_window():
+        return 2
 
     failures = 0
     for doi in dois:
@@ -97,6 +145,7 @@ def main(argv=None):
                 force_download=args.force,
                 journal_domain=args.domain,
                 enable_benchmark=not args.no_benchmark,
+                show_progress=args.show_progress,
             )
         except Exception as e:
             print(f"FAIL {doi}: {e}")
@@ -109,6 +158,8 @@ def main(argv=None):
             print(f"FAIL {doi}: no PDF found")
             failures += 1
 
+    if args.show_progress:
+        wait_before_closing_progress_window()
     return 1 if failures else 0
 
 

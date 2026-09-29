@@ -13,7 +13,7 @@ def test_get_url():
     doiorg_url = doiorg.DOIORG_URL.format(doi=TEST_DOI)
 
     data_object = ado.ArticleDataObject(None)
-    data_object.add_pdf_link(doiorg_url)
+    data_object.add_pdf_link(doiorg_url, doiorg_url)
     with patch.object(doiorg.DoiorgPlugin, "fetch_metadata", return_value=data_object):
         instance = doiorg.DoiorgPlugin()
         urls = instance.get_pdf_urls(TEST_DOI, cache_mode=CacheMode.REFRESH)
