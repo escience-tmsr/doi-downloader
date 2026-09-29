@@ -2,6 +2,7 @@
 
 [![github license badge](https://img.shields.io/github/license/escience-tmsr/doi-downloader)](https://github.com/escience-tmsr/doi-downloader)
 [![CI](https://github.com/escience-tmsr/doi-downloader/actions/workflows/main.yml/badge.svg)](https://github.com/escience-tmsr/doi-downloader/actions/workflows/main.yml)
+[![pre-commit.ci status](https://results.pre-commit.ci/badge/github/escience-tmsr/doi-downloader/main.svg)](https://results.pre-commit.ci/latest/github/escience-tmsr/doi-downloader/main)
 
 
 ## Install
@@ -23,7 +24,16 @@ make test
 
 ## Use
 
-### Simple example
+### Command line
+
+```bash
+doi-downloader 10.1038/s41586-020-2649-2 -o downloads
+doi-downloader --file dois.txt -o downloads   # one DOI per line
+```
+
+Run `doi-downloader --help` for all options, and see the [usage documentation](docs/usage.md) for details.
+
+### Python
 
 ```python
 from doi_downloader import doi_downloader as ddl

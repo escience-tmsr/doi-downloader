@@ -29,7 +29,7 @@ description = "Utility to download PDF files for scientific articles based on th
 keywords = ["doi","download","articles"]
 license = "Apache-2.0"
 license-files = ["LICENSE", "NOTICE"]
-name = "doi_downloader"
+name = "tmsr-doi-downloader"
 readme = {file = "README.md", content-type = "text/markdown"}
 requires-python = ">=3.11"
 dynamic = ["version"]
@@ -43,6 +43,9 @@ examples = [
     "termcolor",
 ]
 
+[project.scripts]
+doi-downloader = "doi_downloader.cli:main"
+
 [dependency-groups]
 dev = [
     "coverage [toml]",
@@ -51,7 +54,7 @@ dev = [
     "pytest",
     "pytest-cov",
     "pytest-dotenv",
-    "ruff==0.16.1",
+    "ruff==0.16.9",
 ]
 docs = [
     "mkdocs",
@@ -133,7 +136,7 @@ no-lines-before = ["future", "local-folder"]
 
 
 [tool.bumpversion]
-current_version = "1.0.0"
+current_version = "1.1.2"
 
 [[tool.bumpversion.files]]
 filename = "doi_downloader/VERSION"

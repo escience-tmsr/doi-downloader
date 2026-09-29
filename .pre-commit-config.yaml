@@ -32,14 +32,14 @@ repos:
     hooks:
       - id: validate-cff
   - repo: https://github.com/google/yamlfmt
-    rev: v0.17.2
+    rev: v0.21.0
     hooks:
       - id: yamlfmt
         args:
           - -formatter
           - "retain_line_breaks_single=true"
   - repo: https://github.com/adrienverge/yamllint
-    rev: v1.37.1
+    rev: v1.38.0
     hooks:
       - id: yamllint
         args:
@@ -56,7 +56,7 @@ repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
     # Ruff version. Keep in sync with the "ruff" pin in pyproject.toml's dev
     # dependency group, so pre-commit and CI enforce the exact same rules.
-    rev: v0.16.1
+    rev: v0.16.9
     hooks:
       # Run the linter.
       - id: ruff-check

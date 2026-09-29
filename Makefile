@@ -35,7 +35,7 @@ lint:             ## Run pep8, black, mypy linters.
 
 .PHONY: test
 test: lint        ## Run tests and generate coverage report.
-	set -e
+	@set -e
 	$(ENV_PREFIX)pytest -v --cov-config .coveragerc --cov=doi_downloader -l --tb=short --maxfail=1 tests/
 	$(ENV_PREFIX)coverage xml
 	$(ENV_PREFIX)coverage html
@@ -71,16 +71,19 @@ virtualenv:       ## Create a virtual environment.
 	@echo "!!! Please run 'source .venv/bin/activate' to enable the environment !!!"
 
 .PHONY: release
-release:          ## Create a new tag for release.
-	@echo "WARNING: This operation will create a version tag and push to github"
-	@read -p "Version? (provide the next x.y.z semver) : " TAG
-	@echo "$${TAG}" > doi_downloader/VERSION
+release:          ## Create a new tag for release (via bump-my-version).
+	@set -e
+	@echo "WARNING: This operation will bump the version, commit, tag and push to github"
+	@test "$(shell git rev-parse --abbrev-ref HEAD)" = "main" || (echo "Not on main branch!" && exit 1)
+	@git diff --exit-code --quiet || (echo "Uncommitted changes! Commit or stash first." && exit 1)
+	@read -p "Bump level? (patch / minor / major) : " LEVEL
+	@$(ENV_PREFIX)bump-my-version bump $${LEVEL}
 	@$(ENV_PREFIX)gitchangelog > HISTORY.md
-	@git add doi_downloader/VERSION HISTORY.md
-	@git commit -m "release: version $${TAG} 🚀"
-	@echo "creating git tag : $${TAG}"
-	@git tag $${TAG}
-	@git push -u origin HEAD --tags
+	@git add doi_downloader/VERSION pyproject.toml HISTORY.md
+	@git commit -m "release: version $$(cat doi_downloader/VERSION) 🚀"
+	@git tag $$(cat doi_downloader/VERSION)
+	@git push origin main
+	@git push origin $$(cat doi_downloader/VERSION)
 	@echo "Github Actions will detect the new tag and release the new version."
 
 .PHONY: docs
