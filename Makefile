@@ -20,10 +20,13 @@ show:             ## Show the current environment.
 	@$(ENV_PREFIX)python -V
 	@$(ENV_PREFIX)python -m site
 
+# Also installs the browser for the progress window (--show-progress): pip installs only
+# Playwright's Python package, not its browsers.
 .PHONY: install
 install:          ## Install the project in dev mode.
 	@echo "Don't forget to run 'make virtualenv' if you got errors."
 	$(ENV_PREFIX)pip install -e .[examples] --group dev --group docs --group publishing
+	$(ENV_PREFIX)python -m playwright install chromium
 
 .PHONY: fmt
 fmt:              ## Format code using black & isort.

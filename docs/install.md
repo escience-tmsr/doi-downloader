@@ -9,3 +9,11 @@ make virtualenv
 source .venv/bin/activate
 make install
 ```
+
+`make install` also installs the Chromium browser that [Playwright](https://playwright.dev/python/) uses for the live
+progress window (`--show-progress`). pip installs only Playwright's Python package, not its browsers, so when
+installing the package with pip in another way, install the browser once with:
+
+```bash
+playwright install chromium
+```
