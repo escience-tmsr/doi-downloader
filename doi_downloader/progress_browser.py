@@ -25,19 +25,38 @@ class BrowserView:
         self._browser = None
         self._page = None
         self._ready = threading.Event()
+        self._startup_error = None
 
     def _ensure_started(self):
         if self._thread is not None:
             return
+        self._startup_error = None
         self._thread = threading.Thread(target=self._run_loop, daemon=True)
         self._thread.start()
         self._ready.wait()
+        if self._startup_error is not None:
+            # Reset, so a later update() tries again instead of using a half-started view.
+            startup_error = self._startup_error
+            self._thread.join(timeout=5)
+            self._ready.clear()
+            self._loop = self._thread = self._browser = self._page = self._playwright = None
+            raise startup_error
         atexit.register(self.close)
 
     def _run_loop(self):
         self._loop = asyncio.new_event_loop()
         asyncio.set_event_loop(self._loop)
-        self._loop.run_until_complete(self._start())
+        try:
+            self._loop.run_until_complete(self._start())
+        except Exception as start_error:
+            # Hand the error to _ensure_started, which would otherwise wait forever for a
+            # browser that never starts, for example when Playwright's Chromium is not
+            # installed; and stop what did start.
+            self._startup_error = start_error
+            self._loop.run_until_complete(self._shutdown())
+            self._loop.close()
+            self._ready.set()
+            return
         self._ready.set()
         self._loop.run_forever()
 

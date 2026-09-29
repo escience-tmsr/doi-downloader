@@ -1,4 +1,5 @@
 import asyncio
+import threading
 
 import pytest
 
@@ -116,3 +117,35 @@ def test_get_browser_view_returns_a_process_wide_singleton(monkeypatch):
     second = progress_browser.get_browser_view()
     assert first is second
     assert isinstance(first, progress_browser.BrowserView)
+
+
+class FailingChromium:
+    """A Chromium that cannot start, as when Playwright's browser is not installed."""
+
+    async def launch(self, headless=None):
+        raise RuntimeError("Executable doesn't exist")
+
+
+def test_update_raises_instead_of_hanging_when_the_browser_cannot_start(monkeypatch):
+    playwright = FakePlaywright(FakeBrowser())
+    playwright.chromium = FailingChromium()
+    monkeypatch.setattr(progress_browser, "async_playwright", lambda: FakePlaywrightContextManager(playwright))
+    view = progress_browser.BrowserView()
+    update_errors = []
+
+    def update_in_thread():
+        try:
+            view.update("<html>x</html>")
+        except RuntimeError as e:
+            update_errors.append(e)
+
+    # In a thread, so the test fails instead of hanging if update() waits forever.
+    update_thread = threading.Thread(target=update_in_thread, daemon=True)
+    update_thread.start()
+    update_thread.join(timeout=5)
+    assert not update_thread.is_alive()
+    assert [str(e) for e in update_errors] == ["Executable doesn't exist"]
+    # What did start is stopped, and the view can try again later.
+    assert playwright.stopped
+    assert view._thread is None
+    assert view._loop is None
