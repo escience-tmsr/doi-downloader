@@ -1,39 +1,57 @@
 # doi-downloader
 
+[![PyPI Version](https://img.shields.io/pypi/v/tmsr-doi-downloader)][PyPI-url]
+[![docs](https://github.com/escience-tmsr/doi-downloader/actions/workflows/docs.yml/badge.svg)][docs-url]
 [![github license badge](https://img.shields.io/github/license/escience-tmsr/doi-downloader)](https://github.com/escience-tmsr/doi-downloader)
 [![CI](https://github.com/escience-tmsr/doi-downloader/actions/workflows/main.yml/badge.svg)](https://github.com/escience-tmsr/doi-downloader/actions/workflows/main.yml)
 [![pre-commit.ci status](https://results.pre-commit.ci/badge/github/escience-tmsr/doi-downloader/main.svg)](https://results.pre-commit.ci/latest/github/escience-tmsr/doi-downloader/main)
 
+DOI-downloader lets you download PDFs of scientific articles by providing the
+DOI. It can search in several places and will automatically follow any redirects
+needed to obtain the PDF.
 
-## Install
+## Usage
 
-```bash
-git clone git@github.com:escience-tmsr/doi_downloader.git
-cd doi_downloader
-make virtualenv
-source .venv/bin/activate
-make install
-```
-
-## Test
+Download an article by providing the DOI as an argument:
 
 ```bash
-make test
-
+doi-downloader 10.1038/s41586-020-2649-2
+doi-downloader 10.1038/s41586-020-2649-2 -o downloads  # specify output location
 ```
 
-## Use
-
-### Command line
+A list of DOIs in a plain text file can be passed in using `--file`:
 
 ```bash
-doi-downloader 10.1038/s41586-020-2649-2 -o downloads
-doi-downloader --file dois.txt -o downloads   # one DOI per line
+doi-downloader --file dois.txt  # one DOI per line
 ```
 
-Run `doi-downloader --help` for all options, and see the [usage documentation](docs/usage.md) for details.
+Run `doi-downloader --help` for all options, and see the [usage documentation] for details.
 
-### Python
+## Installation
+
+If you have [`uv`] on your system, you can directly run doi-downloader with:
+
+```bash
+uvx --from tmsr-doi-downloader doi-downloader 10.1038/s41586-020-2649-2
+```
+
+### Install as a command line tool
+
+For repeated usage, we recommend explicitly installing it as a command line tool
+using e.g. [`uv`] or [`pipx`].
+
+```bash
+uv tool install tmsr-doi-downloader
+# or
+pipx install tmsr-doi-downloader
+```
+
+Once installed, you can run `doi-downloader` as a command from your command line.
+
+### As a Python library
+
+To use doi-downloader as a Python library, you can install it with `pip` (or
+`uv pip`). Once installed, it is available to import
 
 ```python
 from doi_downloader import doi_downloader as ddl
@@ -43,6 +61,25 @@ ddl.download(doi, output_dir="downloads")
 ```
 
 Check [examples](./examples) for examples of how to use.
+
+## Developer instructions
+
+To contribute to doi-downloader, clone the repository and use the provided
+`make install` command.
+
+```bash
+git clone git@github.com:escience-tmsr/doi_downloader.git
+cd doi_downloader
+make virtualenv
+source .venv/bin/activate
+make install
+```
+
+Included tests can be run with:
+
+```bash
+make test
+```
 
 ## Adding new source adapters
 
@@ -72,4 +109,13 @@ After execution, the results are written to ``` benchmark/reports/top_performers
 
 ## Read the docs
 
-Check the documentaion at [https://escience-tmsr.github.io/doi-downloader/](https://escience-tmsr.github.io/doi-downloader/).
+Check the documentation at [https://escience-tmsr.github.io/doi-downloader][docs-url].
+
+
+<!-- References -->
+
+[PyPI-url]:             https://pypi.org/project/tmsr-doi-downloader/
+[docs-url]:             https://escience-tmsr.github.io/doi-downloader/
+[usage documentation]:  https://escience-tmsr.github.io/doi-downloader/usage/
+[`uv`]:                 https://docs.astral.sh/uv/
+[`pipx`]:               https://pipx.pypa.io/stable/
