@@ -23,6 +23,28 @@ Fix
 
 Other
 ~~~~~
+- Merge pull request #79 from escience-tmsr/pre-commit-ci-update-config.
+  [Sander van Rijn]
+
+  [pre-commit.ci] pre-commit autoupdate
+- [pre-commit.ci] pre-commit autoupdate. [pre-commit-ci[bot]]
+
+  updates:
+  - [github.com/astral-sh/ruff-pre-commit: v0.16.9 → v0.16.10](https://github.com/astral-sh/ruff-pre-commit/compare/v0.16.9...v0.16.10)
+- Merge pull request #74 from escience-tmsr/add-cli-command. [Erik Tjong
+  Kim Sang]
+
+  Add CLI. Thanks for the reviews Sander!
+- [pre-commit.ci] auto fixes from pre-commit.com hooks. [pre-commit-
+  ci[bot]]
+
+  for more information, see https://pre-commit.ci
+- Docs: document the doi-downloader CLI and update changelog. [Claude
+  Opus 5.5, eriktks]
+
+  Add a "Command line" section to docs/usage.md and a short example to
+  the README, and regenerate HISTORY.md with gitchangelog so the CLI
+  commits are listed under (unreleased).
 - [pre-commit.ci] auto fixes from pre-commit.com hooks. [pre-commit-
   ci[bot]]
 
@@ -39,6 +61,28 @@ Other
   download() for everyday single- or few-DOI use, accepting DOIs
   directly or via a --file list, distinct from the benchmark CSV
   batch runner.
+- Merge pull request #78 from escience-tmsr/pre-commit-ci-update-config.
+  [Sander van Rijn]
+
+  [pre-commit.ci] pre-commit autoupdate
+- [pre-commit.ci] auto fixes from pre-commit.com hooks. [pre-commit-
+  ci[bot]]
+
+  for more information, see https://pre-commit.ci
+- [pre-commit.ci] pre-commit autoupdate. [pre-commit-ci[bot]]
+
+  updates:
+  - [github.com/astral-sh/ruff-pre-commit: v0.16.8 → v0.16.9](https://github.com/astral-sh/ruff-pre-commit/compare/v0.16.8...v0.16.9)
+- Merge pull request #71 from escience-tmsr/pre-commit-ci-update-config.
+  [Erik Tjong Kim Sang]
+
+  [pre-commit.ci] pre-commit autoupdate: reviewed, approved and merged
+- [pre-commit.ci] pre-commit autoupdate. [pre-commit-ci[bot]]
+
+  updates:
+  - [github.com/google/yamlfmt: v0.17.2 → v0.21.0](https://github.com/google/yamlfmt/compare/v0.17.2...v0.21.0)
+  - [github.com/adrienverge/yamllint: v1.37.1 → v1.38.0](https://github.com/adrienverge/yamllint/compare/v1.37.1...v1.38.0)
+  - [github.com/astral-sh/ruff-pre-commit: v0.13.0 → v0.16.8](https://github.com/astral-sh/ruff-pre-commit/compare/v0.13.0...v0.16.8)
 
 
 1.1.2 (2026-09-22)
@@ -808,3 +852,5 @@ Other
   ...
 - ✅ Ready to clone and code. [recap]
 - Initial commit. [recap]
+
+
