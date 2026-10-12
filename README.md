@@ -68,8 +68,8 @@ To contribute to doi-downloader, clone the repository and use the provided
 `make install` command.
 
 ```bash
-git clone git@github.com:escience-tmsr/doi_downloader.git
-cd doi_downloader
+git clone git@github.com:escience-tmsr/doi-downloader.git
+cd doi-downloader
 make virtualenv
 source .venv/bin/activate
 make install
