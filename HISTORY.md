@@ -4,6 +4,17 @@ Changelog
 
 (unreleased)
 ------------
+- Merge pull request #80 from escience-tmsr/75-update-readme. [Sander
+  van Rijn]
+
+  Add package installation based instructions + badges
+- Update README.md. [Erik Tjong Kim Sang, Sander van Rijn]
+- Add package installation based instructions + badges. [Sander van
+  Rijn]
+
+
+1.1.3 (2026-10-12)
+------------------
 
 Fix
 ~~~
@@ -23,6 +34,7 @@ Fix
 
 Other
 ~~~~~
+- Release: version 1.1.3. [eriktks]
 - Merge pull request #79 from escience-tmsr/pre-commit-ci-update-config.
   [Sander van Rijn]
 
@@ -852,5 +864,3 @@ Other
   ...
 - ✅ Ready to clone and code. [recap]
 - Initial commit. [recap]
-
-
