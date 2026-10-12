@@ -21,5 +21,6 @@ authors:
     orcid: https://orcid.org/0000-0001-5666-1658
 repository-code: https://github.com/escience-tmsr/doi-downloader
 license: Apache-2.0
+doi: 10.5281/zenodo.23320566
 version: 1.2.0
 date-released: 2026-10-12
