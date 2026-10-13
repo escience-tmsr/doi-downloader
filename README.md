@@ -5,6 +5,7 @@
 [![github license badge](https://img.shields.io/github/license/escience-tmsr/doi-downloader)](https://github.com/escience-tmsr/doi-downloader)
 [![CI](https://github.com/escience-tmsr/doi-downloader/actions/workflows/main.yml/badge.svg)](https://github.com/escience-tmsr/doi-downloader/actions/workflows/main.yml)
 [![pre-commit.ci status](https://results.pre-commit.ci/badge/github/escience-tmsr/doi-downloader/main.svg)](https://results.pre-commit.ci/latest/github/escience-tmsr/doi-downloader/main)
+[![DOI](https://zenodo.org/badge/861834252.svg)](https://doi.org/10.5281/zenodo.23320565)
 
 DOI-downloader lets you download PDFs of scientific articles by providing the
 DOI. It can search in several places and will automatically follow any redirects
